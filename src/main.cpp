@@ -10,8 +10,8 @@ static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-static void GLCheckError(){
-    while(GLenum error = glGetError()){
+static void GLCheckError() {
+    while (GLenum error = glGetError()) {
         std::cout << "[OpenGL Error]: " << error << std::endl;
     }
 }
@@ -26,7 +26,7 @@ static bool GLlogCall(const char *function, const char *file, int line) {
 }
 
 
-int main(void) {
+int main() {
     GLFWwindow *window;
 
     /* Initialize the library */
@@ -35,7 +35,7 @@ int main(void) {
 
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(640, 480, "Hello World", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -65,22 +65,24 @@ int main(void) {
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), position, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
 
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
 
     shader.compile();
-
+    shader.use();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
-        shader.use();
+
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         GLCheckError();
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

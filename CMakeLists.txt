@@ -5,10 +5,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 message(CMAKE_MODULE_PATH " ${CMAKE_MODULE_PATH}")
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g -std=c++11 ")
 
-#GLFW
-find_package(glfw3 REQUIRED)
-message(STATUS "Found GLFW3 in ${GLFW_INCLUDE_DIR}")
-include_directories(${GLFW3_INCLUDE_DIR})
 
 
 add_executable(RayTracerBoros src/main.cpp src/Shader.cpp src/Shader.h src/shader2.cpp src/shader2.h)

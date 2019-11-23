@@ -26,7 +26,7 @@ void Shader::compile() {
 
     unsigned int vertex, fragment;
     int success = 1;
-    GLchar *info;
+    GLchar *info = new GLchar;
 
     //----------------------------------------------------------------------------------
     //for vertex shader
@@ -35,6 +35,8 @@ void Shader::compile() {
     glCompileShader(vertex);
 
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    cout << "success: " << success << endl;
+
     glGetShaderInfoLog(vertex, 600, NULL, info);
 
     cout << "info: " << info << endl;
@@ -46,6 +48,8 @@ void Shader::compile() {
     glCompileShader(fragment);
 
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    cout << "success: " << success << endl;
+
     glGetShaderInfoLog(fragment, 400, NULL, info);
 
     cout << "info: " << info << endl;
