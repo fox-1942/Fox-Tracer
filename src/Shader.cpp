@@ -9,15 +9,12 @@
 
 using namespace std;
 
-
-
 Shader::Shader(const GLchar *VS_Path, const GLchar *FS_Path) {
     cout << "VS_Path: " << VS_Path << endl;
     cout << "FS_Path: " << FS_Path << endl;
 
     vertex_shader_code = loader(VS_Path);
     fragment_shader_code = loader(FS_Path);
-
 }
 
 void Shader::compile() {
