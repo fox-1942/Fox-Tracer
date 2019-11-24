@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <string>
-
 #include "Shader.h"
 
 
@@ -44,6 +43,8 @@ int main() {
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    glfwSwapInterval(5);
+
     const GLenum err = glewInit();
     if (GLEW_OK != err) {
         std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
@@ -84,22 +85,38 @@ int main() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-
-
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
     shader.compile();
     shader.use();
 
+    int location = glGetUniformLocation(shader.ID, "u_Color");
+    //glUniform4f(location, 0.2f,0.5f,0.7f,0.7f); //calling the location and setting the data
+
+    GLfloat r = 0.0f;
+    GLfloat increment;
+
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
-
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+
+        glUniform4f(location, 0.2f, 0.5f, r, 0.5f);
+
+
         // glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        GLCheckError();
+
+        if (r > 1.0f) {
+            increment = -0.05f;
+        } else if (r <= 0.0f) {
+            increment = 0.05f;
+        }
+
+        r += increment;
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
@@ -108,7 +125,5 @@ int main() {
     }
 
     glfwTerminate();
-
     return 0;
-
 }
