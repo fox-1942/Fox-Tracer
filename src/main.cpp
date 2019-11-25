@@ -3,7 +3,8 @@
 #include <iostream>
 #include <string>
 #include "Shader.h"
-
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -76,21 +77,26 @@ int main() {
     glBindVertexArray(vao);
 
     // vertex buffer
-    unsigned int buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), position, GL_STATIC_DRAW);
+    /* unsigned int buffer;
+       glGenBuffers(1, &buffer);
+       glBindBuffer(GL_ARRAY_BUFFER, buffer);
+       glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), position, GL_STATIC_DRAW);*/
+
+    VertexBuffer vb(position, 4 * 2 * sizeof(float));
 
     // position attribute
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-    // index buffer
-    unsigned int indexBuffer;
-    glGenBuffers(1, &indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    IndexBuffer ib(indices, 6);
 
+
+    // index buffer
+    /*unsigned int indexBuffer;
+      glGenBuffers(1, &indexBuffer);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+      */
 
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
     shader.compile();
@@ -123,8 +129,9 @@ int main() {
         // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
         glBindVertexArray(vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+        ib.Bind();
 
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
         // glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);

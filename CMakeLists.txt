@@ -6,7 +6,17 @@ message(CMAKE_MODULE_PATH " ${CMAKE_MODULE_PATH}")
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g -std=c++11 ")
 
 
-add_executable(RayTracerBoros src/main.cpp src/Shader.cpp src/Shader.h)
+add_executable(RayTracerBoros
+        src/main.cpp
+        src/Shader.cpp
+        src/Shader.h
+        src/VertexBuffer.cpp
+        src/VertexBuffer.h
+        src/Renderer.cpp
+        src/Renderer.h
+        src/IndexBuffer.cpp
+        src/IndexBuffer.h
+        )
 target_link_libraries(RayTracerBoros GL glfw GLEW)
 
 
