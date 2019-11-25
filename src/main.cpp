@@ -32,6 +32,9 @@ int main() {
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", nullptr, nullptr);
@@ -66,6 +69,13 @@ int main() {
             2, 3, 0
     };
 
+
+    // defining vertex array object
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // vertex buffer
     unsigned int buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -75,35 +85,45 @@ int main() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-    //**********************************************************************************
+    // index buffer
     unsigned int indexBuffer;
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
-    // position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
     shader.compile();
     shader.use();
 
+
     int location = glGetUniformLocation(shader.ID, "u_Color");
     //glUniform4f(location, 0.2f,0.5f,0.7f,0.7f); //calling the location and setting the data
+
+    glUseProgram(0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 
     GLfloat r = 0.0f;
     GLfloat increment;
 
-
-    /* Loop until the user closes the window */
+    /*  Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-
+        glUseProgram(shader.ID);
         glUniform4f(location, 0.2f, 0.5f, r, 0.5f);
+
+        // glBindBuffer(GL_ARRAY_BUFFER,buffer);
+        // glEnableVertexAttribArray(0);
+        // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 
         // glDrawArrays(GL_TRIANGLES, 0, 6);
