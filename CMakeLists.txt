@@ -16,7 +16,7 @@ add_executable(RayTracerBoros
         src/Renderer.h
         src/IndexBuffer.cpp
         src/IndexBuffer.h
-        )
+        src/VertexArray.cpp src/VertexArray.h src/VertexBufferLayout.h)
 target_link_libraries(RayTracerBoros GL glfw GLEW)
 
 
