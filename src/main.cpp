@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Renderer.h"
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -33,8 +34,8 @@ int main() {
     if (!glfwInit())
         return -1;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
@@ -58,7 +59,7 @@ int main() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    float position[8] = {
+    float positions[8] = {
             -0.5f, -0.5f,
             0.5f, -0.5f,
             0.5f, 0.5f,
@@ -72,24 +73,23 @@ int main() {
 
 
     // defining vertex array object
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    //unsigned int vao;
+
+    // glGenVertexArrays(1, &vao);
+    // glBindVertexArray(vao);
 
     // vertex buffer
     /* unsigned int buffer;
        glGenBuffers(1, &buffer);
        glBindBuffer(GL_ARRAY_BUFFER, buffer);
-       glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), position, GL_STATIC_DRAW);*/
+       glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), positions, GL_STATIC_DRAW);*/
 
-    VertexBuffer vb(position, 4 * 2 * sizeof(float));
 
-    // position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    // positions attribute
 
-    IndexBuffer ib(indices, 6);
+    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
+    //glEnableVertexAttribArray(0);
 
     // index buffer
     /*unsigned int indexBuffer;
@@ -98,43 +98,66 @@ int main() {
       glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
       */
 
+
+    VertexArray va;
+    VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+
+    VertexBufferLayout layout;
+    layout.AddFloat(2);
+
+    va.AddBuffer(vb, layout);
+
+    IndexBuffer ib(indices, 6);
+
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
-    shader.compile();
+    shader.CompileShader();
     shader.use();
 
+    Renderer renderer;
 
-    int location = glGetUniformLocation(shader.ID, "u_Color");
+    // int location = glGetUniformLocation(shader.ID, "u_Color");
+
     //glUniform4f(location, 0.2f,0.5f,0.7f,0.7f); //calling the location and setting the data
 
-    glUseProgram(0);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    /* glUseProgram(0);
+     glBindVertexArray(0);
+     glBindBuffer(GL_ARRAY_BUFFER, 0);
+     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
 
-
+    int location = glGetUniformLocation(shader.ID, "u_Color");
     GLfloat r = 0.0f;
     GLfloat increment;
-
     /*  Loop until the user closes the window */
+
+
+
+    std::cout << "sdsdsd" << va.m_RendererID << std::endl;
     while (!glfwWindowShouldClose(window)) {
 
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shader.ID);
-        glUniform4f(location, 0.2f, 0.5f, r, 0.5f);
+        // glUseProgram(shader.ID);
+
 
         // glBindBuffer(GL_ARRAY_BUFFER,buffer);
         // glEnableVertexAttribArray(0);
         // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-        glBindVertexArray(vao);
-        ib.Bind();
+        //ib.Bind();
 
         //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
         // glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        //glBindVertexArray(vao);
+
+        //shader.SetUniform4f("u_Color", red, 0.3, 0.8, 1.0);
+
+
+        glUniform4f(location, 0.2f, 0.5f, r, 0.7f); //calling the location and setting the data
+        renderer.Draw(va, ib, shader);
 
         if (r > 1.0f) {
             increment = -0.05f;
@@ -150,7 +173,6 @@ int main() {
         /* Poll for and process events */
         glfwPollEvents();
     }
-
     glfwTerminate();
     return 0;
 }
