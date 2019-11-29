@@ -7,6 +7,10 @@
 #include "IndexBuffer.h"
 #include "Renderer.h"
 
+#include "../Vendor/stb_image/stb_image.h"
+#include "Texture.h"
+
+
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
@@ -59,11 +63,11 @@ int main() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    float positions[8] = {
-            -0.5f, -0.5f,
-            0.5f, -0.5f,
-            0.5f, 0.5f,
-            -0.5f, 0.5f
+    float positions[] = {
+            -0.5f, -0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, 0.0f, 1.0f
     };
 
     unsigned int indices[6] = {
@@ -100,9 +104,10 @@ int main() {
 
 
     VertexArray va;
-    VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+    VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
     VertexBufferLayout layout;
+    layout.AddFloat(2);
     layout.AddFloat(2);
 
     va.AddBuffer(vb, layout);
@@ -112,6 +117,10 @@ int main() {
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
     shader.CompileShader();
     shader.use();
+
+    Texture texture("../textures/image.png");
+    texture.Bind(0);
+    shader.setUniform1i("u_Texture", 0);
 
     Renderer renderer;
 
@@ -130,8 +139,6 @@ int main() {
     /*  Loop until the user closes the window */
 
 
-
-    std::cout << "sdsdsd" << va.m_RendererID << std::endl;
     while (!glfwWindowShouldClose(window)) {
 
         /* Render here */

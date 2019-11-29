@@ -36,6 +36,8 @@ public:
 
     std::string loader(const GLchar *path);
 
+    void setUniform1i(const std::string &name, int v0);
+
 private:
     unsigned int GetUniformLocation(const std::string &name);
 
@@ -44,6 +46,8 @@ private:
     void Bind() const;
 
     void Unbind();
+
+
 };
 
 #endif //OPENGL_SHADER_H
