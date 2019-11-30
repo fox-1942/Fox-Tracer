@@ -12,6 +12,7 @@
 #include <sstream>
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+#include "../Vendor/glm/detail/type_mat4x4.hpp"
 
 class Shader {
 
@@ -37,6 +38,8 @@ public:
     std::string loader(const GLchar *path);
 
     void setUniform1i(const std::string &name, int v0);
+
+    void setUniformMat4f(const std::string &name, glm::mat4 &matrix);
 
 private:
     unsigned int GetUniformLocation(const std::string &name);

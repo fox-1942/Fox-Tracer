@@ -1,7 +1,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <string>
 #include "Shader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -9,6 +8,8 @@
 
 #include "../Vendor/stb_image/stb_image.h"
 #include "Texture.h"
+#include "../Vendor/glm/glm.hpp"
+#include "../Vendor/glm/gtc/matrix_transform.hpp"
 
 
 static void GLClearError() {
@@ -76,6 +77,9 @@ int main() {
     };
 
 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
     // defining vertex array object
     //unsigned int vao;
 
@@ -103,6 +107,7 @@ int main() {
       */
 
 
+
     VertexArray va;
     VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
@@ -114,9 +119,14 @@ int main() {
 
     IndexBuffer ib(indices, 6);
 
+    glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
     shader.CompileShader();
     shader.use();
+
+    shader.setUniformMat4f("u_MVP", proj);
+
 
     Texture texture("../textures/image.png");
     texture.Bind(0);

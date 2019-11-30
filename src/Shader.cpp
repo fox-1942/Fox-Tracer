@@ -114,5 +114,16 @@ void Shader::setUniform4f(const std::string &name, float v0, float v1, float v2,
 
 int Shader::getUniformLocation(const std::string &name) {
     int location = glGetUniformLocation(ID, name.c_str());
+    return location;
+}
 
+void Shader::setUniformMat4f(const std::string &name, glm::mat4 &matrix) {
+    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
+
+    /*
+    setUniformMat4f last parameter: value
+
+    For the vector and matrix commands, specifies a pointer to an array of count values
+    that will be used to update the specified uniform variable.
+     */
 }
