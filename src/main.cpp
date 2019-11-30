@@ -44,7 +44,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", nullptr, nullptr);
+    window = glfwCreateWindow(960, 540, "Hello World", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -65,10 +65,10 @@ int main() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
     float positions[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, 0.0f, 1.0f
+            100.0f, 100.0f, 0.0f, 0.0f, // 0
+            200.0f, 100.0f, 1.0f, 0.0f, // 1
+            200.0f, 200.0f, 1.0f, 1.0f, // 2
+            100.0f, 200.0f, 0.0f, 1.0f  // 3
     };
 
     unsigned int indices[6] = {
@@ -106,8 +106,6 @@ int main() {
       glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
       */
 
-
-
     VertexArray va;
     VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
@@ -119,13 +117,19 @@ int main() {
 
     IndexBuffer ib(indices, 6);
 
-    glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+    //MVP MVP MVP MVP MVP MVP MVP MVP MVP
+
+    glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(100, 0, 0));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100, 0));
+    
+    glm::mat4 u_MVP = proj * view * model;
 
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
     shader.CompileShader();
     shader.use();
 
-    shader.setUniformMat4f("u_MVP", proj);
+    shader.setUniformMat4f("u_MVP", u_MVP);
 
 
     Texture texture("../textures/image.png");
