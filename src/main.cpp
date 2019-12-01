@@ -5,11 +5,13 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Renderer.h"
+#include "../includes/camera.h"
+#include "../includes/model.h"
+#include "../includes/mesh.h"
 
 #include "../Vendor/stb_image/stb_image.h"
 #include "Texture.h"
-#include "../Vendor/glm/glm.hpp"
-#include "../Vendor/glm/gtc/matrix_transform.hpp"
+
 
 
 static void GLClearError() {
@@ -117,24 +119,13 @@ int main() {
 
     IndexBuffer ib(indices, 6);
 
+    Camera camera(glm::vec3(0.0f, 10.0f, 0.0f)); //Creating camera
+
+    const unsigned int SCR_WIDTH = 1280;
+    const unsigned int SCR_HEIGHT = 720;
+
     //MVP MVP MVP MVP MVP MVP MVP MVP MVP
 
-    glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(100, 0, 0));
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100, 0));
-
-    glm::mat4 u_MVP = proj * view * model;
-
-    Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
-    shader.CompileShader();
-    shader.use();
-
-    shader.setUniformMat4f("u_MVP", u_MVP);
-
-
-    Texture texture("../textures/image.png");
-    texture.Bind(0);
-    shader.setUniform1i("u_Texture", 0);
 
     Renderer renderer;
 
@@ -147,34 +138,40 @@ int main() {
      glBindBuffer(GL_ARRAY_BUFFER, 0);
      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
 
+    Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
+
     int location = glGetUniformLocation(shader.ID, "u_Color");
     GLfloat r = 0.0f;
     GLfloat increment;
     /*  Loop until the user closes the window */
 
 
+
     while (!glfwWindowShouldClose(window)) {
 
-        /* Render here */
-        //glClear(GL_COLOR_BUFFER_BIT);
 
-        // glUseProgram(shader.ID);
+        shader.CompileShader();
+        shader.use();
+
+        glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
+                                          50.0f);
+
+        glm::mat4 view = camera.GetViewMatrix();
+
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100, 0));
+
+        glm::mat4 u_MVP = proj * view * model;
+
+        shader.setUniformMat4f("u_MVP", u_MVP);
+
+        // The background around the model
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
 
 
-        // glBindBuffer(GL_ARRAY_BUFFER,buffer);
-        // glEnableVertexAttribArray(0);
-        // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-        //ib.Bind();
-
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-        // glDrawArrays(GL_TRIANGLES, 0, 6);
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-        //glBindVertexArray(vao);
-
-        //shader.SetUniform4f("u_Color", red, 0.3, 0.8, 1.0);
+        Texture texture("../textures/image.png");
+        texture.Bind(0);
+        shader.setUniform1i("u_Texture", 0);
 
 
         glUniform4f(location, 0.2f, 0.5f, r, 0.7f); //calling the location and setting the data

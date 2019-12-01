@@ -6,11 +6,15 @@
 #define OPENGL_TEXTURE_H
 
 #include "Renderer.h"
+#include <string>
 
 class Texture {
-private:
+public:
+    Texture();
 
     unsigned int m_RendererID;
+    std::string path;
+    std::string type;
     std::string m_FilePath;
     unsigned char *m_LocalBuffer;
     int m_Width, m_Height, m_BPP;
