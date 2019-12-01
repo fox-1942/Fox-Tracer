@@ -5,6 +5,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 message(CMAKE_MODULE_PATH " ${CMAKE_MODULE_PATH}")
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g -std=c++11 ")
 
+configure_file(includes/root_directory.h.in includes/root_directory.h)
+
+
+find_package(ASSIMP REQUIRED)
+message(STATUS "Found ASSIMP in ${ASSIMP_LIBRARY_DIR}")
+
+
 #GLEW
 find_package(GLEW REQUIRED)
 message(STATUS "Found GLEW in ${GLEW_INCLUDE_DIR}")
@@ -19,8 +26,10 @@ add_executable(RayTracerBoros
         src/Renderer.h
         src/IndexBuffer.cpp
         src/IndexBuffer.h
-        src/VertexArray.cpp src/VertexArray.h src/VertexBufferLayout.h Vendor/stb_image/stb_image.h Vendor/stb_image/stb_image.cpp src/Texture.cpp src/Texture.h)
-target_link_libraries(RayTracerBoros GL glfw GLEW )
+        src/VertexArray.cpp src/VertexArray.h src/VertexBufferLayout.h Vendor/stb_image/stb_image.h Vendor/stb_image/stb_image.cpp src/Texture.cpp src/Texture.h includes/filesystem.h includes/root_directory.h)
+target_link_libraries(RayTracerBoros GL glfw GLEW assimp)
+
+
 
 
 #-----------------------------------------------------------------------------------------------------------------------

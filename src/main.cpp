@@ -1,18 +1,40 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "../Vendor/glm/glm.hpp"
+#include "../Vendor/glm/gtc/matrix_transform.hpp"
+#include "../Vendor/glm/gtc/type_ptr.hpp"
+
 #include <iostream>
 #include "Shader.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
 #include "Renderer.h"
 #include "../includes/camera.h"
 #include "../includes/model.h"
-#include "../includes/mesh.h"
 
 #include "../Vendor/stb_image/stb_image.h"
-#include "Texture.h"
+
+#include "../includes/filesystem.h"
 
 
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+
+void processInput(GLFWwindow *window);
+
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+// timing
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -54,8 +76,13 @@ int main() {
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSwapInterval(5);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+    //glfwSwapInterval(5);
 
     const GLenum err = glewInit();
     if (GLEW_OK != err) {
@@ -66,6 +93,13 @@ int main() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
+    glEnable(GL_DEPTH_TEST);
+
+    Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
+
+    Model mymodel(FileSystem::getPath("/home/fox-1942/Downloads/doom/source/MAP01/doom2_MAP01.obj"));
+
+/*
     float positions[] = {
             100.0f, 100.0f, 0.0f, 0.0f, // 0
             200.0f, 100.0f, 1.0f, 0.0f, // 1
@@ -77,38 +111,8 @@ int main() {
             0, 1, 2,
             2, 3, 0
     };
-
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-
-    // defining vertex array object
-    //unsigned int vao;
-
-    // glGenVertexArrays(1, &vao);
-    // glBindVertexArray(vao);
-
-    // vertex buffer
-    /* unsigned int buffer;
-       glGenBuffers(1, &buffer);
-       glBindBuffer(GL_ARRAY_BUFFER, buffer);
-       glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), positions, GL_STATIC_DRAW);*/
-
-
-    // positions attribute
-
-    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-    //glEnableVertexAttribArray(0);
-
-    // index buffer
-    /*unsigned int indexBuffer;
-      glGenBuffers(1, &indexBuffer);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-      */
-
-    VertexArray va;
+*/
+    /*VertexArray va;
     VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
     VertexBufferLayout layout;
@@ -118,72 +122,55 @@ int main() {
     va.AddBuffer(vb, layout);
 
     IndexBuffer ib(indices, 6);
-
-    Camera camera(glm::vec3(0.0f, 10.0f, 0.0f)); //Creating camera
-
-    const unsigned int SCR_WIDTH = 1280;
-    const unsigned int SCR_HEIGHT = 720;
-
-    //MVP MVP MVP MVP MVP MVP MVP MVP MVP
-
+    */
 
     Renderer renderer;
 
-    // int location = glGetUniformLocation(shader.ID, "u_Color");
-
-    //glUniform4f(location, 0.2f,0.5f,0.7f,0.7f); //calling the location and setting the data
-
-    /* glUseProgram(0);
-     glBindVertexArray(0);
-     glBindBuffer(GL_ARRAY_BUFFER, 0);
-     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
-
-    Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
-
-    int location = glGetUniformLocation(shader.ID, "u_Color");
-    GLfloat r = 0.0f;
-    GLfloat increment;
-    /*  Loop until the user closes the window */
-
-
-
     while (!glfwWindowShouldClose(window)) {
 
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processInput(window);
+
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.CompileShader();
         shader.use();
 
+        // view/projection transformations
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
+                                                100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+
+
+        // render the loaded model
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model,
+                               glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));    // it's a bit too big for our scene, so scale it down
+
+        glm::mat4 u_MVP = view * projection * model;
+        shader.setUniformMat4f("u_MVP", u_MVP);
+
+
         glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
                                           50.0f);
 
-        glm::mat4 view = camera.GetViewMatrix();
+        mymodel.Draw(shader);
 
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100, 0));
-
-        glm::mat4 u_MVP = proj * view * model;
-
-        shader.setUniformMat4f("u_MVP", u_MVP);
 
         // The background around the model
-        model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
+        //model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0f, 0.0f));
+        //model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
 
-
+/*
         Texture texture("../textures/image.png");
         texture.Bind(0);
         shader.setUniform1i("u_Texture", 0);
-
-
-        glUniform4f(location, 0.2f, 0.5f, r, 0.7f); //calling the location and setting the data
-        renderer.Draw(va, ib, shader);
-
-        if (r > 1.0f) {
-            increment = -0.05f;
-        } else if (r <= 0.0f) {
-            increment = 0.05f;
-        }
-
-        r += increment;
+*/
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -193,4 +180,58 @@ int main() {
     }
     glfwTerminate();
     return 0;
+}
+
+
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// ---------------------------------------------------------------------------------------------------------
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+}
+
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(yoffset);
 }
