@@ -96,7 +96,7 @@ int main() {
 
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
 
-    Model mymodel(FileSystem::getPath("resources/tree.obj"));
+    Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
 
     // draw in wireframe
@@ -137,8 +137,8 @@ int main() {
         lastFrame = currentFrame;
 
         processInput(window);
-
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glEnable(GL_TEXTURE_2D);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.CompileShader();
@@ -151,10 +151,10 @@ int main() {
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));    // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
 
-        glm::mat4 u_MVP =  projection  * view*model ;
+        glm::mat4 u_MVP =  projection  * view * model ;
         shader.setUniformMat4f("u_MVP", u_MVP);
 
         mymodel.Draw(shader);

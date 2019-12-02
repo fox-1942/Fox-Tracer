@@ -27,7 +27,7 @@ add_executable(RayTracerBoros
         src/IndexBuffer.cpp
         src/IndexBuffer.h
         src/VertexArray.cpp src/VertexArray.h src/VertexBufferLayout.h Vendor/stb_image/stb_image.h Vendor/stb_image/stb_image.cpp src/Texture.cpp src/Texture.h includes/filesystem.h includes/root_directory.h)
-target_link_libraries(RayTracerBoros GL glfw GLEW assimp)
+target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)
 
 
 
