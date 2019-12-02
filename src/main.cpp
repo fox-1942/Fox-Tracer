@@ -3,7 +3,6 @@
 
 #include "../Vendor/glm/glm.hpp"
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
-#include "../Vendor/glm/gtc/type_ptr.hpp"
 
 #include <iostream>
 #include "Shader.h"
@@ -27,9 +26,9 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+Camera camera(glm::vec3(0.0f, -4.0f, 3.0f));
+float lastX ;
+float lastY ;
 bool firstMouse = true;
 
 // timing
@@ -68,7 +67,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(960, 540, "Hello World", nullptr, nullptr);
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hello World", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -93,11 +92,16 @@ int main() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
 
     Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
 
-    Model mymodel(FileSystem::getPath("/home/fox-1942/Downloads/doom/source/MAP01/doom2_MAP01.obj"));
+    Model mymodel(FileSystem::getPath("resources/tree.obj"));
+
+
+    // draw in wireframe
+   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 
 /*
     float positions[] = {
@@ -145,19 +149,13 @@ int main() {
                                                 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::translate(model,glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));    // it's a bit too big for our scene, so scale it down
 
-        glm::mat4 u_MVP = view * projection * model;
+        glm::mat4 u_MVP =  projection  * view*model ;
         shader.setUniformMat4f("u_MVP", u_MVP);
-
-
-        glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                          50.0f);
 
         mymodel.Draw(shader);
 
