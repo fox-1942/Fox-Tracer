@@ -17,15 +17,17 @@
 class Shader {
 
 public:
-    unsigned int ID;
 
-    Shader(const GLchar *VS_Path, const GLchar *FS_Path); // érték vagy referencia szerint adjam át?
+  unsigned int ID;
+
+    Shader(const GLchar *VS_Path, const GLchar *FS_Path,const GLchar *COMPS_Path); // érték vagy referencia szerint adjam át?
     ~Shader();
 
     void setUniform4f(const std::string &name, float v0, float v1, float f2, float f3);
 
     std::string fragment_shader_code;
     std::string vertex_shader_code;
+    std::string compute_shader_code;
 
     void use() const;
 

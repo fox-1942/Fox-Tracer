@@ -10,9 +10,8 @@
 #include "../includes/camera.h"
 #include "../includes/model.h"
 
-#include "../Vendor/stb_image/stb_image.h"
-
 #include "../includes/filesystem.h"
+
 
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -67,7 +66,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hello World", nullptr, nullptr);
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "RaytracerBoros", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -94,7 +93,7 @@ int main() {
 
     //glEnable(GL_DEPTH_TEST);
 
-    Shader shader = Shader("../Shaders/shader.vs", "../Shaders/shader.fs");
+    Shader shader = Shader("../Shaders/shader.vs","../Shaders/shader.fs","../Shaders/compute.sh");
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
@@ -144,6 +143,9 @@ int main() {
         shader.CompileShader();
         shader.use();
 
+
+
+
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
                                                 100.0f);
@@ -151,8 +153,8 @@ int main() {
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
 
         glm::mat4 u_MVP =  projection  * view * model ;
         shader.setUniformMat4f("u_MVP", u_MVP);

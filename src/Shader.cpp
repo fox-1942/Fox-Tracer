@@ -9,12 +9,14 @@
 
 using namespace std;
 
-Shader::Shader(const GLchar *VS_Path, const GLchar *FS_Path) {
+Shader::Shader(const GLchar *VS_Path, const GLchar *FS_Path,const GLchar *COMPS_Path) {
     cout << "VS_Path: " << VS_Path << endl;
     cout << "FS_Path: " << FS_Path << endl;
+    cout << "COMPS_Path: " << COMPS_Path << endl;
 
     vertex_shader_code = loader(VS_Path);
     fragment_shader_code = loader(FS_Path);
+    compute_shader_code= loader(COMPS_Path);
     this->ID = 0;
 }
 
@@ -23,7 +25,7 @@ Shader::~Shader() {}
 void Shader::CompileShader() {
     std::cout << "" << std::endl;
 
-    unsigned int vertex, fragment;
+    unsigned int vertex, fragment, compute;
     int success = 1;
     GLchar *info = new GLchar;
 
@@ -53,10 +55,24 @@ void Shader::CompileShader() {
 
     cout << "info: " << info << endl;
 
+    //------------------------------------------------------------------------------------
+    //for compute shader
+    compute = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(compute, 1, reinterpret_cast<const GLchar *const *>(&compute_shader_code), NULL);
+    glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
+    cout << "success: " << success << endl;
+    glGetShaderInfoLog(compute, 400, NULL, info);
+
+    cout << "info: " << info << endl;
+
+
+
+
     //for shader program
     ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
+    glAttachShader(ID, compute);
     glLinkProgram(ID);
 
     glGetProgramiv(ID, GL_LINK_STATUS, &success);
@@ -67,11 +83,13 @@ void Shader::CompileShader() {
     }
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+    glDeleteShader(compute);
 }
 
 void Shader::print_shader_codes() const {
     cout << "Fragment shader code:\n" << fragment_shader_code << endl;
     cout << "Vertex shader code:\n" << vertex_shader_code << endl;
+    cout << "Compute shader code:\n" << compute_shader_code << endl;
 }
 
 void Shader::use() const {
