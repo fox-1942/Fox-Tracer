@@ -93,7 +93,7 @@ int main() {
 
     //glEnable(GL_DEPTH_TEST);
 
-    Shader shader = Shader("../Shaders/shader.vs","../Shaders/shader.fs","../Shaders/compute.sh");
+    Shader shader = Shader("../Shaders/vertex.sh","../Shaders/fragment.sh");
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
@@ -143,6 +143,10 @@ int main() {
         shader.CompileShader();
         shader.use();
 
+
+        // Setting uniformSetting uniforms for fragment shader
+        shader.setUniformVec3f("cameraPosition", camera.Position);  //the position of the camera in word-space
+        glm::vec3 cameraLookAt=camera.Position+camera.Front; // where the camera is looking at
 
 
 

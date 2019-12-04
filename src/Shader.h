@@ -20,14 +20,14 @@ public:
 
   unsigned int ID;
 
-    Shader(const GLchar *VS_Path, const GLchar *FS_Path,const GLchar *COMPS_Path); // érték vagy referencia szerint adjam át?
+    Shader(const GLchar *VS_Path, const GLchar *FS_Path); // érték vagy referencia szerint adjam át?
     ~Shader();
 
     void setUniform4f(const std::string &name, float v0, float v1, float f2, float f3);
 
     std::string fragment_shader_code;
     std::string vertex_shader_code;
-    std::string compute_shader_code;
+
 
     void use() const;
 
@@ -43,7 +43,8 @@ public:
 
     void setUniformMat4f(const std::string &name, glm::mat4 &matrix);
 
-private:
+    void setUniformVec3f(const std::string &name, glm::vec3 &matrix);
+
     unsigned int GetUniformLocation(const std::string &name);
 
     int getUniformLocation(const std::string &name);

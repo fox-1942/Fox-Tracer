@@ -9,14 +9,13 @@
 
 using namespace std;
 
-Shader::Shader(const GLchar *VS_Path, const GLchar *FS_Path,const GLchar *COMPS_Path) {
+Shader::Shader(const GLchar *VS_Path, const GLchar *FS_Path) {
     cout << "VS_Path: " << VS_Path << endl;
     cout << "FS_Path: " << FS_Path << endl;
-    cout << "COMPS_Path: " << COMPS_Path << endl;
 
     vertex_shader_code = loader(VS_Path);
     fragment_shader_code = loader(FS_Path);
-    compute_shader_code= loader(COMPS_Path);
+
     this->ID = 0;
 }
 
@@ -56,17 +55,6 @@ void Shader::CompileShader() {
     cout << "info: " << info << endl;
 
     //------------------------------------------------------------------------------------
-    //for compute shader
-    compute = glCreateShader(GL_COMPUTE_SHADER);
-    glShaderSource(compute, 1, reinterpret_cast<const GLchar *const *>(&compute_shader_code), NULL);
-    glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
-    cout << "success: " << success << endl;
-    glGetShaderInfoLog(compute, 400, NULL, info);
-
-    cout << "info: " << info << endl;
-
-
-
 
     //for shader program
     ID = glCreateProgram();
@@ -89,7 +77,7 @@ void Shader::CompileShader() {
 void Shader::print_shader_codes() const {
     cout << "Fragment shader code:\n" << fragment_shader_code << endl;
     cout << "Vertex shader code:\n" << vertex_shader_code << endl;
-    cout << "Compute shader code:\n" << compute_shader_code << endl;
+
 }
 
 void Shader::use() const {
@@ -139,6 +127,9 @@ void Shader::setUniformMat4f(const std::string &name, glm::mat4 &matrix) {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
 }
 
+void Shader::setUniformVec3f(const std::string &name, glm::vec3 &vec3) {
+  glUniform3fv(getUniformLocation(name), 1, (const GLfloat *)&vec3);
+}
 
     /*
     setUniformMat4f last parameter: value
