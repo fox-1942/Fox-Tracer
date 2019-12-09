@@ -5,6 +5,14 @@ struct Ray {
     vec3 dir;
 };
 
+
+struct Material {
+	vec3 ka, kd, ks;
+	float  shininess;
+	Material(vec3 _kd, vec3 _ks, float _shininess) : ka(_kd * M_PI), kd(_kd), ks(_ks) { shininess = _shininess; }
+};
+
+
 struct Hit {
     float t;
     vec3 position;
@@ -69,9 +77,54 @@ Hit firstIntersect(Ray ray) {
 		return bestHit;
 }
 
-vec3 trace(Ray ray) {
+
+Vec3f reflectedRayDir(const Vec3 &I, const Vec3f &N)
+{
+    return I - 2 * dotProduct(I, N) * N;
+}
+
+
+Vec3f refractedRayDir(const Vec3 &I, const Vec3f &N, const float &secondMediumRefractionIndex)
+{
+    float cosTheta1 = clamp(-1, 1, dotProduct(I, N));
+    float firstMediumRefractionIndex = 1
+    float sMRI = secondMediumRefractionIndex;
+
+    Vec3f n = N;
+
+    if (cosTheta1 < 0)
+    {
+      cosTheta1 = -cosTheta1;  // the ray coming from outside
+    }
+    else
+    {
+      std::swap(firstMediumRefractionIndex, sMRI);
+      // the ray coming from inside and we have to change the fraction indices
+
+      n= -N;  // we have to multiply the normal by -1 because we are upside-down
+      }
+    }
+
+    float n_refraction_fraction = firstMediumRefractionIndex / sMRI;
+
+    // examining if there is refraction at all or TOTAL REFLECTION which means
+    // there is no refraction.
+
 
 }
+
+
+
+const int maxdepth=3;
+
+vec3 trace(Ray ray) {
+
+		}
+}
+
+
+}
+
 
 void main() {
 		Ray ray;
