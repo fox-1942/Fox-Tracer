@@ -47,29 +47,36 @@ float fresnelCalculator(float fractionIndexOfMedium1, float fractionIndexOfMediu
     Theta1=angleDegCalculator(I, N);
     cosTheta1=cos(Theta1);
 
+    //In this case, we change the two fraction indices, because the ray is coming from inside.
+    if (cosTheta1 > 0) {
+        temp = fractionIndexOfMedium1;
+        fractionIndexOfMedium1 = fractionIndexOfMedium2;
+        fractionIndexOfMedium2 = temp;
+    }
+
     if (sin(Theta1)>=1){
         // Total reflection happens
         float fresnelReflected=1;
         return fresnelReflected;
     }
 
-    else{
-    // Cases when there is refraction and reflaction as well, not only reflaction.
+    else {
+        // Cases when there is refraction and reflaction as well, not only reflaction.
 
-    // Based on Snell's law:
-    Theta2=sin(Theta1) * fractionIndexOfMedium1/fractionIndexOfMedium2;
+        // Based on Snell's law:
+        Theta2=sin(Theta1) * fractionIndexOfMedium1/fractionIndexOfMedium2;
 
-    cosTheta2=cos(Theta2);
+        cosTheta2=cos(Theta2);
 
-    float fresnelReflectedLongitudinal=pow(((fractionIndexOfMedium2 * cosTheta1) - (fractionIndexOfMedium1 * cosTheta2)) / ((fractionIndexOfMedium2 * cosTheta1) + (fractionIndexOfMedium1 * cosTheta2)),2);
+        float fresnelReflectedLongitudinal=pow(((fractionIndexOfMedium2 * cosTheta1) - (fractionIndexOfMedium1 * cosTheta2)) / ((fractionIndexOfMedium2 * cosTheta1) + (fractionIndexOfMedium1 * cosTheta2)), 2);
 
-    float fresnelReflectedTransversal=pow(((fractionIndexOfMedium1 * cosTheta1) - (fractionIndexOfMedium2 *cosTheta2)) / ((fractionIndexOfMedium1 * cosTheta1) + (fractionIndexOfMedium2 * cosTheta2)),2);
+        float fresnelReflectedTransversal=pow(((fractionIndexOfMedium1 * cosTheta1) - (fractionIndexOfMedium2 *cosTheta2)) / ((fractionIndexOfMedium1 * cosTheta1) + (fractionIndexOfMedium2 * cosTheta2)), 2);
 
-    float fresnelReflected=0.5*(fresnelReflectedLongitudinal+fresnelReflectedTransversal);
+        float fresnelReflected=0.5*(fresnelReflectedLongitudinal+fresnelReflectedTransversal);
 
-    float fresnelRefractedComponent= 1 - fresnelReflected;
+        // float fresnelRefractedComponent= 1 - fresnelReflected;
 
-    return fresnelReflected;
+        return fresnelReflected;
 
     }
 }
