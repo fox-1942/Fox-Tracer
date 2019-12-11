@@ -93,7 +93,7 @@ int main() {
 
     //glEnable(GL_DEPTH_TEST);
 
-    Shader shader = Shader("../Shaders/vertex.sh","../Shaders/fragment.sh");
+    Shader shader = Shader("../Shaders/vertex.shader","../Shaders/fragment.shader");
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
