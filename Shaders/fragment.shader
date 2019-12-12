@@ -1,4 +1,6 @@
 #version 460 core
+precision mediump float;
+
 
 struct Ray {
     vec3 start;
@@ -11,6 +13,10 @@ struct Material {
     float  shininess;
 };
 
+struct Light {
+    vec3 direction;
+    vec3 ambient;
+};
 
 struct Hit {
     float t;
@@ -23,7 +29,7 @@ struct Sphere {
     float radius;
 };
 
-
+uniform vec3 lightAmbient;
 uniform vec3 cameraPosition;
 uniform int numberOfObjects;
 uniform Sphere objects[300];
@@ -47,14 +53,17 @@ float fresnelCalculator(float fractionIndexOfMedium1, float fractionIndexOfMediu
     Theta1=angleDegCalculator(I, N);
     cosTheta1=cos(Theta1);
 
-    //In this case, we change the two fraction indices, because the ray is coming from inside.
-    if (cosTheta1 > 0) {
+    // In this case, we change the two fraction indices, because the ray is coming from inside.
+    // if cos is negative the angle is more than 90 degrees, so we are under the x-axis
+    if (cosTheta1 < 0) {
         temp = fractionIndexOfMedium1;
         fractionIndexOfMedium1 = fractionIndexOfMedium2;
         fractionIndexOfMedium2 = temp;
     }
 
-    if (sin(Theta1)>=1){
+    // If a sine of angle is more than 1, the degree of the angle is more than 90 degrees, so there is no
+    // refracted part. Only reflacted.
+    if (sin(Theta2)>=1.0f){
         // Total reflection happens
         float fresnelReflected=1;
         return fresnelReflected;
@@ -62,8 +71,10 @@ float fresnelCalculator(float fractionIndexOfMedium1, float fractionIndexOfMediu
 
     else {
         // Cases when there is refraction and reflaction as well, not only reflaction.
+        // Fresnel equation can tell us how much is the reflected part and we can calculate the refracted part of light as well.
+        // At Fresnel equation we calculate the longitudinal ans transversal part of reflected light.
 
-        // Based on Snell's law:
+        // Based on Snell's law, we calculate Theta2.
         Theta2=sin(Theta1) * fractionIndexOfMedium1/fractionIndexOfMedium2;
 
         cosTheta2=cos(Theta2);
@@ -77,7 +88,6 @@ float fresnelCalculator(float fractionIndexOfMedium1, float fractionIndexOfMediu
         // float fresnelRefractedComponent= 1 - fresnelReflected;
 
         return fresnelReflected;
-
     }
 }
 
@@ -126,48 +136,119 @@ Hit firstIntersect(Ray ray) {
 }
 
 
-Vec3f reflectedRayDir(const Vec3 I, const Vec3f N){
-    Vec3f result= I - 2 * dotProduct(I, N) * N;
+// Vector of the reflected light
+vec3 reflectedRayDir(const Vec3 I, const Vec3f N){
+    vec3 result= I - 2 * dotProduct(I, N) * N;
     return result;
+
+    // GLSL has reflect() method built-in as well, which is the same.
 }
 
 
-Vec3f refractedRayDir(const Vec3 I, const Vec3f N, const float secondMediumRefractionIndex)
+vec3 refractedRayDir(const vec3 I, const vec3 N, const float fractionIndexOfMedium2)
 {
-    float cosTheta1 = clamp(-1, 1, dotProduct(I, N));
-    float firstMediumRefractionIndex = 1;
-    float sMRI = secondMediumRefractionIndex;
+    vec3 refractedRayDir;
+    float fractionIndexOfMedium1=1;
+    float fractionIndexOfMediumSecond=fractionIndexOfMedium2; // Why cannot read it from the parameter?
+    vec3 n=N;
 
-    Vec3f n = N;
-
-    if (cosTheta1 < 0)
-    {
-        cosTheta1 = -cosTheta1;// the ray coming from outside
+    if (cosTheta1 < 0) {           // Is it correct? Shouldn't I change cos to negative as well?
+        temp = fractionIndexOfMedium1;
+        fractionIndexOfMedium1 = fractionIndexOfMediumSecond;
+        fractionIndexOfMediumSecond = temp;
+        n=-N;
     }
-    else
-    {
-        std::swap(firstMediumRefractionIndex, sMRI);
-// the ray coming from inside and we have to change the fraction indices
 
-n= -N;// we have to multiply the normal by -1 because we are upside-down
+    float ratioOfIndicesOfRefraction = fractionIndexOfMediumSecond / fractionIndexOfMedium1;
+
+    refractedRayDir = refract(I, N, ratioOfIndicesOfRefraction);
+    return refractedRayDir;
+
+
+    /* k = 1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I));
+     if (k < 0.0)
+         R = genType(0.0);       // or genDType(0.0)
+     else
+         R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
+
+     if (cosi < 0) { cosi = -cosi; } else { std::swap(etai, etat); n= -N; }
+     float eta = etai / etat;
+     float k = 1 - eta * eta * (1 - cosi * cosi);
+     return k < 0 ? 0 : eta * I + (eta * cosi - sqrtf(k)) * n;
+
+     */
+
 }
-}
-
-float n_refraction_fraction = firstMediumRefractionIndex / sMRI;
-
-// examining if there is refraction at all or TOTAL REFLECTION which means
-// there is no refraction.
-
-
-}
 
 
 
-const int maxdepth=3;
+
 
 vec3 trace(Ray ray) {
+    int maxIterationNumber=0;
+    vec3 Radiance;
+
+    while(maxIterationNumber<4){
+        for(int i=0 ;i<=objects.length();i++){
+            Hit hit=intersect(objects[i],ray);
+
+            if(hit.t==-1){
+                Radiance=+lightAmbient;
+            }
 
 
+            vec3 N=objects[i].center-hit.position;
+
+            float fractionIndexOfMedium1=1;
+            float fractionIndexOfMedium2=1.5;
+
+            float reflectedRatio=fresnelCalculator(fractionIndexOfMedium1, fractionIndexOfMedium2,  ray.dir, N);
+
+
+            if(reflectedRatio==1 ){
+                ray.start = hit.position;
+                ray.dir = reflectedRayDir(ray.dir,N);
+
+                Hit newHit=firstIntersect(ray);
+                Radiance=lightAmbient+newHit.material.kd;
+
+                trace(ray);
+                maxIterationNumber++;
+                continue;
+            }
+
+            else{
+                ray.start = hit.position;
+                ray.dir = reflectedRayDir(ray.dir,N);
+
+                Hit newHit=firstIntersect(ray);
+                Radiance=lightAmbient+newHit.material.kd*reflectedRatio;
+
+                
+                trace(ray);
+                maxIterationNumber++;
+                continue;
+
+
+
+
+            }
+
+
+            //Creating shadow-ray
+            Ray shadowRay;
+            shadowRay.start=hit.position;
+            shadowRay.dir=
+
+
+            trace(ray);
+            maxIterationNumber++;
+        }
+    }
+
+
+    vec3 radiance;
+    return radiance;
 }
 
 
