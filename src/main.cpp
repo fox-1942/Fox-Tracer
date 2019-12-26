@@ -151,8 +151,7 @@ int main() {
 
 
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
         // render the loaded model
@@ -160,7 +159,7 @@ int main() {
         model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
 
-        glm::mat4 u_MVP =  projection  * view * model ;
+        glm::mat4 u_MVP =  projection * view * model ;
         shader.setUniformMat4f("u_MVP", u_MVP);
 
         mymodel.Draw(shader);
