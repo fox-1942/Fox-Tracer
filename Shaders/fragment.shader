@@ -1,12 +1,10 @@
 #version 460 core
 precision mediump float;
 
-
 struct Ray {
     vec3 start;
     vec3 dir;
 };
-
 
 struct Material {
     vec3 ka, kd, ks;
@@ -17,9 +15,6 @@ struct Light {
     vec3 direction;
     vec3 ambient;
 };
-
-enum {TYPE1, TYPE2} TYPE;
-
 
 struct Hit {
     float t;
@@ -33,13 +28,18 @@ struct Sphere {
     float radius;
 };
 
+struct Light{
+    vec3 direction;
+    vec3 ambient;
+};
+
 uniform vec3 lightAmbient;
 uniform vec3 cameraPosition;
 uniform int numberOfObjects;
 uniform Sphere objects[300];
 uniform sampler2D texture_diffuse1;
 
-
+uniform Light light;
 
 float Theta1;
 float Theta2;
@@ -49,7 +49,7 @@ float cosTheta2;
 in  vec3 p;
 in vec2 v_TexCoord;
 out vec4 fragmentColor;
-
+vec3 N;
 
 float angleDegCalculator(vec3 first, vec3 second){
     float dotProduct = dot(first, second);
@@ -137,13 +137,18 @@ Hit firstIntersect(Ray ray) {
     Hit bestHit;
     bestHit.t = -1;
 
+    Sphere selected;
+
     for (int i = 0; i < numberOfObjects; i++) {
 
         Hit hit = intersect(objects[i], ray);//  hit.t < 0 if no intersection
 
         if (hit.t > 0 && (bestHit.t < 0 || hit.t < bestHit.t))
         bestHit = hit;
+        selected=objects[i];
+
     }
+    N=bestHit.position-selected.center;
 
     return bestHit;
 }
@@ -162,10 +167,10 @@ vec3 refractedRayDir(const vec3 I, const vec3 N, const float fractionIndexOfMedi
 {
     vec3 refractedRayDir;
     float fractionIndexOfMedium1=1;
-    float fractionIndexOfMediumSecond=fractionIndexOfMedium2; // Why cannot read it from the parameter?
+    float fractionIndexOfMediumSecond=fractionIndexOfMedium2;// Why cannot read it from the parameter?
     vec3 n=N;
 
-    if (cosTheta1 < 0) {  // Is it correct? Shouldn't I change cos to negative as well?
+    if (cosTheta1 < 0) { // Is it correct? Shouldn't I change cos to negative as well?
         float temp;
         temp = fractionIndexOfMedium1;
         fractionIndexOfMedium1 = fractionIndexOfMediumSecond;
@@ -196,79 +201,112 @@ vec3 refractedRayDir(const vec3 I, const vec3 N, const float fractionIndexOfMedi
 
 vec3 trace(Ray ray) {
     int maxIterationNumber=0;
-    vec3 Radiance;
+    vec3 Radiance= vec3(0, 0, 0);
 
-    while(maxIterationNumber<4){
+    float fractionIndexOfMedium1=1.0f;
+    float fractionIndexOfMedium2=1.5f;
 
-            Hit hit=firstIntersect(ray);
+    Hit hit=firstIntersect(ray);
 
-            // in case there is no object occluding the ray
-            if(hit.t==-1){
-                Radiance=+lightAmbient;
-            }
+    // in case there is no object occluding the ray
+    if (hit.t==-1){
+        return light.ambient;
+    }
 
-            float reflectedRatio=fresnelCalculator(fractionIndexOfMedium1, fractionIndexOfMedium2,  ray.dir, N);
+    // we are supposing rough material only with no reflaction,
+    // raycasting only with some spheres
 
-            // in case there is total reflaction
-            if (reflectedRatio>=1){
-                Ray shadowRay;
-                shadowRay.start = hit.position;  // + EPS
-                shadowRay.dir = reflectedRayDir(ray.dir, N);
+    //Computing DirectLight
 
-                Radiance=lightAmbient+newHit.material.kd;
+    vec3 ka=(0.3f, 0.2f, 0.1f)*M_PI;
+    Radiance=light.ambient*ka;
 
-                maxIterationNumber++;
-                trace(ray);
-            }
+    //Computing Shadow
+    const float epsilon = 0.0001f;
 
+    Ray shadowRay;
+    shadowRay.start = hit.position + hit.normal * epsilon;
+    shadowRay.dir = light.direction;
 
-            // in case there is refractive and reflactive part is well
+    Hit shadowHit=firstIntersect(shadowRay);
 
-            vec3 N=objects[i].center-hit.position;
-
-            float fractionIndexOfMedium1=1;
-            float fractionIndexOfMedium2=1.5;
-
-            float reflectedRatio=fresnelCalculator(fractionIndexOfMedium1, fractionIndexOfMedium2,  ray.dir, N);
-
-
-
-
-            else{
-                ray.start = hit.position;
-                ray.dir = reflectedRayDir(ray.dir,N);
-
-                Hit newHit=firstIntersect(ray);
-                Radiance=lightAmbient+newHit.material.kd*reflectedRatio;
-
-
-                trace(ray);
-                maxIterationNumber++;
-                continue;
-            }
-
-
-            //Creating shadow-ray
-            Ray shadowRay;
-            shadowRay.start=hit.position;
-            shadowRay.dir=
-
-
-            trace(ray);
-            maxIterationNumber++;
-
+    if(shadowHit.t<0){
+        Radiance+=
     }
 
 
-    vec3 radiance;
-    return radiance;
+
+    return Radiance;
+
 }
+
+
+/* while(maxIterationNumber<4){
+
+     Hit hit=firstIntersect(ray);
+
+     // in case there is no object occluding the ray
+     if(hit.t==-1){
+         Radiance=+lightAmbient;
+     }
+
+     float reflectedRatio=fresnelCalculator(fractionIndexOfMedium1, fractionIndexOfMedium2,  ray.dir, N);
+
+     // in case there is total reflaction
+     if (reflectedRatio>=1){
+         Ray shadowRay;
+         shadowRay.start = hit.position;  // + EPS
+         shadowRay.dir = reflectedRayDir(ray.dir, N);
+
+         Radiance=
+
+         maxIterationNumber++;
+         trace(ray);
+     }
+
+
+     // in case there is refractive and reflactive part is well
+     if(reflectedRatio<1){
+
+         float reflectedRatio=fresnelCalculator(fractionIndexOfMedium1, fractionIndexOfMedium2,  ray.dir, N);
+
+
+         //Creating shadow-ray
+         Ray shadowRay;
+         shadowRay.start=hit.position;
+         shadowRay.dir=
+
+
+         trace(ray);
+         maxIterationNumber++;
+
+     }
+     vec3 radiance;
+     return radiance;
+ }
+ */
+
+
+bool shadowRayIntersectExaminer(Ray shadowRay){
+    for (int i=0;i<numberOfObjects;i++){
+        if (intersect(shadowRay==-1)){
+            return false;
+        }
+
+        else {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 
 void main() {
     Ray ray;
     ray.start = cameraPosition;
     ray.dir = normalize(p - cameraPosition);
-   // fragmentColor=texture(texture_diffuse1, v_TexCoord);
+    // fragmentColor=texture(texture_diffuse1, v_TexCoord);
     fragmentColor = vec4(trace(ray), 1);
 }
+
