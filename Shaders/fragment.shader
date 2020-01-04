@@ -11,11 +11,6 @@ struct Material {
     float  shininess;
 };
 
-struct Light {
-    vec3 direction;
-    vec3 ambient;
-};
-
 struct Hit {
     float t;
     vec3 position;
@@ -28,18 +23,25 @@ struct Sphere {
     float radius;
 };
 
-struct Light{
-    vec3 direction;
+
+struct Light {
+    vec3 position;
+
     vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
 };
+
+
 
 uniform vec3 lightAmbient;
 uniform vec3 cameraPosition;
-uniform int numberOfObjects;
-uniform Sphere objects[300];
+
+Sphere objects[2];
 uniform sampler2D texture_diffuse1;
 
-uniform Light light;
+Light light;
+
 
 float Theta1;
 float Theta2;
@@ -139,7 +141,9 @@ Hit firstIntersect(Ray ray) {
 
     Sphere selected;
 
-    for (int i = 0; i < numberOfObjects; i++) {
+
+
+    for (int i = 0; i < 2; i++) {
 
         Hit hit = intersect(objects[i], ray);//  hit.t < 0 if no intersection
 
@@ -198,50 +202,88 @@ vec3 refractedRayDir(const vec3 I, const vec3 N, const float fractionIndexOfMedi
      */
 }
 
-
 vec3 trace(Ray ray) {
-    int maxIterationNumber=0;
-    vec3 Radiance= vec3(0, 0, 0);
+    Sphere sphere1;
+    sphere1.center=vec3(1.0f, 1.0f, 1.0f);
+    sphere1.radius=2.0f;
 
+    Sphere sphere2;
+    sphere2.center=vec3(5.0f, 5.0f, 6.0f);
+    sphere2.radius=5.0f;
+
+    objects[0]=sphere1;
+    objects[1]=sphere2;
+
+
+    light.position=vec3(1, 1, 1);
+    light.ambient=vec3(0.4f, 0.3f, 0.3f);
+
+    vec3 outRadiance=vec3(0.0f, 0.0f, 0.0f);
+    vec3 ambientLight=vec3(0.0f, 0.0f, 0.0f);
+    const float epsilon = 0.0001f;
     float fractionIndexOfMedium1=1.0f;
     float fractionIndexOfMedium2=1.5f;
 
     Hit hit=firstIntersect(ray);
 
-    // in case there is no object occluding the ray
+    // in case there is no object occluding the ray, the fragments's color is done
+    // it will be the ambient light
     if (hit.t==-1){
-        return light.ambient;
+        return light.ambient;// *weight
     }
+
+    // Data from http://devernay.free.fr/cours/opengl/materials.html
+    Material gold;
+    gold.ka = vec3 (0.24725f, 0.1995f, 0.0745f);
+    gold.kd = vec3 (40.75164f, 0.60648f, 0.22648f);
+    gold.ks = vec3 (0.628281f, 0.555802f, 0.366065f);
+    gold.shininess= 0.4f;
+
 
     // we are supposing rough material only with no reflaction,
     // raycasting only with some spheres
 
-    //Computing DirectLight
+    // Computing DirectLight -------------------------------------------------------------------
 
-    vec3 ka=(0.3f, 0.2f, 0.1f)*M_PI;
-    Radiance=light.ambient*ka;
+    outRadiance=gold.ka*light.ambient;
 
-    //Computing Shadow
-    const float epsilon = 0.0001f;
+    //Computing Shadow ------------------------------------------------------------------------
 
     Ray shadowRay;
     shadowRay.start = hit.position + hit.normal * epsilon;
-    shadowRay.dir = light.direction;
 
+    // We examine whether the shadow ray intersects any object
     Hit shadowHit=firstIntersect(shadowRay);
 
-    if(shadowHit.t<0){
-        Radiance+=
+    ambientLight = light.ambient * gold.ka;
+
+    /* // diffuse
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(light.position - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = light.diffuse * (diff * material.diffuse);
+    */
+
+
+    if (shadowHit.t<0 || shadowHit.t < (distance(light.position,shadowRay.start))){
+        outRadiance +=ambientLight;
     }
 
+    return outRadiance;
+    // Lambert’s law: the radiant energy D that a small surface patch
+    // receives from a light source is:
+    // D = I x cos (θ)
+    // if cosTheta is 0, there is no diffuse light at all.
+    // Ha 90 fokba esik a fény akkor nem szóródik?
+    /*
+    if (cosTheta > 0 && !shadowRayIntersectExaminer(shadowRay)) {
+        outRadiance +=vec3(3, 3, 3) * vec3(0.3f, 0.2f, 0.1f) * cosTheta;
 
-
+        return Radiance;
+    }
     return Radiance;
-
-}
-
-
-/* while(maxIterationNumber<4){
+}*/
+    /* while(maxIterationNumber<4){
 
      Hit hit=firstIntersect(ray);
 
@@ -283,23 +325,25 @@ vec3 trace(Ray ray) {
      }
      vec3 radiance;
      return radiance;
- }
  */
+ }
 
 
+/*
 bool shadowRayIntersectExaminer(Ray shadowRay){
+    bool result;
     for (int i=0;i<numberOfObjects;i++){
         if (intersect(shadowRay==-1)){
-            return false;
+            result=false;
         }
 
         else {
-            return true;
+            result=true;
         }
     }
-    return false;
+    return result;
 }
-
+*/
 
 
 void main() {

@@ -12,6 +12,15 @@
 
 #include "../includes/filesystem.h"
 
+struct Light {
+//---------------------------
+  glm::vec3 direction;
+  glm::vec3 Le, La;
+  Light(glm::vec3 _direction, glm::vec3 _Le, glm::vec3 _La) {
+    direction = normalize(_direction);
+    Le = _Le; La = _La;
+  }
+};
 
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -22,6 +31,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
+void setUniform(glm::vec3 vec, const char string[16]);
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
@@ -53,6 +63,12 @@ static bool GLlogCall(const char *function, const char *file, int line) {
     return true;
 }
 
+void setUniformLight(Light* light) {
+  setUniform(light->La, "light.La");
+  setUniform(light->Le, "light.Le");
+  setUniform(light->direction, "light.direction");
+}
+void setUniform(glm::vec3 vec, const char string[16]) {}
 
 int main() {
     GLFWwindow *window;
@@ -127,6 +143,9 @@ int main() {
     IndexBuffer ib(indices, 6);
     */
 
+
+
+
     Renderer renderer;
 
     while (!glfwWindowShouldClose(window)) {
@@ -142,6 +161,11 @@ int main() {
 
         shader.CompileShader();
         shader.use();
+
+        Light lightToSendAsUniform= Light(glm::vec3(1, 1, 1), glm::vec3(3, 3, 3), glm::vec3(0.4f, 0.3f, 0.3f));
+
+
+
 
 
         // Setting uniformSetting uniforms for fragment shader
