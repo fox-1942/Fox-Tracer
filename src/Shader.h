@@ -13,12 +13,15 @@
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 #include "../Vendor/glm/detail/type_mat4x4.hpp"
+#include "Light.h"
 
 class Shader {
 
 public:
 
-  unsigned int ID;
+    Shader();
+
+    unsigned int ID;
 
     Shader(const GLchar *VS_Path, const GLchar *FS_Path); // érték vagy referencia szerint adjam át?
     ~Shader();
@@ -53,6 +56,8 @@ public:
 
     void Unbind();
 
+
+    void setUniformLightStruct(const char string[13], Light light);
 
 };
 

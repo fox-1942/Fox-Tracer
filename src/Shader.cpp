@@ -19,6 +19,10 @@ Shader::Shader(const GLchar *VS_Path, const GLchar *FS_Path) {
     this->ID = 0;
 }
 
+Shader::Shader(){
+
+};
+
 Shader::~Shader() {}
 
 void Shader::CompileShader() {
@@ -131,10 +135,4 @@ void Shader::setUniformVec3f(const std::string &name, glm::vec3 &vec3) {
   glUniform3fv(getUniformLocation(name), 1, (const GLfloat *)&vec3);
 }
 
-    /*
-    setUniformMat4f last parameter: value
-
-    For the vector and matrix commands, specifies a pointer to an array of count values
-    that will be used to update the specified uniform variable.
-     */
 

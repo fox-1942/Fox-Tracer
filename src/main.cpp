@@ -12,15 +12,6 @@
 
 #include "../includes/filesystem.h"
 
-struct Light {
-//---------------------------
-  glm::vec3 direction;
-  glm::vec3 Le, La;
-  Light(glm::vec3 _direction, glm::vec3 _Le, glm::vec3 _La) {
-    direction = normalize(_direction);
-    Le = _Le; La = _La;
-  }
-};
 
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -39,6 +30,8 @@ Camera camera(glm::vec3(0.0f, -4.0f, 3.0f));
 float lastX ;
 float lastY ;
 bool firstMouse = true;
+
+Shader shader;
 
 // timing
 float deltaTime = 0.0f;
@@ -63,12 +56,15 @@ static bool GLlogCall(const char *function, const char *file, int line) {
     return true;
 }
 
-void setUniformLight(Light* light) {
-  setUniform(light->La, "light.La");
-  setUniform(light->Le, "light.Le");
-  setUniform(light->direction, "light.direction");
+void setUniformLight(Light light) {
+  setUniform(light.getLa(), "light.La");
+  setUniform(light.getLe(), "light.Le");
+  setUniform(light.getDirection(), "light.direction");
 }
-void setUniform(glm::vec3 vec, const char string[16]) {}
+
+void setUniform(glm::vec3 vec, const char string[16]) {
+    shader.setUniformVec3f(string,vec);
+}
 
 int main() {
     GLFWwindow *window;
@@ -94,9 +90,7 @@ int main() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    //glfwSwapInterval(5);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     const GLenum err = glewInit();
     if (GLEW_OK != err) {
@@ -109,42 +103,9 @@ int main() {
 
     //glEnable(GL_DEPTH_TEST);
 
-    Shader shader = Shader("../Shaders/vertex.shader","../Shaders/fragment.shader");
+    shader = Shader("../Shaders/vertex.shader","../Shaders/fragment.shader");
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
-
-
-    // draw in wireframe
-   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-
-/*
-    float positions[] = {
-            100.0f, 100.0f, 0.0f, 0.0f, // 0
-            200.0f, 100.0f, 1.0f, 0.0f, // 1
-            200.0f, 200.0f, 1.0f, 1.0f, // 2
-            100.0f, 200.0f, 0.0f, 1.0f  // 3
-    };
-
-    unsigned int indices[6] = {
-            0, 1, 2,
-            2, 3, 0
-    };
-*/
-    /*VertexArray va;
-    VertexBuffer vb(positions, 4 * 4 * sizeof(float));
-
-    VertexBufferLayout layout;
-    layout.AddFloat(2);
-    layout.AddFloat(2);
-
-    va.AddBuffer(vb, layout);
-
-    IndexBuffer ib(indices, 6);
-    */
-
-
-
 
     Renderer renderer;
 
@@ -162,17 +123,12 @@ int main() {
         shader.CompileShader();
         shader.use();
 
-        Light lightToSendAsUniform= Light(glm::vec3(1, 1, 1), glm::vec3(3, 3, 3), glm::vec3(0.4f, 0.3f, 0.3f));
-
-
-
-
+        Light lightToSendAsUniform = Light(glm::vec3(1, 1, 1), glm::vec3(3, 3, 3), glm::vec3(0.4f, 0.3f, 0.3f));
+        setUniformLight(lightToSendAsUniform);
 
         // Setting uniformSetting uniforms for fragment shader
         shader.setUniformVec3f("cameraPosition", camera.Position);  //the position of the camera in word-space
         glm::vec3 cameraLookAt=camera.Position+camera.Front; // where the camera is looking at
-
-
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,100.0f);
@@ -187,17 +143,6 @@ int main() {
         shader.setUniformMat4f("u_MVP", u_MVP);
 
         mymodel.Draw(shader);
-
-
-        // The background around the model
-        //model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0f, 0.0f));
-        //model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
-
-/*
-        Texture texture("../textures/image.png");
-        texture.Bind(0);
-        shader.setUniform1i("u_Texture", 0);
-*/
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

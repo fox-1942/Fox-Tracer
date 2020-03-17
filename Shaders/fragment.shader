@@ -23,18 +23,13 @@ struct Sphere {
     float radius;
 };
 
-
 struct Light {
     vec3 position;
-
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 };
 
-
-
-uniform vec3 lightAmbient;
 uniform vec3 cameraPosition;
 
 Sphere objects[2];
