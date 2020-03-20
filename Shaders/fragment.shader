@@ -30,20 +30,18 @@ struct Light {
     vec3 specular;
 };
 
-uniform vec3 cameraPosition;
+uniform Light lights[10];   // Ide jönnek majd a lightok a main-ből
+uniform vec3 cameraPosition;  // kamera pozíciója
 
 Sphere objects[2];
 uniform sampler2D texture_diffuse1;
-
-Light light;
-
 
 float Theta1;
 float Theta2;
 float cosTheta1;
 float cosTheta2;
 
-in  vec3 p;
+in vec3 p;
 in vec2 v_TexCoord;
 out vec4 fragmentColor;
 vec3 N;
@@ -209,10 +207,6 @@ vec3 trace(Ray ray) {
     objects[0]=sphere1;
     objects[1]=sphere2;
 
-
-    light.position=vec3(1, 1, 1);
-    light.ambient=vec3(0.4f, 0.3f, 0.3f);
-
     vec3 outRadiance=vec3(0.0f, 0.0f, 0.0f);
     vec3 ambientLight=vec3(0.0f, 0.0f, 0.0f);
     const float epsilon = 0.0001f;
@@ -223,9 +217,6 @@ vec3 trace(Ray ray) {
 
     // in case there is no object occluding the ray, the fragments's color is done
     // it will be the ambient light
-    if (hit.t==-1){
-        return light.ambient;// *weight
-    }
 
     // Data from http://devernay.free.fr/cours/opengl/materials.html
     Material gold;
@@ -240,7 +231,6 @@ vec3 trace(Ray ray) {
 
     // Computing DirectLight -------------------------------------------------------------------
 
-    outRadiance=gold.ka*light.ambient;
 
     //Computing Shadow ------------------------------------------------------------------------
 
@@ -250,7 +240,7 @@ vec3 trace(Ray ray) {
     // We examine whether the shadow ray intersects any object
     Hit shadowHit=firstIntersect(shadowRay);
 
-    ambientLight = light.ambient * gold.ka;
+    ambientLight =  gold.ka;
 
     /* // diffuse
     vec3 norm = normalize(Normal);
@@ -259,10 +249,6 @@ vec3 trace(Ray ray) {
     vec3 diffuse = light.diffuse * (diff * material.diffuse);
     */
 
-
-    if (shadowHit.t<0 || shadowHit.t < (distance(light.position,shadowRay.start))){
-        outRadiance +=ambientLight;
-    }
 
     return outRadiance;
     // Lambert’s law: the radiant energy D that a small surface patch

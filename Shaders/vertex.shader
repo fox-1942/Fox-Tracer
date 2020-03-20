@@ -12,6 +12,7 @@ void main()
 {
    gl_Position = u_MVP * vec4(position, 1.0);
    v_TexCoord=texCoord;
+   //p = wLookAt + wRight * cCamWindowVertex.x + wUp * cCamWindowVertex.y;
 }
 
 

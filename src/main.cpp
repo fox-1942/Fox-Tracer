@@ -66,6 +66,39 @@ void setUniform(glm::vec3 vec, const char string[16]) {
     shader.setUniformVec3f(string,vec);
 }
 
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+
+
 int main() {
     GLFWwindow *window;
 
@@ -104,10 +137,13 @@ int main() {
     //glEnable(GL_DEPTH_TEST);
 
     shader = Shader("../Shaders/vertex.shader","../Shaders/fragment.shader");
+    shader.CompileShader();
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
     Renderer renderer;
+    glm::mat4 projection = glm::ortho(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,100.0f);
+    glm::mat4 view = camera.GetViewMatrix();
 
     while (!glfwWindowShouldClose(window)) {
 
@@ -117,32 +153,25 @@ int main() {
 
         processInput(window);
         glEnable(GL_TEXTURE_2D);
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.CompileShader();
+        renderQuad();
+
         shader.use();
 
         Light lightToSendAsUniform = Light(glm::vec3(1, 1, 1), glm::vec3(3, 3, 3), glm::vec3(0.4f, 0.3f, 0.3f));
         setUniformLight(lightToSendAsUniform);
 
-        // Setting uniformSetting uniforms for fragment shader
         shader.setUniformVec3f("cameraPosition", camera.Position);  //the position of the camera in word-space
         glm::vec3 cameraLookAt=camera.Position+camera.Front; // where the camera is looking at
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
 
-        // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-
         glm::mat4 u_MVP =  projection * view * model ;
         shader.setUniformMat4f("u_MVP", u_MVP);
 
-        mymodel.Draw(shader);
+       // mymodel.Draw(shader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
