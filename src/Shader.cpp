@@ -26,10 +26,8 @@ Shader::Shader(){
 Shader::~Shader() {}
 
 void Shader::CompileShader() {
-    std::cout << "" << std::endl;
-
     unsigned int vertex, fragment, compute;
-    int success = 1;
+    int success = NULL;
     GLchar *info = new GLchar;
 
     //----------------------------------------------------------------------------------
@@ -78,19 +76,32 @@ void Shader::CompileShader() {
     glDeleteShader(compute);
 }
 
-void Shader::print_shader_codes() const {
-    cout << "Fragment shader code:\n" << fragment_shader_code << endl;
-    cout << "Vertex shader code:\n" << vertex_shader_code << endl;
 
+void Shader::CompileComputeShader(const GLchar CS_Path){
+    compute_shader_code = loader(CS_Path);
+    unsigned int compute;
+    int success = NULL;
+    GLchar *info = new GLchar;
+
+    compute = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(compute, 1, reinterpret_cast<const GLchar *const *>(&compute_shader_code), NULL);
+    glCompileShader(compute);
+
+    glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
+    cout << "Computer shader success: " << success << endl;
+
+    glGetShaderInfoLog(compute, 600, NULL, info);
+    cout << "info: " << info << endl;
 }
+
 
 void Shader::use() const {
     glUseProgram(this->ID);
 }
 
-string Shader::loader(const GLchar *path) {
+string Shader::loader(const GLchar path) {
     std::string content;
-    std::ifstream fileStream(path, std::ios::in);
+    std::ifstream fileStream(&path, std::ios::in);
 
     if (!fileStream.is_open()) {
         std::cerr << "Could not read file " << path << ". File does not exist." << std::endl;
@@ -106,9 +117,8 @@ string Shader::loader(const GLchar *path) {
     return content;
 }
 
-void Shader::Bind() const {
-    glUseProgram(this->ID);
-}
+
+
 
 void Shader::Unbind() {
     glUseProgram(0);

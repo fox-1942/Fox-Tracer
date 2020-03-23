@@ -13,7 +13,6 @@
 #include "../includes/filesystem.h"
 
 
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -22,7 +21,6 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
-void setUniform(glm::vec3 vec, const char string[16]);
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
@@ -31,45 +29,38 @@ float lastX ;
 float lastY ;
 bool firstMouse = true;
 
-Shader shader;
-
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
-static void GLClearError() {
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static void GLCheckError() {
-    while (GLenum error = glGetError()) {
-        std::cout << "[OpenGL Error]: " << error << std::endl;
-    }
-}
-
-static bool GLlogCall(const char *function, const char *file, int line) {
-    while (GLenum error = glGetError()) {
-        std::cout << "OpenGL Error: " << error << " " << function <<
-                  " " << file << " " << line << std::endl;
-        return false;
-    }
-    return true;
-}
-
-void setUniformLight(Light light) {
-  setUniform(light.getLa(), "light.La");
-  setUniform(light.getLe(), "light.Le");
-  setUniform(light.getDirection(), "light.direction");
-}
-
-void setUniform(glm::vec3 vec, const char string[16]) {
-    shader.setUniformVec3f(string,vec);
-}
 
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
+
+Shader shaderQuad;
+Shader shaderCompute;
+
+void createQuadProgram(){
+   shaderQuad=Shader("../Shaders/vertexQuad.shader","../Shaders/fragmentQuad.shader");
+   shaderQuad.CompileShader();
+}
+
+void createComputeProgram(){
+    shaderCompute=Shader();
+    shaderCompute.CompileComputeShader();
+}
+
+void initQuadProgram(){
+    shaderCompute.use();
+    
+}
+
+void initComputeProgram(){
+    shaderCompute=Shader();
+    shaderCompute.CompileComputeShader();
+}
+
 void renderQuad()
 {
     if (quadVAO == 0)
@@ -81,7 +72,7 @@ void renderQuad()
                 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
                 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
         };
-
+        // setup plane VAO
         glGenVertexArrays(1, &quadVAO);
         glGenBuffers(1, &quadVBO);
         glBindVertexArray(quadVAO);
@@ -123,7 +114,8 @@ int main() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
 
     const GLenum err = glewInit();
     if (GLEW_OK != err) {
@@ -134,16 +126,13 @@ int main() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    //glEnable(GL_DEPTH_TEST);
 
-    shader = Shader("../Shaders/vertex.shader","../Shaders/fragment.shader");
-    shader.CompileShader();
+    Shader shader = Shader("../Shaders/vertex.shader","../Shaders/fragment.shader");
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
-    Renderer renderer;
-    glm::mat4 projection = glm::ortho(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+
+    shader.CompileShader();
 
     while (!glfwWindowShouldClose(window)) {
 
@@ -153,25 +142,23 @@ int main() {
 
         processInput(window);
         glEnable(GL_TEXTURE_2D);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        renderQuad();
 
         shader.use();
 
-        Light lightToSendAsUniform = Light(glm::vec3(1, 1, 1), glm::vec3(3, 3, 3), glm::vec3(0.4f, 0.3f, 0.3f));
-        setUniformLight(lightToSendAsUniform);
-
-        shader.setUniformVec3f("cameraPosition", camera.Position);  //the position of the camera in word-space
-        glm::vec3 cameraLookAt=camera.Position+camera.Front; // where the camera is looking at
-
-
+      //  glm::mat4 projection = glm::ortho(0.0f,(float) SCR_WIDTH,0.0f,(float) SCR_HEIGHT, 0.1f,100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 u_MVP =  projection * view * model ;
-        shader.setUniformMat4f("u_MVP", u_MVP);
+       // model=glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f));
 
-       // mymodel.Draw(shader);
+        shader.setUniformMat4f("matrices.projectionMatrix",projection);
+      //  shader.setUniformMat4f("matrices.viewMatrix",view);
+        shader.setUniformMat4f("matrices.modelMatrix",model);
+
+      //  mymodel.Draw(shader);
+        renderQuad();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

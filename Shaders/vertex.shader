@@ -6,11 +6,15 @@ layout(location = 2) in vec2 texCoord;
 out vec2 v_TexCoord;
 out vec3 p;
 
-uniform mat4 u_MVP;
+uniform struct{
+   mat4 projectionMatrix;
+   //mat4 viewMatrix;
+   mat4 modelMatrix;
+} matrices;
 
 void main()
 {
-   gl_Position = u_MVP * vec4(position, 1.0);
+   gl_Position = matrices.projectionMatrix*matrices.modelMatrix* vec4(position, 1.0);
    v_TexCoord=texCoord;
    //p = wLookAt + wRight * cCamWindowVertex.x + wUp * cCamWindowVertex.y;
 }
