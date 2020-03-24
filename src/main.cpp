@@ -34,7 +34,7 @@ void initComputeProgram();
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
-Camera camera(glm::vec3(0.0f, -4.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float lastX;
 float lastY;
 bool firstMouse = true;
@@ -50,6 +50,17 @@ unsigned int quadVBO;
 
 Shader shaderQuad;
 Shader shaderCompute;
+int workgroupSizeX;
+int workgroupSizeY;
+
+int eyeuniform;
+int ray00Uniform;
+int ray01Uniform;
+int ray10Uniform;
+int ray11Uniform;
+int timeUniform;
+int blendFactorUniform;
+int bounceCountUniform;
 
 void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuad = Shader(VS_Path, FS_Path);
@@ -59,7 +70,6 @@ void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path) {
 void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path) {
     shaderCompute = Shader();
     shaderCompute.CompileComputeShader(CS1_Path,CS2_Path, CS3_Path);
-
 }
 
 void initQuadProgram() {
@@ -68,6 +78,19 @@ void initQuadProgram() {
 
 void initComputeProgram() {
     shaderCompute.use();
+    int workgroupSize[3];
+    glGetProgramiv(shaderCompute.ID,GL_COMPUTE_WORK_GROUP_SIZE,workgroupSize);
+    workgroupSizeX=workgroupSize[0];
+    workgroupSizeY=workgroupSize[1];
+
+    eyeuniform=glGetUniformLocation(shaderCompute.ID,"eye");
+    ray00Uniform=glGetUniformLocation(shaderCompute.ID,"ray00");
+    ray01Uniform=glGetUniformLocation(shaderCompute.ID,"ray01");
+    ray10Uniform=glGetUniformLocation(shaderCompute.ID,"ray10");
+    ray11Uniform=glGetUniformLocation(shaderCompute.ID,"ray11");
+    timeUniform=glGetUniformLocation(shaderCompute.ID,"time");
+    blendFactorUniform=glGetUniformLocation(shaderCompute.ID,"blendFactor");
+    bounceCountUniform=glGetUniformLocation(shaderCompute.ID,"bounceCount");
 }
 
 void renderQuad() {
@@ -91,7 +114,7 @@ void renderQuad() {
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
     }
     glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
     glBindVertexArray(0);
 }
 
@@ -134,9 +157,10 @@ int main() {
 
 
     Shader shader = Shader("../Shaders/vertex.shader", "../Shaders/fragment.shader");
+    createQuadProgram("../Shaders/vertexQuad.shader","../Shaders/fragmentQuad.shader");
+
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
-
 
     shader.CompileShader();
 
@@ -151,21 +175,24 @@ int main() {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.use();
-
-        //  glm::mat4 projection = glm::ortho(0.0f,(float) SCR_WIDTH,0.0f,(float) SCR_HEIGHT, 0.1f,100.0f);
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
+        initQuadProgram();
         glm::mat4 model = glm::mat4(1.0f);
-        // model=glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f));
+        glm::mat4 projectionOrtho = glm::ortho(0.0f,(float) SCR_WIDTH,0.0f,(float) SCR_HEIGHT, 0.1f,100.0f);
 
-        shader.setUniformMat4f("matrices.projectionMatrix", projection);
-        //  shader.setUniformMat4f("matrices.viewMatrix",view);
         shader.setUniformMat4f("matrices.modelMatrix", model);
-
-        //  mymodel.Draw(shader);
+        shader.setUniformMat4f("matrices.projectionMatrix", projectionOrtho);
         renderQuad();
+
+
+        shader.use();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+
+        shader.setUniformMat4f("matrices.modelMatrix", model);
+        shader.setUniformMat4f("matrices.viewMatrix",view);
+        shader.setUniformMat4f("matrices.projectionMatrix", projection);
+
+        mymodel.Draw(shader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

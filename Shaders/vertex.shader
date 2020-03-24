@@ -8,13 +8,13 @@ out vec3 p;
 
 uniform struct{
    mat4 projectionMatrix;
-   //mat4 viewMatrix;
+   mat4 viewMatrix;
    mat4 modelMatrix;
 } matrices;
 
 void main()
 {
-   gl_Position = matrices.projectionMatrix*matrices.modelMatrix* vec4(position, 1.0);
+   gl_Position = matrices.projectionMatrix* matrices.viewMatrix*matrices.modelMatrix* vec4(position, 1.0);
    v_TexCoord=texCoord;
    //p = wLookAt + wRight * cCamWindowVertex.x + wUp * cCamWindowVertex.y;
 }
