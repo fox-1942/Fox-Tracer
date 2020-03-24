@@ -30,7 +30,9 @@ public:
 
     std::string fragment_shader_code;
     std::string vertex_shader_code;
-    std::string compute_shader_code;
+    std::string compute_shader_code1;
+    std::string compute_shader_code2;
+    std::string compute_shader_code3;
 
     void use() const;
 
@@ -56,12 +58,13 @@ public:
 
     void Unbind();
 
-
     void setUniformLightStruct(const char string[13], Light light);
 
-    void CompileComputeShader();
+    void CompileComputeShader(const GLchar *CS_Path);
 
-    void CompileComputeShader(const GLchar);
+    void CompileComputeShader(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path);
+
+    std::string loader(const GLchar *path);
 };
 
 #endif //OPENGL_SHADER_H

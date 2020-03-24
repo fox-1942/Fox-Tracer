@@ -19,15 +19,14 @@ Shader::Shader(const GLchar *VS_Path, const GLchar *FS_Path) {
     this->ID = 0;
 }
 
-Shader::Shader(){
-
-};
-
+Shader::Shader() {}
 Shader::~Shader() {}
 
 void Shader::CompileShader() {
+    std::cout << "" << std::endl;
+
     unsigned int vertex, fragment, compute;
-    int success = NULL;
+    int success = 1;
     GLchar *info = new GLchar;
 
     //----------------------------------------------------------------------------------
@@ -76,22 +75,56 @@ void Shader::CompileShader() {
     glDeleteShader(compute);
 }
 
-
-void Shader::CompileComputeShader(const GLchar CS_Path){
-    compute_shader_code = loader(CS_Path);
-    unsigned int compute;
+void Shader::CompileComputeShader(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path){
+    unsigned int c1, c2, c3;
     int success = NULL;
     GLchar *info = new GLchar;
 
-    compute = glCreateShader(GL_COMPUTE_SHADER);
-    glShaderSource(compute, 1, reinterpret_cast<const GLchar *const *>(&compute_shader_code), NULL);
-    glCompileShader(compute);
+    compute_shader_code1 = loader(CS1_Path);
+    compute_shader_code2 = loader(CS2_Path);
+    compute_shader_code3 = loader(CS3_Path);
 
-    glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
-    cout << "Computer shader success: " << success << endl;
+    compute_shader_code1 = glCreateShader(GL_COMPUTE_SHADER);
+    compute_shader_code2 = glCreateShader(GL_COMPUTE_SHADER);
+    compute_shader_code3 = glCreateShader(GL_COMPUTE_SHADER);
 
-    glGetShaderInfoLog(compute, 600, NULL, info);
+    glShaderSource(c1, 1, reinterpret_cast<const GLchar *const *>(&compute_shader_code1), NULL);
+    glShaderSource(c2, 1, reinterpret_cast<const GLchar *const *>(&compute_shader_code2), NULL);
+    glShaderSource(c3, 1, reinterpret_cast<const GLchar *const *>(&compute_shader_code3), NULL);
+
+    glCompileShader(c1);
+    glCompileShader(c2);
+    glCompileShader(c3);
+
+    glGetShaderiv(c1, GL_COMPILE_STATUS, &success);
+    cout << "success: " << success << endl;
+    glGetShaderiv(c2, GL_COMPILE_STATUS, &success);
+    cout << "success: " << success << endl;
+    glGetShaderiv(c3, GL_COMPILE_STATUS, &success);
+    cout << "success: " << success << endl;
+
+    glGetShaderInfoLog(c1, 600, NULL, info);
     cout << "info: " << info << endl;
+    glGetShaderInfoLog(c2, 600, NULL, info);
+    cout << "info: " << info << endl;
+    glGetShaderInfoLog(c3, 600, NULL, info);
+    cout << "info: " << info << endl;
+
+    ID = glCreateProgram();
+    glAttachShader(ID, c1);
+    glAttachShader(ID, c2);
+    glAttachShader(ID, c3);
+    glLinkProgram(ID);
+
+    glGetProgramiv(ID, GL_LINK_STATUS, &success);
+
+    if (!success) {
+        glGetProgramInfoLog(ID, 400, NULL, info);
+        cout << "ERROR DURING LINKING SHADER PROGRAM" << info << endl;
+    }
+    glDeleteShader(c1);
+    glDeleteShader(c2);
+    glDeleteShader(c3);
 }
 
 
@@ -99,9 +132,9 @@ void Shader::use() const {
     glUseProgram(this->ID);
 }
 
-string Shader::loader(const GLchar path) {
+string Shader::loader(const GLchar *path) {
     std::string content;
-    std::ifstream fileStream(&path, std::ios::in);
+    std::ifstream fileStream(path, std::ios::in);
 
     if (!fileStream.is_open()) {
         std::cerr << "Could not read file " << path << ". File does not exist." << std::endl;
@@ -116,8 +149,6 @@ string Shader::loader(const GLchar path) {
 
     return content;
 }
-
-
 
 
 void Shader::Unbind() {

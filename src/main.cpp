@@ -21,12 +21,22 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
+void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path);
+
+void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path);
+
+void initQuadProgram();
+
+void initComputeProgram();
+
+
+
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
 Camera camera(glm::vec3(0.0f, -4.0f, 3.0f));
-float lastX ;
-float lastY ;
+float lastX;
+float lastY;
 bool firstMouse = true;
 
 // timing
@@ -41,35 +51,32 @@ unsigned int quadVBO;
 Shader shaderQuad;
 Shader shaderCompute;
 
-void createQuadProgram(){
-   shaderQuad=Shader("../Shaders/vertexQuad.shader","../Shaders/fragmentQuad.shader");
-   shaderQuad.CompileShader();
+void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path) {
+    shaderQuad = Shader(VS_Path, FS_Path);
+    shaderQuad.CompileShader();
 }
 
-void createComputeProgram(){
-    shaderCompute=Shader();
-    shaderCompute.CompileComputeShader();
+void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path) {
+    shaderCompute = Shader();
+    shaderCompute.CompileComputeShader(CS1_Path,CS2_Path, CS3_Path);
+
 }
 
-void initQuadProgram(){
+void initQuadProgram() {
     shaderCompute.use();
-    
 }
 
-void initComputeProgram(){
-    shaderCompute=Shader();
-    shaderCompute.CompileComputeShader();
+void initComputeProgram() {
+    shaderCompute.use();
 }
 
-void renderQuad()
-{
-    if (quadVAO == 0)
-    {
+void renderQuad() {
+    if (quadVAO == 0) {
         float quadVertices[] = {
                 // positions        // texture Coords
-                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
                 -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
                 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
         };
         // setup plane VAO
@@ -79,15 +86,14 @@ void renderQuad()
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
     }
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
-
 
 
 int main() {
@@ -127,7 +133,7 @@ int main() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    Shader shader = Shader("../Shaders/vertex.shader","../Shaders/fragment.shader");
+    Shader shader = Shader("../Shaders/vertex.shader", "../Shaders/fragment.shader");
 
     Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
@@ -147,17 +153,18 @@ int main() {
 
         shader.use();
 
-      //  glm::mat4 projection = glm::ortho(0.0f,(float) SCR_WIDTH,0.0f,(float) SCR_HEIGHT, 0.1f,100.0f);
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,100.0f);
+        //  glm::mat4 projection = glm::ortho(0.0f,(float) SCR_WIDTH,0.0f,(float) SCR_HEIGHT, 0.1f,100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
+                                                100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-       // model=glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f));
+        // model=glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f));
 
-        shader.setUniformMat4f("matrices.projectionMatrix",projection);
-      //  shader.setUniformMat4f("matrices.viewMatrix",view);
-        shader.setUniformMat4f("matrices.modelMatrix",model);
+        shader.setUniformMat4f("matrices.projectionMatrix", projection);
+        //  shader.setUniformMat4f("matrices.viewMatrix",view);
+        shader.setUniformMat4f("matrices.modelMatrix", model);
 
-      //  mymodel.Draw(shader);
+        //  mymodel.Draw(shader);
         renderQuad();
 
         /* Swap front and back buffers */
@@ -173,8 +180,7 @@ int main() {
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
-{
+void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -190,8 +196,7 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
@@ -199,10 +204,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (firstMouse)
-    {
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+    if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
@@ -219,7 +222,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(yoffset);
 }
