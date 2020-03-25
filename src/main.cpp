@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include "Shader.h"
-#include "Renderer.h"
 #include "../includes/camera.h"
 #include "../includes/model.h"
 
@@ -30,7 +29,6 @@ void initQuadProgram();
 void initComputeProgram();
 
 
-
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
@@ -48,8 +46,13 @@ float lastFrame = 0.0f;
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
 
+Shader shader;
 Shader shaderQuad;
 Shader shaderCompute;
+Model mymodel;
+
+GLFWwindow *window;
+
 int workgroupSizeX;
 int workgroupSizeY;
 
@@ -69,7 +72,7 @@ void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path) {
 
 void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path) {
     shaderCompute = Shader();
-    shaderCompute.CompileComputeShader(CS1_Path,CS2_Path, CS3_Path);
+    shaderCompute.CompileComputeShader(CS1_Path, CS2_Path, CS3_Path);
 }
 
 void initQuadProgram() {
@@ -79,20 +82,32 @@ void initQuadProgram() {
 void initComputeProgram() {
     shaderCompute.use();
     int workgroupSize[3];
-    glGetProgramiv(shaderCompute.ID,GL_COMPUTE_WORK_GROUP_SIZE,workgroupSize);
-    workgroupSizeX=workgroupSize[0];
-    workgroupSizeY=workgroupSize[1];
+    glGetProgramiv(shaderCompute.ID, GL_COMPUTE_WORK_GROUP_SIZE, workgroupSize);
+    workgroupSizeX = workgroupSize[0];
+    workgroupSizeY = workgroupSize[1];
 
-    eyeuniform=glGetUniformLocation(shaderCompute.ID,"eye");
-    ray00Uniform=glGetUniformLocation(shaderCompute.ID,"ray00");
-    ray01Uniform=glGetUniformLocation(shaderCompute.ID,"ray01");
-    ray10Uniform=glGetUniformLocation(shaderCompute.ID,"ray10");
-    ray11Uniform=glGetUniformLocation(shaderCompute.ID,"ray11");
-    timeUniform=glGetUniformLocation(shaderCompute.ID,"time");
-    blendFactorUniform=glGetUniformLocation(shaderCompute.ID,"blendFactor");
-    bounceCountUniform=glGetUniformLocation(shaderCompute.ID,"bounceCount");
+    eyeuniform = glGetUniformLocation(shaderCompute.ID, "eye");
+    ray00Uniform = glGetUniformLocation(shaderCompute.ID, "ray00");
+    ray01Uniform = glGetUniformLocation(shaderCompute.ID, "ray01");
+    ray10Uniform = glGetUniformLocation(shaderCompute.ID, "ray10");
+    ray11Uniform = glGetUniformLocation(shaderCompute.ID, "ray11");
+    timeUniform = glGetUniformLocation(shaderCompute.ID, "time");
+    blendFactorUniform = glGetUniformLocation(shaderCompute.ID, "blendFactor");
+    bounceCountUniform = glGetUniformLocation(shaderCompute.ID, "bounceCount");
 }
 
+/*void present() {
+
+    glUseProgram(quadProgram);
+    glBindVertexArray(vao);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBindSampler(0, this.sampler);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
+    glBindSampler(0, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+}*/
 void renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] = {
@@ -118,10 +133,7 @@ void renderQuad() {
     glBindVertexArray(0);
 }
 
-
-int main() {
-    GLFWwindow *window;
-
+int init() {
     /* Initialize the library */
     if (!glfwInit())
         return -1;
@@ -156,16 +168,18 @@ int main() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    Shader shader = Shader("../Shaders/vertex.shader", "../Shaders/fragment.shader");
-    createQuadProgram("../Shaders/vertexQuad.shader","../Shaders/fragmentQuad.shader");
+    shader = Shader("../Shaders/vertex.shader", "../Shaders/fragment.shader");
+    createQuadProgram("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
 
-    Model mymodel(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
+    mymodel = Model(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
     shader.CompileShader();
+    
+}
 
+void loop() {
     while (!glfwWindowShouldClose(window)) {
-
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -175,21 +189,26 @@ int main() {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // First pipeline - Ortho --------------------------------------------------
+
         initQuadProgram();
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 projectionOrtho = glm::ortho(0.0f,(float) SCR_WIDTH,0.0f,(float) SCR_HEIGHT, 0.1f,100.0f);
+        glm::mat4 projectionOrtho = glm::ortho(0.0f, (float) SCR_WIDTH, 0.0f, (float) SCR_HEIGHT, 0.1f, 100.0f);
 
         shader.setUniformMat4f("matrices.modelMatrix", model);
         shader.setUniformMat4f("matrices.projectionMatrix", projectionOrtho);
+
         renderQuad();
 
+        // Second pipeline - Perspective---------------------------------------------
 
         shader.use();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
+                                                100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
         shader.setUniformMat4f("matrices.modelMatrix", model);
-        shader.setUniformMat4f("matrices.viewMatrix",view);
+        shader.setUniformMat4f("matrices.viewMatrix", view);
         shader.setUniformMat4f("matrices.projectionMatrix", projection);
 
         mymodel.Draw(shader);
@@ -200,6 +219,14 @@ int main() {
         /* Poll for and process events */
         glfwPollEvents();
     }
+}
+
+int main() {
+    if (init() == -1) {
+        return -1;
+    }
+
+    loop();
     glfwTerminate();
     return 0;
 }
