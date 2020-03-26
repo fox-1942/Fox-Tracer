@@ -5,7 +5,6 @@
 #ifndef OPENGL_TEXTURE_H
 #define OPENGL_TEXTURE_H
 
-#include "Renderer.h"
 #include <string>
 
 class Texture {

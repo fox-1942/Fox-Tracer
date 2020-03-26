@@ -12,7 +12,6 @@
 #include "../Vendor/soil/SOIL.h"
 #include "mesh.h"
 #include "../src/Texture.h"
-#include "../src/Shader.h"
 
 #include <string>
 #include <fstream>
@@ -46,9 +45,9 @@ public:
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader shader) {
+    void Draw() {
         for (unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].Draw(shader);
+            meshes[i].Draw();
     }
 
 public:

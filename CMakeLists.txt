@@ -15,15 +15,8 @@ message(STATUS "Found GLEW in ${GLEW_INCLUDE_DIR}")
 
 add_executable(RayTracerBoros
         src/main.cpp
-        src/Shader.cpp
         src/Shader.h
-        src/VertexBuffer.cpp
-        src/VertexBuffer.h
-        src/Renderer.cpp
-        src/Renderer.h
-        src/IndexBuffer.cpp
-        src/IndexBuffer.h
-        src/VertexArray.cpp src/VertexArray.h
-        src/VertexBufferLayout.h Vendor/stb_image/stb_image.h
-        Vendor/stb_image/stb_image.cpp src/Texture.cpp src/Texture.h includes/filesystem.h includes/root_directory.h ${IMGUI} src/Light.h)
+        src/ShaderProgram.h
+        Vendor/stb_image/stb_image.h
+        Vendor/stb_image/stb_image.cpp src/Texture.cpp src/Texture.h includes/filesystem.h includes/root_directory.h ${IMGUI} src/Light.h src/ShaderProgram.h)
 target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)

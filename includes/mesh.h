@@ -48,7 +48,7 @@ public:
     }
 
     // render the mesh
-    void Draw(Shader shader) {
+    void Draw() {
 
       unsigned int texture;
       glGenTextures(1, &texture);

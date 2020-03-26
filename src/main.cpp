@@ -5,12 +5,10 @@
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
 
 #include <iostream>
-#include "Shader.h"
+#include "ShaderProgram.h"
 #include "../includes/camera.h"
 #include "../includes/model.h"
-
 #include "../includes/filesystem.h"
-
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -27,7 +25,6 @@ void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const 
 void initQuadProgram();
 
 void initComputeProgram();
-
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -46,9 +43,14 @@ float lastFrame = 0.0f;
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
 
-Shader shader;
-Shader shaderQuad;
-Shader shaderCompute;
+ShaderProgram shaderQuadProgram;
+Shader shaderQuadVertex;
+Shader shaderQuadFragment;
+
+ShaderProgram shaderProgram;
+Shader shaderVertex;
+Shader shaderFragment;
+
 Model mymodel;
 
 GLFWwindow *window;
@@ -66,19 +68,21 @@ int blendFactorUniform;
 int bounceCountUniform;
 
 void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path) {
-    shaderQuad = Shader(VS_Path, FS_Path);
-    shaderQuad.CompileShader();
-}
+    shaderQuadVertex=Shader();
+    shaderQuadFragment=Shader();
+    shaderQuadVertex.loadShaderFromFile(VS_Path,GL_VERTEX_SHADER);
+    shaderQuadFragment.loadShaderFromFile(FS_Path,GL_FRAGMENT_SHADER);
+    shaderQuadProgram.CreateShaderProgram();
 
-void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path) {
-    shaderCompute = Shader();
-    shaderCompute.CompileComputeShader(CS1_Path, CS2_Path, CS3_Path);
+    shaderQuadProgram.addShaderToProgram(shaderQuadVertex);
+    shaderQuadProgram.addShaderToProgram(shaderQuadFragment);
+    shaderQuadProgram.linkShaderProgram();
 }
 
 void initQuadProgram() {
-    shaderCompute.use();
+    shaderQuadProgram.useProgram();
 }
-
+/*
 void initComputeProgram() {
     shaderCompute.use();
     int workgroupSize[3];
@@ -94,10 +98,9 @@ void initComputeProgram() {
     timeUniform = glGetUniformLocation(shaderCompute.ID, "time");
     blendFactorUniform = glGetUniformLocation(shaderCompute.ID, "blendFactor");
     bounceCountUniform = glGetUniformLocation(shaderCompute.ID, "bounceCount");
-}
+}*/
 
 /*void present() {
-
     glUseProgram(quadProgram);
     glBindVertexArray(vao);
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -163,19 +166,21 @@ int init() {
         std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
         exit(1);
     }
-
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-
-    shader = Shader("../Shaders/vertex.shader", "../Shaders/fragment.shader");
-    createQuadProgram("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
-
-
     mymodel = Model(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
 
-    shader.CompileShader();
-    
+    createQuadProgram("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
+
+    shaderVertex=Shader();
+    shaderFragment=Shader();
+    shaderVertex.loadShaderFromFile("../Shaders/vertex.shader",GL_VERTEX_SHADER);
+    shaderFragment.loadShaderFromFile("../Shaders/fragment.shader",GL_FRAGMENT_SHADER);
+    shaderProgram.addShaderToProgram(shaderVertex);
+    shaderProgram.addShaderToProgram(shaderFragment);
+    shaderProgram.linkShaderProgram();
+
 }
 
 void loop() {
@@ -190,29 +195,25 @@ void loop() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // First pipeline - Ortho --------------------------------------------------
-
         initQuadProgram();
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 projectionOrtho = glm::ortho(0.0f, (float) SCR_WIDTH, 0.0f, (float) SCR_HEIGHT, 0.1f, 100.0f);
 
-        shader.setUniformMat4f("matrices.modelMatrix", model);
-        shader.setUniformMat4f("matrices.projectionMatrix", projectionOrtho);
-
+        shaderQuadProgram.setUniformMat4f("matrices.modelMatrix", model);
+        shaderQuadProgram.setUniformMat4f("matrices.projectionMatrix", projectionOrtho);
         renderQuad();
 
-        // Second pipeline - Perspective---------------------------------------------
 
-        shader.use();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                100.0f);
+        // Second pipeline - Perspective---------------------------------------------
+        shaderProgram.useProgram();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-        shader.setUniformMat4f("matrices.modelMatrix", model);
-        shader.setUniformMat4f("matrices.viewMatrix", view);
-        shader.setUniformMat4f("matrices.projectionMatrix", projection);
+        shaderProgram.setUniformMat4f("matrices.modelMatrix", model);
+        shaderProgram.setUniformMat4f("matrices.viewMatrix", view);
+        shaderProgram.setUniformMat4f("matrices.projectionMatrix", projection);
 
-        mymodel.Draw(shader);
-
+        mymodel.Draw();
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 

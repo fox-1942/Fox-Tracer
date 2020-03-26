@@ -5,6 +5,7 @@
 #include "../Vendor/stb_image/stb_image.h"
 
 #include "Texture.h"
+#include <GL/glew.h>
 
 
 Texture::Texture() {
