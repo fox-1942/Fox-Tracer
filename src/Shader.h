@@ -68,7 +68,7 @@ public:
         return this->isLoaded;
     }
 
-    bool getShader_id() const {
+    GLuint getShader_id() const {
         return this->shader_id;
     }
 

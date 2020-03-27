@@ -62,7 +62,6 @@ Shader shaderFragment;
 
 Model mymodel;
 
-
 GLFWwindow *window;
 
 int workgroupSizeX;
@@ -85,6 +84,7 @@ void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadFragment.loadShaderFromFile(FS_Path, GL_FRAGMENT_SHADER);
 
     shaderQuadProgram.CreateShaderProgram();
+
     shaderQuadProgram.addShaderToProgram(shaderQuadVertex);
     shaderQuadProgram.addShaderToProgram(shaderQuadFragment);
 
@@ -124,10 +124,10 @@ void renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] = {
                 // positions        // texture Coords
-                -1.0f/2, 1.0f/2, 0.0f, 0.0f, 1.0f,
-                -1.0f/2, -1.0f/2, 0.0f, 0.0f, 0.0f,
-                1.0f/2, 1.0f/2, 0.0f, 1.0f, 1.0f,
-                1.0f/2, -1.0f/2, 0.0f, 1.0f, 0.0f,
+                -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
         };
         // setup plane VAO
         glGenVertexArrays(1, &quadVAO);
@@ -137,12 +137,11 @@ void renderQuad() {
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
     }
     glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 2);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
 
@@ -191,10 +190,9 @@ int init() {
     shaderFragment.loadShaderFromFile("../Shaders/fragment.shader", GL_FRAGMENT_SHADER);
 
     shaderProgram.CreateShaderProgram();
+
     shaderProgram.addShaderToProgram(shaderVertex);
-
     shaderProgram.addShaderToProgram(shaderFragment);
-
     shaderProgram.linkShaderProgram();
 
     return 0;
@@ -209,21 +207,10 @@ void loop() {
 
         processInput(window);
 
-
         glClearColor(1.0f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 model = glm::mat4(1.0f);
-
-        // First pipeline - Ortho --------------------------------------------------
-
-        shaderQuadProgram.useProgram();
-        glm::mat4 projectionOrtho = glm::ortho(0.0f, (float) SCR_WIDTH, 0.0f, (float) SCR_HEIGHT, 0.1f, 100.0f);
-
-        shaderQuadProgram.setUniformMat4f("modelMatrix", model);
-        shaderQuadProgram.setUniformMat4f("projectionMatrix", projectionOrtho);
-
-        renderQuad();
 
 
         // Second pipeline - Perspective---------------------------------------------
@@ -237,18 +224,32 @@ void loop() {
         shaderProgram.setUniformMat4f("matrices.projectionMatrix", projection);
 
         mymodel.Draw();
+
+        
+
+
+        // First pipeline - Ortho --------------------------------------------------
+
+        shaderQuadProgram.useProgram();
+        glm::mat4 projectionOrtho = glm::ortho(0.0f, (float) SCR_WIDTH, 0.0f, (float) SCR_HEIGHT, 0.1f, 100.0f);
+
+        shaderQuadProgram.setUniformMat4f("modelMatrix", model);
+        shaderQuadProgram.setUniformMat4f("projectionMatrix", projectionOrtho);
+
+        renderQuad();
+
+
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
         glfwPollEvents();
-
-
     }
 }
 
 int main() {
-
+    GLClearError();
     if (init() == -1) {
         return -1;
     }
@@ -256,7 +257,7 @@ int main() {
     loop();
 
     glfwTerminate();
-
+    GLCheckError();
     return 0;
 
 }

@@ -38,10 +38,10 @@ public:
 
         GLClearError();
         glAttachShader(shaderProgram_id, shader.getShader_id());
-       if( GLenum error = glGetError()){
-           cout<<"hibás shader"<<shader.getShader_id()<<"\n"<<endl;
-           cout<<"program"<<shaderProgram_id<<"\n"<<endl;
-       }
+        GLCheckError();
+        cout << "Shader attached, Shader_ID: "<< shader.getShader_id() << " to ShaderProgram:"<<shaderProgram_id << endl;
+
+        glDeleteShader(shader.getShader_id());
         return true;
     }
 
@@ -59,7 +59,8 @@ public:
             return false;
         }
 
-        std::cout <<"shaderProgram id: "<< shaderProgram_id <<" | Linking was successfull.\n" << std::endl;
+        std::cout << "shaderProgram id: " << shaderProgram_id << " | Linking was successfull." << std::endl;
+        std::cout << "-------------------------------------------------------------------------\n" << std::endl;
         return isLinked;
     }
 
@@ -78,8 +79,7 @@ public:
         isLinked = false;
     }
 
-    int getShaderProgram_id() const
-    {
+    int getShaderProgram_id() const {
         return shaderProgram_id;
     }
 
