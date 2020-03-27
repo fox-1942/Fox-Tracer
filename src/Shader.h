@@ -12,7 +12,7 @@ using namespace std;
 class Shader {
 
 private:
-    unsigned int shader_id;
+    GLuint shader_id;
     std::string shaderCode;
     bool isLoaded;
 
@@ -40,7 +40,7 @@ public:
     ~Shader() {}
 
     bool loadShaderFromFile(const GLchar *PathToFile, GLenum shaderType) {
-        int success = -4;
+        int success;
         GLchar *info = new GLchar;
         shaderCode = loader(PathToFile);
         shader_id = glCreateShader(shaderType);
@@ -56,6 +56,9 @@ public:
             cout << "Shader compilation problem: " << info << endl;
             return false;
         }
+
+        cout<<"Shader id: " <<shader_id<< " | Shader compilation was succesfull." << info <<"\n" <<endl;
+
         isLoaded = true;
         return true;
 

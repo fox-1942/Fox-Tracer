@@ -12,19 +12,36 @@
 
 class ShaderProgram {
 
+    static void GLClearError() {
+        while (glGetError() != GL_NO_ERROR);
+    }
+
+    static void GLCheckError() {
+        while (GLenum error = glGetError()) {
+            std::cout << "[OpenGL Error]: " << error << std::endl;
+        }
+    }
+
 public:
     GLuint shaderProgram_id;
     bool isLinked = false;
 
     void CreateShaderProgram() {
         shaderProgram_id = glCreateProgram();
+
     }
 
     bool addShaderToProgram(const Shader &shader) {
+
         if (!shader.getIsLoaded())
             return false;
 
+        GLClearError();
         glAttachShader(shaderProgram_id, shader.getShader_id());
+       if( GLenum error = glGetError()){
+           cout<<"hibás shader"<<shader.getShader_id()<<"\n"<<endl;
+           cout<<"program"<<shaderProgram_id<<"\n"<<endl;
+       }
         return true;
     }
 
@@ -34,16 +51,15 @@ public:
         glGetProgramiv(shaderProgram_id, GL_LINK_STATUS, &linkStatus);
         isLinked = linkStatus == GL_TRUE;
 
-        if (!isLinked == GL_TRUE) {
-            char infoLogBuffer[2048];
+        if (!isLinked) {
+            GLchar *info;
             int logLength;
-            glGetProgramInfoLog(shaderProgram_id, 2048, &logLength, infoLogBuffer);
-
-            std::cout << "Error! Shader program wasn't linked! The linker returned: " << infoLogBuffer << std::endl;
-
+            glGetProgramInfoLog(shaderProgram_id, 2048, &logLength, info);
+            std::cout << "Error! Shader program wasn't linked! The linker returned: " << info << std::endl;
             return false;
-
         }
+
+        std::cout <<"shaderProgram id: "<< shaderProgram_id <<" | Linking was successfull.\n" << std::endl;
         return isLinked;
     }
 

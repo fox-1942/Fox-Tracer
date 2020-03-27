@@ -1,17 +1,14 @@
-#version 460 core
+#version 410 core
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 normal;
-layout(location = 2) in vec2 texCoord;
+layout(location = 1) in vec2 texCoord;
 
-uniform struct{
-    mat4 projectionMatrix;
-    mat4 modelMatrix;
-} matricesQuad;
+uniform mat4 projectionMatrix;
+uniform mat4 modelMatrix;
+
 
 void main()
 {
-    gl_Position = matricesQuad.projectionMatrix * matricesQuad.modelMatrix * vec4(position, 1.0);
-
+    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);
 }
 
 

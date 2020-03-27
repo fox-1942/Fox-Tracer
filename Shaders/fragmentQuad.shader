@@ -1,8 +1,6 @@
-#version 460 core
-precision mediump float;
+#version 410 core
 out vec4 FragColor;
-
-void main() {
-    FragColor = vec4(vec3(0.5f, 0.5f, 0.0f), 1);
+void main()
+{
+FragColor = vec4(1.0f, 1.0f, 0.2f, 1.0f);
 }
-
