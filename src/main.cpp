@@ -76,6 +76,7 @@ int timeUniform;
 int blendFactorUniform;
 int bounceCountUniform;
 
+
 void createQuadProgram(const GLchar *VS_Path, const GLchar *FS_Path) {
 
     shaderQuadVertex = Shader();
@@ -123,10 +124,10 @@ void initComputeProgram() {
 void renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] = {
-                // positions        // texture Coords
-                -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+                // positions
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
                 -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
                 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
         };
         // setup plane VAO
@@ -134,11 +135,9 @@ void renderQuad() {
         glGenBuffers(1, &quadVBO);
         glBindVertexArray(quadVAO);
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
     }
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -152,7 +151,7 @@ int init() {
         return -1;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
@@ -168,7 +167,7 @@ int init() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
     const GLenum err = glewInit();
@@ -195,6 +194,7 @@ int init() {
     shaderProgram.addShaderToProgram(shaderFragment);
     shaderProgram.linkShaderProgram();
 
+
     return 0;
 }
 
@@ -207,38 +207,40 @@ void loop() {
 
         processInput(window);
 
-        glClearColor(1.0f, 0.5f, 0.5f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 model = glm::mat4(1.0f);
 
-
         // Second pipeline - Perspective---------------------------------------------
         shaderProgram.useProgram();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                100.0f);
         glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 1000.0f);
 
         shaderProgram.setUniformMat4f("matrices.modelMatrix", model);
         shaderProgram.setUniformMat4f("matrices.viewMatrix", view);
         shaderProgram.setUniformMat4f("matrices.projectionMatrix", projection);
 
         mymodel.Draw();
-
-        
+        // -------------------------------------------------------------------------
 
 
         // First pipeline - Ortho --------------------------------------------------
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(0);
 
         shaderQuadProgram.useProgram();
-        glm::mat4 projectionOrtho = glm::ortho(0.0f, (float) SCR_WIDTH, 0.0f, (float) SCR_HEIGHT, 0.1f, 100.0f);
 
+        model=glm::scale(model, glm::vec3(500.0f,500.0f,0.0f));
+        glm::mat4 orthoMatrix = glm::ortho(0.0f, float(SCR_WIDTH), 0.0f, float(SCR_HEIGHT));
         shaderQuadProgram.setUniformMat4f("modelMatrix", model);
-        shaderQuadProgram.setUniformMat4f("projectionMatrix", projectionOrtho);
+        shaderQuadProgram.setUniformMat4f("projectionMatrix", orthoMatrix);
 
         renderQuad();
 
-
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(1);
+        // ------------------------------------------------------------------------
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
