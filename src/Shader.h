@@ -45,7 +45,6 @@ public:
         shaderCode = loader(PathToFile);
         shader_id = glCreateShader(shaderType);
 
-        cout << "Path to Shader: " << PathToFile << endl;
         glShaderSource(shader_id, 1, reinterpret_cast<const GLchar *const *>(&shaderCode), NULL);
         glCompileShader(shader_id);
 

@@ -1,3 +1,5 @@
+
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -28,15 +30,6 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
 
-static void GLClearError() {
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static void GLCheckError() {
-    while (GLenum error = glGetError()) {
-        std::cout << "[OpenGL Error]: " << error << std::endl;
-    }
-}
 
 Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float lastX;
@@ -184,7 +177,7 @@ int init() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
 
     const GLenum err = glewInit();
@@ -196,8 +189,9 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model(FileSystem::getPath("model/nanosuit/nanosuit.obj"));
-    
+    mymodel = Model("../model/12221_Cat_v1_l3.obj");
+
+
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
     create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
 
@@ -228,7 +222,7 @@ void loop() {
         shaderProgram.setUniformMat4f("matrices.viewMatrix", view);
         shaderProgram.setUniformMat4f("matrices.projectionMatrix", projection);
 
-        mymodel.Draw();
+        mymodel.Draw(shaderProgram);
         // -------------------------------------------------------------------------
 
 
@@ -258,7 +252,7 @@ void loop() {
 }
 
 int main() {
-    GLClearError();
+
     if (init() == -1) {
         return -1;
     }
@@ -266,7 +260,7 @@ int main() {
     loop();
 
     glfwTerminate();
-    GLCheckError();
+
     return 0;
 
 }

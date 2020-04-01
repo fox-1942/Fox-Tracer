@@ -13,10 +13,16 @@ message(STATUS "Found ASSIMP in ${ASSIMP_LIBRARY_DIR}")
 find_package(GLEW REQUIRED)
 message(STATUS "Found GLEW in ${GLEW_INCLUDE_DIR}")
 
+link_directories(/usr/local/lib)
 add_executable(RayTracerBoros
         src/main.cpp
         src/Shader.h
         src/ShaderProgram.h
-        Vendor/stb_image/stb_image.h
-        Vendor/stb_image/stb_image.cpp src/Texture.cpp src/Texture.h includes/filesystem.h includes/root_directory.h ${IMGUI} src/Light.h src/ShaderProgram.h)
-target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)
+        includes/filesystem.h
+        includes/root_directory.h
+        src/ShaderProgram.h
+        /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/image_DXT.o
+        /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/image_helper.o
+        /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/wfETC.o)
+
+target_link_libraries(RayTracerBoros GL glfw GLEW assimp /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/SOIL2.o)
