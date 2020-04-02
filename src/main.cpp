@@ -189,7 +189,7 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model("../model/12221_Cat_v1_l3.obj");
+    mymodel = Model("../model/nanosuit/nanosuit.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");

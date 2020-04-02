@@ -6,9 +6,11 @@
 #include "../Vendor/glm/glm.hpp"
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
 
-#include "../Vendor/assimp-5.0.0/include/assimp/Importer.hpp"
-#include "../Vendor/assimp-5.0.0/include/assimp/scene.h"
-#include "../Vendor/assimp-5.0.0/include/assimp/postprocess.h"
+#include <assimp/Importer.hpp>
+
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "../Vendor/SOIL2/SOIL2.h"
 #include "mesh.h"
 
