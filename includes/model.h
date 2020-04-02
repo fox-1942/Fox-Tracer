@@ -11,7 +11,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "../Vendor/SOIL2/SOIL2.h"
+#include "../Vendor/SOIL2.h"
 #include "mesh.h"
 
 #include <string>

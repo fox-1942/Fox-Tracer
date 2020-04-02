@@ -20,9 +20,6 @@ add_executable(RayTracerBoros
         src/ShaderProgram.h
         includes/filesystem.h
         includes/root_directory.h
-        src/ShaderProgram.h
-        /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/image_DXT.o
-        /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/image_helper.o
-        /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/wfETC.o)
+        src/ShaderProgram.h )
 
-target_link_libraries(RayTracerBoros GL glfw GLEW assimp /home/fox-1942/Downloads/SOIL2-master/obj/linux/debug/soil2-static-lib/SOIL2.o)
+target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)
