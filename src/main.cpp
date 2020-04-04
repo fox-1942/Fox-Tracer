@@ -1,10 +1,9 @@
-
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include "../Vendor/glm/glm.hpp"
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
+#include "../Vendor/glm/gtc/type_ptr.hpp"
 
 #include <iostream>
 #include "ShaderProgram.h"
@@ -28,8 +27,6 @@ void initComputeProgram();
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
-
-
 
 Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float lastX;
@@ -177,7 +174,7 @@ int init() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
     const GLenum err = glewInit();
@@ -189,7 +186,7 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model("../model/nanosuit/nanosuit.obj");
+    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
@@ -211,18 +208,40 @@ void loop() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 model = glm::mat4(1.0f);
+        model=glm::translate(model, glm::vec3(0.0,0.0,0.0));
+        model=glm::scale(model, glm::vec3(0.1,0.1,0.1));
+
 
         // Second pipeline - Perspective---------------------------------------------
         shaderProgram.useProgram();
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                1000.0f);
 
-        shaderProgram.setUniformMat4f("matrices.modelMatrix", model);
-        shaderProgram.setUniformMat4f("matrices.viewMatrix", view);
-        shaderProgram.setUniformMat4f("matrices.projectionMatrix", projection);
+        GLuint uniformBlockIndex= glGetUniformBlockIndex(shaderProgram.getShaderProgram_id(),"Matrices");
+        glUniformBlockBinding(shaderProgram.getShaderProgram_id(),uniformBlockIndex,0);
+
+        unsigned int uboMatrices;
+        glGenBuffers(1, &uboMatrices);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,1000.0f);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glm::mat4 view = camera.GetViewMatrix();
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        shaderProgram.setUniformMat4f("modelMatrix", model);
 
         mymodel.Draw(shaderProgram);
+        
+
+        //cout<<"Uniform buffer max size: "<<abcd<<endl;
+
         // -------------------------------------------------------------------------
 
 
@@ -273,13 +292,13 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, deltaTime+1);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, deltaTime+1);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, deltaTime+1);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.ProcessKeyboard(RIGHT, deltaTime+1);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
