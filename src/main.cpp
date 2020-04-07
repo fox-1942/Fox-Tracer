@@ -176,7 +176,6 @@ int init() {
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
     const GLenum err = glewInit();
     if (GLEW_OK != err) {
         std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
@@ -188,14 +187,40 @@ int init() {
 
     mymodel = Model("../model/MAP01/doom2_MAP01.obj");
 
-
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
     create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
+
+
+    mymodel.fillAllPositionVertices();
+
+    glm::vec3 xcv =glm::vec3(0.0,0.0,0.0);
+
+    unsigned int primitives;
+    glGenBuffers(1, &primitives);
+    glBindBuffer(GL_UNIFORM_BUFFER, primitives);
+    glBufferData(GL_UNIFORM_BUFFER,3430* sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // define the range of the buffer that links to a uniform binding point
+    glBindBufferRange(GL_UNIFORM_BUFFER, 2, primitives, 0,3430* sizeof(glm::vec3));
+
+    glBindBuffer(GL_UNIFORM_BUFFER, primitives);
+
+
+
+    for(int i=2;i<=3430;i++) {
+
+    glBufferSubData(GL_UNIFORM_BUFFER, pow(2,i),  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(i)));
+    }
+
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     return 0;
 }
 
 void loop() {
+
+
     while (!glfwWindowShouldClose(window)) {
 
         float currentFrame = glfwGetTime();
@@ -208,15 +233,18 @@ void loop() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 model = glm::mat4(1.0f);
-        model=glm::translate(model, glm::vec3(0.0,0.0,0.0));
-        model=glm::scale(model, glm::vec3(0.1,0.1,0.1));
+
+
+
 
 
         // Second pipeline - Perspective---------------------------------------------
+
+        model=glm::translate(model, glm::vec3(0.0,0.0,0.0));
+        model=glm::scale(model, glm::vec3(0.1,0.1,0.1));
+
         shaderProgram.useProgram();
 
-        GLuint uniformBlockIndex= glGetUniformBlockIndex(shaderProgram.getShaderProgram_id(),"Matrices");
-        glUniformBlockBinding(shaderProgram.getShaderProgram_id(),uniformBlockIndex,0);
 
         unsigned int uboMatrices;
         glGenBuffers(1, &uboMatrices);
@@ -238,11 +266,15 @@ void loop() {
         shaderProgram.setUniformMat4f("modelMatrix", model);
 
         mymodel.Draw(shaderProgram);
-        
 
-        //cout<<"Uniform buffer max size: "<<abcd<<endl;
+        GLuint valami;
+        glGetUniformiv(shaderProgram.getShaderProgram_id(), GL_MAX_UNIFORM_BLOCK_SIZE, reinterpret_cast<GLint *>(&valami));
 
-        // -------------------------------------------------------------------------
+        //cout<<"sdsdsdsd: "<< valami <<endl;
+
+
+
+
 
 
         // First pipeline - Ortho --------------------------------------------------

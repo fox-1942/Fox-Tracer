@@ -31,12 +31,14 @@ private:
 
 
 public:
+
+    vector<glm::vec3> allPositionVertices;
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
 
     Model() {}
 
-    Model(GLchar *path) {
+    Model(string path) {
         this->loadModel(path);
     }
 
@@ -47,8 +49,26 @@ public:
         }
     }
 
+    void fillAllPositionVertices() {
+        glm::vec3 vectorTemp;
+        for (int i = 0; i < meshes.size(); i++) {
+            for (int j = 0; j < meshes.at(i).vertices.size(); j++) {
+                vectorTemp.x = meshes.at(i).vertices.at(j).Position.x;
+                vectorTemp.y = meshes.at(i).vertices.at(j).Position.y;
+                vectorTemp.z = meshes.at(i).vertices.at(j).Position.z;
+                allPositionVertices.push_back(vectorTemp);
+            }
+        }
+
+        for(int i=0;i<allPositionVertices.size();i++){
+            cout<<allPositionVertices.at(i).x <<" "<< allPositionVertices.at(i).y<<" "<< allPositionVertices.at(i).z <<endl;
+        }
+    }
+
 private:
     /*  Model Data  */
+
+
     vector<Mesh> meshes;
     string directory;
     vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
@@ -72,7 +92,35 @@ private:
 
         // Process ASSIMP's root node recursively
         this->processNode(scene->mRootNode, scene);
+
+
+        getInfoAboutModel();
+        fillAllPositionVertices();
+
     }
+
+
+    void getInfoAboutModel() {
+        cout << "Number of meshes in the model: " << meshes.size() << endl;
+
+        int size = 0;
+        for (int i = 0; i < meshes.size(); i++) {
+            size += meshes.at(i).vertices.size();
+        }
+        cout << "Number of vertices in the model: " << size << "\n" << endl;
+
+        /*
+            for (int i = 0; i <meshes.size(); i++) {
+                for (int j = 0; j < meshes.at(i).textures.size(); j++) {
+                      cout<< "Textures: "<<j <<" "<<meshes.at(i).textures.at(0).type<<"\n"<< endl;
+                }
+            }
+        */
+    }
+
+
+
+
 
     // Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode *node, const aiScene *scene) {
@@ -127,10 +175,13 @@ private:
                 vertex.TexCoords = glm::vec2(0.0f, 0.0f);
             }
 
+            allPositionVertices.push_back(vertex.Position);
             vertices.push_back(vertex);
+
+
         }
 
-        // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+        // Now walk through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (GLuint i = 0; i < mesh->mNumFaces; i++) {
             aiFace face = mesh->mFaces[i];
             // Retrieve all indices of the face and store them in the indices vector
@@ -159,6 +210,7 @@ private:
                                                                       "texture_specular");
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         }
+
 
         // Return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures);
@@ -204,49 +256,25 @@ public:
 
     void sendDataAsTextureToShader(ShaderProgram shaderProgram) {
 
-        float vertexCoords[] = {-1, -1,
-                                1, -1,
-                                1, 1,
-                                -1, 1};
-/*
-        GLuint textureForRT_Id;
-        glGenTextures(1, &textureForRT_Id);
-        glBindTexture(GL_TEXTURE_1D, textureForRT_Id);
-        glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, meshes.size(), 0, GL_RGB, GL_UNSIGNED_BYTE, vertexCoords);
-        glBindTexture(GL_TEXTURE_1D, 0);
-      //  glUniform( glGetUniformLocation( shaderProgram.getShaderProgram_id(),"valami[]" ),2,meshes);*/
-
-        GLuint ubo_handle;
-        glGenBuffers(1, &ubo_handle);
-
-        GLuint buff_idx;
-        glBindBuffer(GL_UNIFORM_BUFFER,ubo_handle);
-        glBufferData(GL_UNIFORM_BUFFER, 152, NULL, GL_STATIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
 
     }
-
 };
 
 GLint TextureFromFile(const char *path, string directory) {
     //Generate texture ID and load texture data
+
     string filename = string(path);
     filename = directory + '/' + filename;
     GLuint textureID;
     glGenTextures(1, &textureID);
 
-
     int width, height;
-
     unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
 
     // Assign texture to ID
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
     glGenerateMipmap(GL_TEXTURE_2D);
-
-
 
     // Parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -258,6 +286,5 @@ GLint TextureFromFile(const char *path, string directory) {
 
     return textureID;
 }
-
 
 #endif
