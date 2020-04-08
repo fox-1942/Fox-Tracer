@@ -174,7 +174,7 @@ int init() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     const GLenum err = glewInit();
     if (GLEW_OK != err) {
@@ -193,8 +193,6 @@ int init() {
 
     mymodel.fillAllPositionVertices();
 
-    glm::vec3 xcv =glm::vec3(0.0,0.0,0.0);
-
     unsigned int primitives;
     glGenBuffers(1, &primitives);
     glBindBuffer(GL_UNIFORM_BUFFER, primitives);
@@ -206,10 +204,10 @@ int init() {
 
     glBindBuffer(GL_UNIFORM_BUFFER, primitives);
 
-
+    glBufferSubData(GL_UNIFORM_BUFFER, 0,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(0)));
+    glBufferSubData(GL_UNIFORM_BUFFER, 4,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(1)));
 
     for(int i=2;i<=3430;i++) {
-
     glBufferSubData(GL_UNIFORM_BUFFER, pow(2,i),  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(i)));
     }
 

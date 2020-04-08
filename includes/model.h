@@ -26,9 +26,14 @@ using namespace std;
 GLint TextureFromFile(const char *path, string directory);
 
 class Model {
+
 private:
     const aiScene *scene;
 
+    /*  Model Data  */
+    vector<Mesh> meshes;
+    string directory;
+    vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 
 public:
 
@@ -50,28 +55,36 @@ public:
     }
 
     void fillAllPositionVertices() {
+
+        std::vector<std::vector<glm::vec3> > allPositionVerticesMultiVector;
+
         glm::vec3 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
+            std::vector<glm::vec3> x;
+            allPositionVerticesMultiVector.push_back(x);
             for (int j = 0; j < meshes.at(i).vertices.size(); j++) {
                 vectorTemp.x = meshes.at(i).vertices.at(j).Position.x;
                 vectorTemp.y = meshes.at(i).vertices.at(j).Position.y;
                 vectorTemp.z = meshes.at(i).vertices.at(j).Position.z;
                 allPositionVertices.push_back(vectorTemp);
+
+                allPositionVerticesMultiVector.at(i).push_back(vectorTemp);
             }
         }
 
-        for(int i=0;i<allPositionVertices.size();i++){
-            cout<<allPositionVertices.at(i).x <<" "<< allPositionVertices.at(i).y<<" "<< allPositionVertices.at(i).z <<endl;
-        }
+        /*  for (int i = 0; i < allPositionVertices.size(); i++) {
+               cout << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
+                    << allPositionVertices.at(i).z << endl;
+           }
+
+          for(int i=0;i<arr.size();i++){
+              for(int j=0;j<arr.at(i).size();j++){
+                  cout<<arr.at(i).at(j).x<<" "<<arr.at(i).at(j).y<<" "<<arr.at(i).at(j).z<<endl;
+              }
+          } */
     }
 
 private:
-    /*  Model Data  */
-
-
-    vector<Mesh> meshes;
-    string directory;
-    vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 
     /*  Functions   */
     // Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -117,9 +130,6 @@ private:
             }
         */
     }
-
-
-
 
 
     // Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
