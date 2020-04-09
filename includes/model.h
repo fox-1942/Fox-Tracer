@@ -38,6 +38,8 @@ private:
 public:
 
     vector<glm::vec3> allPositionVertices;
+    vector<glm::vec3> indicesPerFaces;
+
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
 
@@ -72,6 +74,7 @@ public:
             }
         }
 
+
         /*  for (int i = 0; i < allPositionVertices.size(); i++) {
                cout << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
                     << allPositionVertices.at(i).z << endl;
@@ -82,6 +85,25 @@ public:
                   cout<<arr.at(i).at(j).x<<" "<<arr.at(i).at(j).y<<" "<<arr.at(i).at(j).z<<endl;
               }
           } */
+
+       /* for(int i=0;i<meshes.size();i++){
+            for(int j=0;j<meshes.at(i).indices.size()-1;j++){
+                if(meshes.at(i).indices.at(j)>meshes.at(i).indices.at(j+1)){
+                  cout<<"megvan"<<endl;
+                }
+                //cout<< meshes.at(i).indices.at(j)<< endl;
+            }
+            cout << endl;
+        }*/
+
+       /* for(int i=0;i<indicesPerFaces.size();i++){
+            cout<<indicesPerFaces.at(i).x <<" ";
+            cout<<indicesPerFaces.at(i).y <<" ";
+            cout<<indicesPerFaces.at(i).z << endl;
+        }*/
+
+
+
     }
 
 private:
@@ -91,7 +113,7 @@ private:
     void loadModel(string path) {
         // Read file via ASSIMP
         Assimp::Importer importer;
-        scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FindInvalidData);
+        scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FindInvalidData | aiProcess_JoinIdenticalVertices);
 
 
         // Check for errors
@@ -114,21 +136,16 @@ private:
 
 
     void getInfoAboutModel() {
-        cout << "Number of meshes in the model: " << meshes.size() << endl;
+        cout << "Number of meshes in the model: " << meshes.size() <<  endl;
 
         int size = 0;
         for (int i = 0; i < meshes.size(); i++) {
             size += meshes.at(i).vertices.size();
         }
+
         cout << "Number of vertices in the model: " << size << "\n" << endl;
 
-        /*
-            for (int i = 0; i <meshes.size(); i++) {
-                for (int j = 0; j < meshes.at(i).textures.size(); j++) {
-                      cout<< "Textures: "<<j <<" "<<meshes.at(i).textures.at(0).type<<"\n"<< endl;
-                }
-            }
-        */
+
     }
 
 
@@ -195,10 +212,26 @@ private:
         for (GLuint i = 0; i < mesh->mNumFaces; i++) {
             aiFace face = mesh->mFaces[i];
             // Retrieve all indices of the face and store them in the indices vector
+
+            glm::vec3 vec3Face;
+            vec3Face.x=face.mIndices[0];
+            vec3Face.y=face.mIndices[1];
+            vec3Face.z=face.mIndices[2];
+
+            indicesPerFaces.push_back(vec3Face);
+
+            /*
+            indicesPerFaces.at(i).x=face.mIndices[0];
+            indicesPerFaces.at(i).y=face.mIndices[1];
+            indicesPerFaces.at(i).z=face.mIndices[2];*/
+            
             for (GLuint j = 0; j < face.mNumIndices; j++) {
                 indices.push_back(face.mIndices[j]);
             }
         }
+
+        cout<< indicesPerFaces.size()<< " " << mesh->mNumFaces<< endl;
+
 
         // Process materials
         if (mesh->mMaterialIndex >= 0) {

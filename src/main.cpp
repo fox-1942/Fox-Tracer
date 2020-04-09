@@ -185,10 +185,10 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
+    mymodel = Model("../model/nanosuit/nanosuit.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
-    create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
+   // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
 
 
     mymodel.fillAllPositionVertices();
@@ -235,7 +235,7 @@ void loop() {
 
 
 
-
+/*
         // Second pipeline - Perspective---------------------------------------------
 
         model=glm::translate(model, glm::vec3(0.0,0.0,0.0));
@@ -269,8 +269,7 @@ void loop() {
         glGetUniformiv(shaderProgram.getShaderProgram_id(), GL_MAX_UNIFORM_BLOCK_SIZE, reinterpret_cast<GLint *>(&valami));
 
         //cout<<"sdsdsdsd: "<< valami <<endl;
-
-
+*/
 
 
 
