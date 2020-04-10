@@ -25,6 +25,10 @@ void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const 
 
 void initComputeProgram();
 
+void sendVerticesIndices();
+
+
+
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
@@ -151,6 +155,36 @@ void renderQuad() {
     glBindVertexArray(0);
 }
 
+void sendVerticesIndices(){
+
+    mymodel.fillAllPositionVertices();
+
+    cout<<"ez itt ne" << sizeof(mymodel.indicesPerFaces.size())<<endl;
+    cout<<"ez itt ne" << sizeof(mymodel.allPositionVertices.size())<<endl;
+
+
+    unsigned int primitives;
+    glGenBuffers(1, &primitives);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,3430* sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    // define the range of the buffer that links to a uniform binding point
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, primitives, 0,3430* sizeof(glm::vec3));
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
+
+    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(0)));
+    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 4,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(1)));
+
+    for(int i=2;i<=3430;i++) {
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, pow(2,i),  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(i)));
+    }
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+}
+
+
 int init() {
 
     /* Initialize the library */
@@ -190,28 +224,16 @@ int init() {
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
    // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
 
+/*
+    GLuint info, info2;
+    glGetUniformiv(shaderQuadProgram.getShaderProgram_id(), GL_MAX_UNIFORM_BLOCK_SIZE, reinterpret_cast<GLint *>(&info));
+    cout << "GL_MAX_UNIFORM_BLOCK_SIZE: " << info << endl;
 
-    mymodel.fillAllPositionVertices();
+    glGetUniformiv(shaderQuadProgram.getShaderProgram_id(), GL_MAX_SHADER_STORAGE_BLOCK_SIZE, reinterpret_cast<GLint *>(&info2));
+    cout << "GL_MAX_SHADER_STORAGE_BLOCK_SIZE: " << info2 << endl;*/
 
-    unsigned int primitives;
-    glGenBuffers(1, &primitives);
-    glBindBuffer(GL_UNIFORM_BUFFER, primitives);
-    glBufferData(GL_UNIFORM_BUFFER,3430* sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    // define the range of the buffer that links to a uniform binding point
-    glBindBufferRange(GL_UNIFORM_BUFFER, 2, primitives, 0,3430* sizeof(glm::vec3));
-
-    glBindBuffer(GL_UNIFORM_BUFFER, primitives);
-
-    glBufferSubData(GL_UNIFORM_BUFFER, 0,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(0)));
-    glBufferSubData(GL_UNIFORM_BUFFER, 4,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(1)));
-
-    for(int i=2;i<=3430;i++) {
-    glBufferSubData(GL_UNIFORM_BUFFER, pow(2,i),  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(i)));
-    }
-
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    sendVerticesIndices();
 
     return 0;
 }
@@ -264,11 +286,6 @@ void loop() {
         shaderProgram.setUniformMat4f("modelMatrix", model);
 
         mymodel.Draw(shaderProgram);
-
-        GLuint valami;
-        glGetUniformiv(shaderProgram.getShaderProgram_id(), GL_MAX_UNIFORM_BLOCK_SIZE, reinterpret_cast<GLint *>(&valami));
-
-        //cout<<"sdsdsdsd: "<< valami <<endl;
 */
 
 

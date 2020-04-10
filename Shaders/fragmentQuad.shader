@@ -1,8 +1,8 @@
 #version 460 core
 
-layout(std140, binding=2) uniform primitives{
-    vec3 primitiveCoordinates[3430];
-
+layout(std140, binding=2) buffer primitives{
+    vec3 primitiveCoordinates[];
+    vec3 facesWithIndices[];
 };
 
 in       vec2       TexCoords;

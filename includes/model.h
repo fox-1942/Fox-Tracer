@@ -36,7 +36,6 @@ private:
     vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 
 public:
-
     vector<glm::vec3> allPositionVertices;
     vector<glm::vec3> indicesPerFaces;
 
@@ -58,19 +57,14 @@ public:
 
     void fillAllPositionVertices() {
 
-        std::vector<std::vector<glm::vec3> > allPositionVerticesMultiVector;
-
         glm::vec3 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
-            std::vector<glm::vec3> x;
-            allPositionVerticesMultiVector.push_back(x);
+
             for (int j = 0; j < meshes.at(i).vertices.size(); j++) {
                 vectorTemp.x = meshes.at(i).vertices.at(j).Position.x;
                 vectorTemp.y = meshes.at(i).vertices.at(j).Position.y;
                 vectorTemp.z = meshes.at(i).vertices.at(j).Position.z;
                 allPositionVertices.push_back(vectorTemp);
-
-                allPositionVerticesMultiVector.at(i).push_back(vectorTemp);
             }
         }
 
@@ -86,24 +80,41 @@ public:
               }
           } */
 
-       /* for(int i=0;i<meshes.size();i++){
-            for(int j=0;j<meshes.at(i).indices.size()-1;j++){
-                if(meshes.at(i).indices.at(j)>meshes.at(i).indices.at(j+1)){
-                  cout<<"megvan"<<endl;
-                }
-                //cout<< meshes.at(i).indices.at(j)<< endl;
-            }
-            cout << endl;
-        }*/
+        /* for(int i=0;i<meshes.size();i++){
+             for(int j=0;j<meshes.at(i).indices.size()-1;j++){
+                 if(meshes.at(i).indices.at(j)>meshes.at(i).indices.at(j+1)){
+                   cout<<"megvan"<<endl;
+                 }
+                 //cout<< meshes.at(i).indices.at(j)<< endl;
+             }
+             cout << endl;
+         }*/
 
-       /* for(int i=0;i<indicesPerFaces.size();i++){
-            cout<<indicesPerFaces.at(i).x <<" ";
-            cout<<indicesPerFaces.at(i).y <<" ";
-            cout<<indicesPerFaces.at(i).z << endl;
-        }*/
+/*
+        ofstream myfile;
+        myfile.open ("../model/vertices.txt");
+        for(int i=0;i<indicesPerFaces.size();i++){
+            myfile<<indicesPerFaces.at(i).x <<" ";
+            myfile<<indicesPerFaces.at(i).y <<" ";
+            myfile<<indicesPerFaces.at(i).z << endl;
+        }
+       */
 
+        /*   ofstream myfile2;
+           myfile2.open ("../model/originalindices.txt");
 
+           for(int i=0;i<meshes.size();i++) {
+               int db=0;
+               for(int j=0;j<meshes.at(i).indices.size();j++){
+                   myfile2 << meshes.at(i).indices.at(j) << " ";
+                   db++;
+                   if(db%3==0){
+                       myfile2<<endl;
+                   }
+               }
 
+           }
+           myfile2.close();*/
     }
 
 private:
@@ -113,7 +124,8 @@ private:
     void loadModel(string path) {
         // Read file via ASSIMP
         Assimp::Importer importer;
-        scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FindInvalidData | aiProcess_JoinIdenticalVertices);
+        scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FindInvalidData |
+                                        aiProcess_JoinIdenticalVertices);
 
 
         // Check for errors
@@ -136,7 +148,7 @@ private:
 
 
     void getInfoAboutModel() {
-        cout << "Number of meshes in the model: " << meshes.size() <<  endl;
+        cout << "Number of meshes in the model: " << meshes.size() << endl;
 
         int size = 0;
         for (int i = 0; i < meshes.size(); i++) {
@@ -214,9 +226,9 @@ private:
             // Retrieve all indices of the face and store them in the indices vector
 
             glm::vec3 vec3Face;
-            vec3Face.x=face.mIndices[0];
-            vec3Face.y=face.mIndices[1];
-            vec3Face.z=face.mIndices[2];
+            vec3Face.x = face.mIndices[0];
+            vec3Face.y = face.mIndices[1];
+            vec3Face.z = face.mIndices[2];
 
             indicesPerFaces.push_back(vec3Face);
 
@@ -224,14 +236,11 @@ private:
             indicesPerFaces.at(i).x=face.mIndices[0];
             indicesPerFaces.at(i).y=face.mIndices[1];
             indicesPerFaces.at(i).z=face.mIndices[2];*/
-            
+
             for (GLuint j = 0; j < face.mNumIndices; j++) {
                 indices.push_back(face.mIndices[j]);
             }
         }
-
-        cout<< indicesPerFaces.size()<< " " << mesh->mNumFaces<< endl;
-
 
         // Process materials
         if (mesh->mMaterialIndex >= 0) {
