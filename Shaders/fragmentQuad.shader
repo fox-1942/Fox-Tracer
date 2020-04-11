@@ -2,7 +2,10 @@
 
 layout(std140, binding=2) buffer primitives{
     vec3 primitiveCoordinates[];
-    vec3 facesWithIndices[];
+};
+
+layout(std140, binding=3) buffer indices{
+    vec3 indicesC[];
 };
 
 in       vec2       TexCoords;
@@ -66,5 +69,11 @@ void main()
 {
 
    // FragColor=vec4(trace(), 1.0f);
-    FragColor = vec4(primitiveCoordinates[2].x-575.5f, primitiveCoordinates[2].y-56.0f, primitiveCoordinates[2].z-704.0f, 1.0f);
+    FragColor = vec4(indicesC[21].x, indicesC[21].y-41.5, indicesC[21].z, 1.0f);
 }
+
+
+
+
+
+

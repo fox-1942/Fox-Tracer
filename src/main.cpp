@@ -159,28 +159,18 @@ void sendVerticesIndices(){
 
     mymodel.fillAllPositionVertices();
 
-    cout<<"ez itt ne" << sizeof(mymodel.indicesPerFaces.size())<<endl;
-    cout<<"ez itt ne" << sizeof(mymodel.allPositionVertices.size())<<endl;
-
-
     unsigned int primitives;
     glGenBuffers(1, &primitives);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,3430* sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,mymodel.allPositionVertices.size() * sizeof(glm::vec4), glm::value_ptr(mymodel.allPositionVertices.front()), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, primitives, 0,mymodel.allPositionVertices.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-    // define the range of the buffer that links to a uniform binding point
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, primitives, 0,3430* sizeof(glm::vec3));
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
-
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(0)));
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 4,  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(1)));
-
-    for(int i=2;i<=3430;i++) {
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, pow(2,i),  sizeof(glm::vec3), glm::value_ptr(mymodel.allPositionVertices.at(i)));
-    }
-
+    unsigned int indices;
+    glGenBuffers(1, &indices);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, indices);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,mymodel.indicesPerFaces.size() * sizeof(glm::vec4), glm::value_ptr(mymodel.indicesPerFaces.front()), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, indices, 0,mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
@@ -219,7 +209,7 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model("../model/nanosuit/nanosuit.obj");
+    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
    // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");

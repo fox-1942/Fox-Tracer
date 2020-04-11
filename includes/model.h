@@ -36,8 +36,8 @@ private:
     vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 
 public:
-    vector<glm::vec3> allPositionVertices;
-    vector<glm::vec3> indicesPerFaces;
+    vector<glm::vec4> allPositionVertices;
+    vector<glm::vec4> indicesPerFaces;
 
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
@@ -57,7 +57,7 @@ public:
 
     void fillAllPositionVertices() {
 
-        glm::vec3 vectorTemp;
+        glm::vec4 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
 
             for (int j = 0; j < meshes.at(i).vertices.size(); j++) {
@@ -68,12 +68,12 @@ public:
             }
         }
 
-
-        /*  for (int i = 0; i < allPositionVertices.size(); i++) {
+/*
+         for (int i = 0; i < allPositionVertices.size(); i++) {
                cout << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
                     << allPositionVertices.at(i).z << endl;
-           }
-
+           }*/
+/*
           for(int i=0;i<arr.size();i++){
               for(int j=0;j<arr.at(i).size();j++){
                   cout<<arr.at(i).at(j).x<<" "<<arr.at(i).at(j).y<<" "<<arr.at(i).at(j).z<<endl;
@@ -100,7 +100,7 @@ public:
         }
        */
 
-        /*   ofstream myfile2;
+          ofstream myfile2;
            myfile2.open ("../model/originalindices.txt");
 
            for(int i=0;i<meshes.size();i++) {
@@ -114,7 +114,7 @@ public:
                }
 
            }
-           myfile2.close();*/
+           myfile2.close();
     }
 
 private:
@@ -124,8 +124,7 @@ private:
     void loadModel(string path) {
         // Read file via ASSIMP
         Assimp::Importer importer;
-        scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FindInvalidData |
-                                        aiProcess_JoinIdenticalVertices);
+        scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FindInvalidData | aiProcess_JoinIdenticalVertices);
 
 
         // Check for errors
@@ -214,7 +213,6 @@ private:
                 vertex.TexCoords = glm::vec2(0.0f, 0.0f);
             }
 
-            allPositionVertices.push_back(vertex.Position);
             vertices.push_back(vertex);
 
 
@@ -225,17 +223,12 @@ private:
             aiFace face = mesh->mFaces[i];
             // Retrieve all indices of the face and store them in the indices vector
 
-            glm::vec3 vec3Face;
+            glm::vec4 vec3Face;
             vec3Face.x = face.mIndices[0];
             vec3Face.y = face.mIndices[1];
             vec3Face.z = face.mIndices[2];
 
             indicesPerFaces.push_back(vec3Face);
-
-            /*
-            indicesPerFaces.at(i).x=face.mIndices[0];
-            indicesPerFaces.at(i).y=face.mIndices[1];
-            indicesPerFaces.at(i).z=face.mIndices[2];*/
 
             for (GLuint j = 0; j < face.mNumIndices; j++) {
                 indices.push_back(face.mIndices[j]);
