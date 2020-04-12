@@ -10,6 +10,8 @@
 #include "../includes/camera.h"
 #include "../includes/model.h"
 #include "../includes/filesystem.h"
+#include "../includes/framework.h"
+
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -26,7 +28,6 @@ void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const 
 void initComputeProgram();
 
 void sendVerticesIndices();
-
 
 
 const unsigned int SCR_WIDTH = 1280;
@@ -69,6 +70,15 @@ int ray11Uniform;
 int timeUniform;
 int blendFactorUniform;
 int bounceCountUniform;
+
+float fov = 45;
+glm::vec3 eye = glm::vec3(0, 0, 2);
+glm::vec3 vup = glm::vec3(0, 1, 0);
+glm::vec3 lookat = glm::vec3(0, 0, 0);
+glm::vec3 w = eye - lookat;
+float f = length(w);
+glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
+glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
@@ -134,13 +144,9 @@ void initComputeProgram() {
 }*/
 void renderQuad() {
     if (quadVAO == 0) {
-        float quadVertices[] = {
+        float quadVertices[] =
                 // positions
-                -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        };
+                {-1, -1, 1, -1, 1, 1, -1, 1};
         // setup plane VAO
         glGenVertexArrays(1, &quadVAO);
         glGenBuffers(1, &quadVBO);
@@ -148,10 +154,10 @@ void renderQuad() {
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     }
     glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glBindVertexArray(0);
 }
 
@@ -214,16 +220,12 @@ int init() {
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
    // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
 
-/*
-    GLuint info, info2;
-    glGetUniformiv(shaderQuadProgram.getShaderProgram_id(), GL_MAX_UNIFORM_BLOCK_SIZE, reinterpret_cast<GLint *>(&info));
-    cout << "GL_MAX_UNIFORM_BLOCK_SIZE: " << info << endl;
-
-    glGetUniformiv(shaderQuadProgram.getShaderProgram_id(), GL_MAX_SHADER_STORAGE_BLOCK_SIZE, reinterpret_cast<GLint *>(&info2));
-    cout << "GL_MAX_SHADER_STORAGE_BLOCK_SIZE: " << info2 << endl;*/
-
-
     sendVerticesIndices();
+
+    glm::vec3 eye = glm::vec3(0, 0, 2);
+    glm::vec3 vup = glm::vec3(0, 1, 0);
+    glm::vec3 lookat = glm::vec3(0, 0, 0);
+
 
     return 0;
 }
@@ -291,6 +293,15 @@ void loop() {
         glm::mat4 orthoMatrix = glm::ortho(0.0f, float(SCR_WIDTH), 0.0f, float(SCR_HEIGHT));
         shaderQuadProgram.setUniformMat4f("modelMatrix", model);
         shaderQuadProgram.setUniformMat4f("projectionMatrix", orthoMatrix);
+
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"),1,&lookat.x);
+
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wRight"),1,&right1.x);
+
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wUp"),1,&vup.x);
+
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wEye"),1,&eye.x);
+
 
         renderQuad();
 

@@ -10,7 +10,12 @@ layout(std140, binding=3) buffer indices{
 
 in       vec2       TexCoords;
 out      vec4       FragColor;
+in  vec3 p;
+uniform vec3 wEye;
 uniform  sampler2D  texture_diffuse1;
+
+
+
 
 struct Ray{
     vec3 orig, dir;
@@ -53,10 +58,9 @@ void firstIntersect(Ray ray){
         if (rayTriangleIntersect(ray, primitiveCoordinates[i], primitiveCoordinates[i+1],primitiveCoordinates[i+2], t, u, v)){
 
         }
-
     }
-
 }
+
 
 void trace(){
 
@@ -67,13 +71,10 @@ void trace(){
 
 void main()
 {
-
+    Ray ray;
+    ray.orig = wEye;
+    ray.dir = normalize(p - wEye);
+    FragColor = vec4(trace(), 1);
    // FragColor=vec4(trace(), 1.0f);
-    FragColor = vec4(indicesC[21].x, indicesC[21].y-41.5, indicesC[21].z, 1.0f);
+   // FragColor = vec4(indicesC[21].x, indicesC[21].y-41.5, indicesC[21].z, 1.0f);
 }
-
-
-
-
-
-
