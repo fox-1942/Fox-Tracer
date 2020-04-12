@@ -7,5 +7,5 @@ out vec3 p;
 void main()
 {
     gl_Position = vec4(cCamWindowVertex, 0, 1);
-    p = wLookAt + wRight * cCamWindowVertex.x + wUp * cCamWindowVertex.y;
+    p = wLookAt + wRight * cCamWindowVertex.x + cCamWindowVertex.y * wUp;
 }
