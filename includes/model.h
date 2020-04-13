@@ -34,10 +34,12 @@ private:
     vector<Mesh> meshes;
     string directory;
     vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+    Material mat;
 
 public:
     vector<glm::vec4> allPositionVertices;
     vector<glm::vec4> indicesPerFaces;
+    vector<glm::vec4> materials;
 
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
@@ -60,7 +62,7 @@ public:
         glm::vec4 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
 
-            for (int j = 0; j < meshes.at(i).vertices.size(); j++) {
+            for (int j = 0;j < meshes.at(i).vertices.size(); j++) {
                 vectorTemp.x = meshes.at(i).vertices.at(j).Position.x;
                 vectorTemp.y = meshes.at(i).vertices.at(j).Position.y;
                 vectorTemp.z = meshes.at(i).vertices.at(j).Position.z;
@@ -99,6 +101,14 @@ public:
             myfile<<indicesPerFaces.at(i).z << endl;
         }
        */
+
+
+
+
+
+
+
+
 
           ofstream myfile2;
            myfile2.open ("../model/originalindices.txt");
@@ -228,6 +238,7 @@ private:
             vec3Face.y = face.mIndices[1];
             vec3Face.z = face.mIndices[2];
 
+
             indicesPerFaces.push_back(vec3Face);
 
             for (GLuint j = 0; j < face.mNumIndices; j++) {
@@ -238,6 +249,21 @@ private:
         // Process materials
         if (mesh->mMaterialIndex >= 0) {
             aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+
+
+            aiColor3D color;
+
+            // Read mtl file vertex data
+
+            material->Get(AI_MATKEY_COLOR_AMBIENT, color);
+            mat.Ka = glm::vec4(color.r, color.g, color.b,1.0);
+            material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+            mat.Kd = glm::vec4(color.r, color.g, color.b,1.0);
+            material->Get(AI_MATKEY_COLOR_SPECULAR, color);
+            mat.Ks = glm::vec4(color.r, color.g, color.b,1.0);
+
+
+
             // We assume a convention for sampler names in the shaders. Each diffuse texture should be named
             // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
             // Same applies to other texture as the following list summarizes:
@@ -258,7 +284,7 @@ private:
 
 
         // Return a mesh object created from the extracted mesh data
-        return Mesh(vertices, indices, textures);
+        return Mesh(vertices, indices, textures, mat);
     }
 
     // Checks all material textures of a given type and loads the textures if they're not loaded yet.

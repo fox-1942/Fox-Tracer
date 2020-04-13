@@ -81,19 +81,30 @@ glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
 
+struct Light {
+    glm::vec3 Le, La;
+    glm::vec3 direction;
+    glm::vec3 position;
 
-static void GLClearError()
-{
+    Light(glm::vec3 direction, glm::vec3 Le, glm::vec3 La, glm::vec3 position) {
+        direction = normalize(direction);
+        Le = Le;
+        La = La;
+        position=position;
+    }
+};
+
+Light light1 = Light(glm::vec3(1, 1, 1), glm::vec3(4, 4, 4), glm::vec3(0.5, 0.5, 0.5), glm::vec3(2,2,2));
+
+static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-static bool GLCheckError()
-{
-    while (GLenum error = glGetError())
-    {
+static bool GLCheckError() {
+    while (GLenum error = glGetError()) {
 
         std::cout << "[OpenGL Error] ";
-        switch(error) {
+        switch (error) {
             case GL_INVALID_ENUM :
                 std::cout << "GL_INVALID_ENUM : An unacceptable value is specified for an enumerated argument.";
                 break;
@@ -110,10 +121,12 @@ static bool GLCheckError()
                 std::cout << "GL_OUT_OF_MEMORY : There is not enough memory left to execute the command.";
                 break;
             case GL_STACK_UNDERFLOW :
-                std::cout << "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
+                std::cout
+                        << "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
                 break;
             case GL_STACK_OVERFLOW :
-                std::cout << "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
+                std::cout
+                        << "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
                 break;
             default :
                 std::cout << "Unrecognized error" << error;
@@ -123,19 +136,6 @@ static bool GLCheckError()
     }
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
@@ -218,22 +218,25 @@ void renderQuad() {
     glBindVertexArray(0);
 }
 
-void sendVerticesIndices(){
+void sendVerticesIndices() {
 
     mymodel.fillAllPositionVertices();
 
     unsigned int primitives;
     glGenBuffers(1, &primitives);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,mymodel.allPositionVertices.size() * sizeof(glm::vec4), glm::value_ptr(mymodel.allPositionVertices.front()), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, primitives, 0,mymodel.allPositionVertices.size() * sizeof(glm::vec4));
+    glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.allPositionVertices.size() * sizeof(glm::vec4),
+                 glm::value_ptr(mymodel.allPositionVertices.front()), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, primitives, 0,
+                      mymodel.allPositionVertices.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     unsigned int indices;
     glGenBuffers(1, &indices);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, indices);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,mymodel.indicesPerFaces.size() * sizeof(glm::vec4), glm::value_ptr(mymodel.indicesPerFaces.front()), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, indices, 0,mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
+    glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.indicesPerFaces.size() * sizeof(glm::vec4),
+                 glm::value_ptr(mymodel.indicesPerFaces.front()), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, indices, 0, mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
@@ -275,14 +278,13 @@ int init() {
     mymodel = Model("../model/MAP01/doom2_MAP01.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
-   // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
+    // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
+
+
+
+
 
     sendVerticesIndices();
-
-    glm::vec3 eye = glm::vec3(0, 0, 2);
-    glm::vec3 vup = glm::vec3(0, 1, 0);
-    glm::vec3 lookat = glm::vec3(0, 0, 0);
-
 
     return 0;
 }
@@ -351,14 +353,26 @@ void loop() {
         shaderQuadProgram.setUniformMat4f("modelMatrix", model);
         shaderQuadProgram.setUniformMat4f("projectionMatrix", orthoMatrix);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"),1,&lookat.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"), 1, &lookat.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wRight"),1,&right1.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wRight"), 1, &right1.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wUp"),1,&vup.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wUp"), 1, &vup.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wEye"),1,&eye.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wEye"), 1, &eye.x);
 
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.Le"), 1, &light1.Le.x);
+
+        glm::vec3 foo=glm::vec3(0.5, 0.5, 0.5);
+
+
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.La"), 1,&foo.x);
+
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.direction"), 1,
+                     &light1.direction.x);
+
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.position"), 1,
+                     &light1.position.x);
 
         renderQuad();
 
@@ -375,13 +389,11 @@ void loop() {
 }
 
 int main() {
-    GLClearError();
     if (init() == -1) {
         return -1;
     }
 
     loop();
-    GLCheckError();
     glfwTerminate();
 
     return 0;
@@ -396,13 +408,13 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime+1);
+        camera.ProcessKeyboard(FORWARD, deltaTime + 1);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime+1);
+        camera.ProcessKeyboard(BACKWARD, deltaTime + 1);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime+1);
+        camera.ProcessKeyboard(LEFT, deltaTime + 1);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime+1);
+        camera.ProcessKeyboard(RIGHT, deltaTime + 1);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

@@ -30,6 +30,17 @@ struct Texture
     aiString path;
 };
 
+
+struct Material {
+    //Material color lighting
+    glm::vec4 Ka;
+    //Diffuse reflection
+    glm::vec4 Kd;
+    //Mirror reflection
+    glm::vec4 Ks;
+};
+
+
 class Mesh
 {
 public:
@@ -37,14 +48,18 @@ public:
     vector<Vertex> vertices;
     vector<GLuint> indices;
     vector<Texture> textures;
+    Material mats;
+    unsigned int uniformBlockIndex;
+
 
     /*  Functions  */
     // Constructor
-    Mesh( vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures )
+    Mesh( vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material mat )
     {
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
+        this->mats = mat;
 
         // Now that we have all the required data, set the vertex buffers and its attribute pointers.
         this->setupMesh( );
@@ -86,6 +101,7 @@ public:
 
         // Draw mesh
         glBindVertexArray( this->VAO );
+        glBindBufferRange(GL_UNIFORM_BUFFER,0, uniformBlockIndex,0,sizeof(Material));
         glDrawElements( GL_TRIANGLES, this->indices.size( ), GL_UNSIGNED_INT, 0 );
         glBindVertexArray( 0 );
 
@@ -120,6 +136,9 @@ private:
 
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, this->EBO );
         glBufferData( GL_ELEMENT_ARRAY_BUFFER, this->indices.size( ) * sizeof( GLuint ), &this->indices[0], GL_STATIC_DRAW );
+
+        glBindBuffer(GL_UNIFORM_BUFFER, uniformBlockIndex);
+        glBufferData(GL_UNIFORM_BUFFER,sizeof(mats),(void*)(&mats), GL_STATIC_DRAW);
 
         // Set the vertex attribute pointers
         // Vertex Positions
