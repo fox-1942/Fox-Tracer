@@ -22,7 +22,7 @@ struct Light{
 
 };
 
-uniform Light lights;
+uniform Light lights[];
 
 struct Ray{
     vec3 orig, dir;
@@ -77,7 +77,7 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
 
 vec3 getCoordinatefromIndices(float index){
-    vec3 back=vec3(-1, -1, -1);
+    vec3 back;
     for (int i=0; i < primitiveCoordinates.length();i++){
         if (i==index){
             back=primitiveCoordinates[i];
@@ -91,35 +91,36 @@ vec3 getCoordinatefromIndices(float index){
 Hit firstIntersect(Ray ray){
     Hit besthit;
     besthit.t=-1;
-
-        vec3 TrianglePointA=vec3(0.2,0.6,0.5);
-        vec3 TrianglePointB=vec3(0.5,0.7,0.4);
-        vec3 TrianglePointC=vec3(0.6,0.8,0.3);
+    for (int i=0;i<indicesC.length();i++){
+        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
         Hit hit=rayTriangleIntersect(ray,TrianglePointA,TrianglePointB,TrianglePointC);
+
+        if(hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
+            besthit=hit;
+        }
+
+    }
 
        // if(hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
          //   besthit=hit;
         //}
-
-
 
     return besthit;
 }
 
 vec3 trace(Ray ray){
     vec3 color;
-  /*  vec3 La=vec3(0.3,0.3,0.3);
-    vec3 Le=vec3(4.0,4.0,4.0);
-*/
     vec3 ka=vec3(0.5215,0.1745,0.0215);
 
 
     Hit hit;
-  //  hit=firstIntersect(ray);
-  /*  if (hit.t==-1){
+    hit=firstIntersect(ray);
+    if (hit.t==-1){
         return lights[0].La;
-    }*/
-    color=lights.La;
+    }
+    color=lights[0].La*ka;
 
     /*
     for (int i=0;i<lights.length();i++){

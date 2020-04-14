@@ -102,14 +102,7 @@ public:
         }
        */
 
-
-
-
-
-
-
-
-
+/*
           ofstream myfile2;
            myfile2.open ("../model/originalindices.txt");
 
@@ -124,7 +117,11 @@ public:
                }
 
            }
-           myfile2.close();
+           myfile2.close();*/
+
+
+    cout<<indicesPerFaces.size()<<endl;
+
     }
 
 private:

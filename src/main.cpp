@@ -82,19 +82,20 @@ glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
 
 struct Light {
-    glm::vec3 Le, La;
+    glm::vec3 Le;
+    glm::vec3 La;
     glm::vec3 direction;
     glm::vec3 position;
 
-    Light(glm::vec3 direction, glm::vec3 Le, glm::vec3 La, glm::vec3 position) {
-        direction = normalize(direction);
-        Le = Le;
-        La = La;
-        position=position;
+    Light(glm::vec3 direction_, glm::vec3 Le_, glm::vec3 La_, glm::vec3 position_) {
+        direction = normalize(direction_);
+        Le = Le_;
+        La = La_;
+        position=position_;
     }
 };
 
-Light light1 = Light(glm::vec3(1, 1, 1), glm::vec3(4, 4, 4), glm::vec3(0.5, 0.5, 0.5), glm::vec3(2,2,2));
+Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f), glm::vec3(0.5, 0.5, 0.5));
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -282,7 +283,7 @@ int init() {
 
 
 
-
+    cout <<light1.La.y<<endl;
 
     sendVerticesIndices();
 
@@ -363,10 +364,7 @@ void loop() {
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.Le"), 1, &light1.Le.x);
 
-        glm::vec3 foo=glm::vec3(0.5, 0.5, 0.5);
-
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.La"), 1,&foo.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1,&light1.La.x);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.direction"), 1,
                      &light1.direction.x);
