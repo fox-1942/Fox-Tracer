@@ -21,7 +21,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
-void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path);
+void createInitQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path);
 
 void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path);
 
@@ -51,17 +51,20 @@ ShaderProgram shaderQuadProgram;
 Shader shaderQuadVertex;
 Shader shaderQuadFragment;
 
-ShaderProgram shaderProgram;
-Shader shaderVertex;
-Shader shaderFragment;
+ShaderProgram shaderComputeProgram;
+Shader shaderCompute;
+
 
 Model mymodel;
 
 GLFWwindow *window;
 
+
+
+int tex;
+int vao;
 int workgroupSizeX;
 int workgroupSizeY;
-
 int eyeuniform;
 int ray00Uniform;
 int ray01Uniform;
@@ -97,13 +100,14 @@ struct Light {
 
 Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f), glm::vec3(0.5, 0.5, 0.5));
 
+int framebufferImageBinding;
+
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
 static bool GLCheckError() {
     while (GLenum error = glGetError()) {
-
         std::cout << "[OpenGL Error] ";
         switch (error) {
             case GL_INVALID_ENUM :
@@ -139,7 +143,7 @@ static bool GLCheckError() {
 }
 
 
-void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
+void createInitQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 
     shaderQuadVertex = Shader();
     shaderQuadFragment = Shader();
@@ -153,22 +157,48 @@ void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadProgram.addShaderToProgram(shaderQuadFragment);
 
     shaderQuadProgram.linkShaderProgram();
+
+    shaderQuadProgram.useProgram();
+
+    int texUniform = glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "tex");
+    glUniform1i(texUniform, 0);
+    glUseProgram(0);
 }
 
-void create3DShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
+void createInitComputeProg(const GLchar *Path) {
 
-    shaderVertex = Shader();
-    shaderFragment = Shader();
+    shaderCompute = Shader();
 
-    shaderVertex.loadShaderFromFile(VS_Path, GL_VERTEX_SHADER);
-    shaderFragment.loadShaderFromFile(FS_Path, GL_FRAGMENT_SHADER);
+    shaderCompute.loadShaderFromFile(Path, GL_COMPUTE_SHADER);
 
-    shaderProgram.CreateShaderProgram();
+    shaderComputeProgram.CreateShaderProgram();
 
-    shaderProgram.addShaderToProgram(shaderVertex);
-    shaderProgram.addShaderToProgram(shaderFragment);
+    shaderComputeProgram.addShaderToProgram(shaderCompute);
 
-    shaderProgram.linkShaderProgram();
+    shaderComputeProgram.linkShaderProgram();
+
+    shaderComputeProgram.useProgram();
+
+    int workgroupSize[2];
+    glGetProgramiv(shaderComputeProgram.getShaderProgram_id(),GL_COMPUTE_WORK_GROUP_SIZE, workgroupSize);
+    workgroupSizeX = workgroupSize[0];
+    workgroupSizeY = workgroupSize[1];
+
+    cout<<workgroupSizeX <<" "<< workgroupSizeY << endl;
+
+    eyeuniform = glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "eye");
+    ray00Uniform = glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray00");
+    ray10Uniform = glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray10");
+    ray01Uniform = glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray01");
+    ray11Uniform = glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray11");
+
+    int loc = glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "framebufferImage");
+    int param;
+    glGetUniformiv(shaderComputeProgram.getShaderProgram_id(), loc, &param);
+    framebufferImageBinding = param;
+
+    glUseProgram(0);
+
 }
 
 /*
@@ -200,24 +230,6 @@ void initComputeProgram() {
     glBindVertexArray(0);
     glUseProgram(0);
 }*/
-void renderQuad() {
-    if (quadVAO == 0) {
-        float quadVertices[] =
-                // positions
-                {-1, -1, 1, -1, 1, 1, -1, 1};
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_DYNAMIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    }
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glBindVertexArray(0);
-}
 
 void sendVerticesIndices() {
 
@@ -278,12 +290,9 @@ int init() {
 
     mymodel = Model("../model/MAP01/doom2_MAP01.obj");
 
-    createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
+
+    createInitQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
     // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
-
-
-
-    cout <<light1.La.y<<endl;
 
     sendVerticesIndices();
 
@@ -371,8 +380,6 @@ void loop() {
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.position"), 1,
                      &light1.position.x);
-
-        renderQuad();
 
         glEnable(GL_DEPTH_TEST);
         glDepthMask(1);
