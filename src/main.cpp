@@ -91,11 +91,12 @@ struct Light {
         direction = normalize(direction_);
         Le = Le_;
         La = La_;
-        position=position_;
+        position = position_;
     }
 };
 
-Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f), glm::vec3(0.5, 0.5, 0.5));
+Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f),
+                     glm::vec3(0.5, 0.5, 0.5));
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -276,15 +277,18 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
+    mymodel = Model("../model/model.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
     // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
 
 
-
-    cout <<light1.La.y<<endl;
-
+    cout<<"eredeti"<<endl;
+    cout <<eye.x<<" "<<eye.y<<" "<<eye.z<<endl;
+    cout <<lookat.x<<" "<<lookat.y<<" "<<lookat.z<<endl;
+    cout <<right1.x<<", "<<right1.y<<" ,"<<right1.z<<","<<endl;
+    cout <<up.x<<", "<<up.y<<" ,"<<up.z<<","<<endl;
+    cout <<"---------------------------------------------------------------"<<endl;
     sendVerticesIndices();
 
     return 0;
@@ -348,11 +352,11 @@ void loop() {
         glDepthMask(0);
 
         shaderQuadProgram.useProgram();
-
+/*
         model = glm::scale(model, glm::vec3(500.0f, 500.0f, 0.0f));
         glm::mat4 orthoMatrix = glm::ortho(0.0f, float(SCR_WIDTH), 0.0f, float(SCR_HEIGHT));
         shaderQuadProgram.setUniformMat4f("modelMatrix", model);
-        shaderQuadProgram.setUniformMat4f("projectionMatrix", orthoMatrix);
+        shaderQuadProgram.setUniformMat4f("projectionMatrix", orthoMatrix);*/
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"), 1, &lookat.x);
 
@@ -364,7 +368,7 @@ void loop() {
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.Le"), 1, &light1.Le.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1,&light1.La.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1, &light1.La.x);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.direction"), 1,
                      &light1.direction.x);
@@ -399,20 +403,54 @@ int main() {
 }
 
 
+void setCamera(float param) {
+
+    eye = glm::vec3(eye.x * cos(param) + eye.z * sin(param), eye.y, -eye.x * sin(param) + eye.z * cos(param)) + lookat;
+    w = eye - lookat;
+    float f = length(w);
+    right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
+    up = normalize(cross(w, right1)) * f * tanf(fov / 2);
+
+    cout<<"set"<<endl;
+    cout <<right1.x<<", "<<right1.y<<" ,"<<right1.z<<","<<endl;
+}
+
+void setCameraY(float param) {
+
+    eye = glm::vec3(eye.x, eye.y+param,eye.z) + lookat;
+    w = eye - lookat;
+    float f = length(w);
+    right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
+    up = normalize(cross(w, right1)) * f * tanf(fov / 2);
+
+    cout<<"set"<<endl;
+    cout <<right1.x<<", "<<right1.y<<" ,"<<right1.z<<","<<endl;
+}
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime + 1);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime + 1);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime + 1);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime + 1);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+       setCamera(0.5);
+    }
+
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        setCamera(-0.5);
+    }
+
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        setCameraY(+0.5);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        setCameraY(-0.5);
+    }
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
