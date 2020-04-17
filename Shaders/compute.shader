@@ -12,11 +12,16 @@ layout(std140, binding=3) buffer indices{
     vec3 indicesC[];
 };
 
+uniform vec3 eye, ray00, ray01, ray10, ray11;
+
+
 in       vec2       TexCoords;
 out      vec4       FragColor;
 in  vec3 p;
 uniform vec3 wEye;
 uniform  sampler2D  texture_diffuse1;
+
+
 
 
 struct Light{

@@ -13,9 +13,13 @@
 #include "../includes/framework.h"
 
 
+
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+
+void mouse_buttonCallback(GLFWwindow *window, int button, int action, int mods);
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
@@ -60,7 +64,8 @@ Model mymodel;
 GLFWwindow *window;
 
 
-
+GLuint outputTex;
+GLuint sampler;
 int tex;
 int vao;
 int workgroupSizeX;
@@ -101,6 +106,18 @@ struct Light {
 Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f), glm::vec3(0.5, 0.5, 0.5));
 
 int framebufferImageBinding;
+
+float currRotationAboutY;
+float currRotationAboutX;
+
+
+float mouseX;
+
+float mouseDownX;
+
+bool mouseDown;
+
+float rotationAboutY;
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -254,6 +271,22 @@ void sendVerticesIndices() {
 }
 
 
+void createOutputTexture(){
+
+    glGenTextures(1,&outputTex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexStorage2D(GL_TEXTURE_2D,1,GL_RGBA32F, SCR_WIDTH, SCR_HEIGHT);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void createSampler(){
+    glGenSamplers(1, &sampler);
+    glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+}
+
 int init() {
 
     /* Initialize the library */
@@ -276,6 +309,8 @@ int init() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window,mouse_buttonCallback);
+
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
@@ -313,77 +348,26 @@ void loop() {
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 model = glm::mat4(1.0f);
+
+        if (mouseDown) {
+            currRotationAboutY = rotationAboutY + (mouseX - mouseDownX) * 0.01f;
+        }
+        else
+            {
+            currRotationAboutY = rotationAboutY;
+        }
 
 
+        eye=glm::vec3((float) sin(-currRotationAboutY) * 3.0f,2,(float) cos(-currRotationAboutY) * 3.0f);
+        glm::mat4 view = glm::lookAt(eye,lookat, up);
 
+        shaderComputeProgram.useProgram();
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "eye"), 1, &eye.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray00uniform"), 1, &tmpVector.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray01uniform"), 1, &tmpVector.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray10uniform"), 1, &tmpVector.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray11uniform"), 1, &tmpVector.x);
 
-/*
-        // Second pipeline - Perspective---------------------------------------------
-
-        model=glm::translate(model, glm::vec3(0.0,0.0,0.0));
-        model=glm::scale(model, glm::vec3(0.1,0.1,0.1));
-
-        shaderProgram.useProgram();
-
-
-        unsigned int uboMatrices;
-        glGenBuffers(1, &uboMatrices);
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-        glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
-
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,1000.0f);
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-        glm::mat4 view = camera.GetViewMatrix();
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-        shaderProgram.setUniformMat4f("modelMatrix", model);
-
-        mymodel.Draw(shaderProgram);
-*/
-
-
-
-
-        // First pipeline - Ortho --------------------------------------------------
-        glDisable(GL_DEPTH_TEST);
-        glDepthMask(0);
-
-        shaderQuadProgram.useProgram();
-
-        model = glm::scale(model, glm::vec3(500.0f, 500.0f, 0.0f));
-        glm::mat4 orthoMatrix = glm::ortho(0.0f, float(SCR_WIDTH), 0.0f, float(SCR_HEIGHT));
-        shaderQuadProgram.setUniformMat4f("modelMatrix", model);
-        shaderQuadProgram.setUniformMat4f("projectionMatrix", orthoMatrix);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"), 1, &lookat.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wRight"), 1, &right1.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wUp"), 1, &vup.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wEye"), 1, &eye.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.Le"), 1, &light1.Le.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1,&light1.La.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.direction"), 1,
-                     &light1.direction.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.position"), 1,
-                     &light1.position.x);
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(1);
-        // ------------------------------------------------------------------------
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -433,20 +417,29 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    if (firstMouse) {
+  /*  if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
-        firstMouse = false;
-    }
-
+        firstMouse = false;    }
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
     lastX = xpos;
     lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    camera.ProcessMouseMovement(xoffset, yoffset);*/
+  mouseX=(float) xpos;
 }
+
+void mouse_buttonCallback(GLFWwindow *window, int button, int action, int mods){
+    if(action==GLFW_PRESS){
+        mouseDownX=mouseX;
+        mouseDown=true;
+
+    } else if(action==GLFW_RELEASE){
+        mouseDown=false;
+        rotationAboutY=currRotationAboutY;
+    }
+}
+
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
