@@ -366,14 +366,14 @@ void loop() {
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wEye"), 1, &eye.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.Le"), 1, &light1.Le.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].Le"), 1, &light1.Le.x);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1, &light1.La.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.direction"), 1,
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].direction"), 1,
                      &light1.direction.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights.position"), 1,
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].position"), 1,
                      &light1.position.x);
 
         renderQuad();

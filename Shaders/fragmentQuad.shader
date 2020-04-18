@@ -10,7 +10,7 @@ layout(std140, binding=3) buffer indices{
 
 in       vec2       TexCoords;
 out      vec4       FragColor;
-in  vec3 p;
+in       vec3 p;
 uniform vec3 wEye;
 uniform  sampler2D  texture_diffuse1;
 
@@ -52,7 +52,7 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
     if (abs(det) < 0.008){
         hit.t=-1;
-        return hit; // Culling is off
+        return hit;// Culling is off
     }
     float invDet = 1 / det;
 
@@ -71,7 +71,7 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     }
 
     hit.t = dot(v0v2, qvec) * invDet;
-    hit.normal= cross(v0v1,v0v2);
+    hit.normal= cross(v0v1, v0v2);
     return hit;
 }
 
@@ -95,24 +95,31 @@ Hit firstIntersect(Ray ray){
         vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
         vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
         vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
-        Hit hit=rayTriangleIntersect(ray,TrianglePointA,TrianglePointB,TrianglePointC);
+        Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
-        if(hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
+        if (hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
             besthit=hit;
         }
 
     }
 
-       // if(hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
-         //   besthit=hit;
-        //}
+    // if(hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
+    //   besthit=hit;
+    //}
 
     return besthit;
 }
 
+
+
+
+
+
+
+
 vec3 trace(Ray ray){
     vec3 color;
-    vec3 ka=vec3(0.5215,0.1745,0.0215);
+    vec3 ka=vec3(0.5215, 0.1745, 0.0215);
 
 
     Hit hit;
@@ -122,18 +129,18 @@ vec3 trace(Ray ray){
     }
     color=lights[0].La*ka;
 
-    /*
-    for (int i=0;i<lights.length();i++){
-        Ray shadowRay;
-        shadowRay.orig=hit.orig;
-        shadowRay.dir=lights[0].direction;
 
+
+    Ray shadowRay;
+    shadowRay.orig=hit.orig+hit.normal*0.0001f;
+    shadowRay.dir=lights[0].direction;
+    for (int i=0;i<lights.length();i++){
         Hit shadowHit=firstIntersect(shadowRay);
 
-        if (shadowHit.t<0 || shadowHit.t > length(shadowRay.orig-lights[0].position)){
-            color+=lights[i].Le;
+        if (shadowHit.t<0){
+            color+=lights[0].Le;
         }
-    }*/
+    }
     return color;
 }
 
@@ -142,7 +149,7 @@ void main()
     Ray ray;
     ray.orig = wEye;
     ray.dir = normalize(p - wEye);
-    
+
     FragColor = vec4(trace(ray), 1);
 
     // FragColor=vec4(trace(), 1.0f);
