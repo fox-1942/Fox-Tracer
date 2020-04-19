@@ -67,7 +67,7 @@ GLFWwindow *window;
 GLuint outputTex;
 GLuint sampler;
 int tex;
-int vao;
+GLuint vao;
 int workgroupSizeX;
 int workgroupSizeY;
 int eyeuniform;
@@ -311,7 +311,6 @@ int init() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetMouseButtonCallback(window,mouse_buttonCallback);
 
-
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     const GLenum err = glewInit();
@@ -322,14 +321,12 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
+    createOutputTexture();
+    createSampler();
 
-    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
-
-
-    createInitQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
-    // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
-
-    sendVerticesIndices();
+    glGenVertexArrays(1,&vao);
+    createInitComputeProg("../Shaders/compute.shader");
+    createInitQuadShaderProg("../Shaders/vertexQuad.shader","../Shader/fragmentQuad.shader");
 
     return 0;
 }
@@ -357,18 +354,53 @@ void loop() {
             currRotationAboutY = rotationAboutY;
         }
 
-
         eye=glm::vec3((float) sin(-currRotationAboutY) * 3.0f,2,(float) cos(-currRotationAboutY) * 3.0f);
-        glm::mat4 view = glm::lookAt(eye,lookat, up);
+
+        glm::mat4 viewMatrix = glm::lookAt(eye, lookat, up);
+        glm::mat4 projectionMatrix = glm::perspective(45.0f, (float)SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
+
+        glm::mat4 projViewMatrix = projectionMatrix * viewMatrix;
+        glm::mat4 InvProjViewMatrix = glm::inverse(projViewMatrix);
+        glm::mat4 inverseProjViewMatrix=glm::inverse(glm::matrixCompMult(projectionMatrix,viewMatrix));
 
         shaderComputeProgram.useProgram();
         glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "eye"), 1, &eye.x);
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray00uniform"), 1, &tmpVector.x);
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray01uniform"), 1, &tmpVector.x);
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray10uniform"), 1, &tmpVector.x);
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray11uniform"), 1, &tmpVector.x);
 
+        glm::vec3 frustrumVec=glm::vec3(-1, -1, 0);
+        frustrumVec= mulProject(frustrumVec, inverseProjViewMatrix) - eye;
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayTopLeft"), 1, &frustrumVec.x);
 
+        frustrumVec= mulProject(glm::vec3(-1, 1, 0), inverseProjViewMatrix) - eye;
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayTopRight"), 1, &frustrumVec.x);
+
+        frustrumVec= mulProject(glm::vec3(1, -1, 0), inverseProjViewMatrix) - eye;
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayBottomLeft"), 1, &frustrumVec.x);
+
+        frustrumVec= mulProject(glm::vec3(1, 1, 0), inverseProjViewMatrix) - eye;
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayBottomRight"), 1, &frustrumVec.x);
+
+        glBindImageTexture(framebufferImageBinding,tex,0,false,0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        int numGroupsX = (int) ceil((double)SCR_WIDTH / workgroupSizeX);
+        int numGroupsY = (int) ceil((double)SCR_HEIGHT / workgroupSizeY);
+
+        /* Invoke the compute shader. */
+        glDispatchCompute(numGroupsX, numGroupsY, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+        glBindImageTexture(framebufferImageBinding, 0, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glUseProgram(0);
+
+        glUseProgram(shaderQuadProgram.getShaderProgram_id());
+        glBindVertexArray(vao);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glBindSampler(0,sampler);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindSampler(0, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
@@ -389,9 +421,6 @@ int main() {
 
 }
 
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -406,26 +435,13 @@ void processInput(GLFWwindow *window) {
         camera.ProcessKeyboard(RIGHT, deltaTime + 1);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-  /*  if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;    }
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-    lastX = xpos;
-    lastY = ypos;
-    camera.ProcessMouseMovement(xoffset, yoffset);*/
   mouseX=(float) xpos;
 }
 
@@ -440,9 +456,6 @@ void mouse_buttonCallback(GLFWwindow *window, int button, int action, int mods){
     }
 }
 
-
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(yoffset);
 }
