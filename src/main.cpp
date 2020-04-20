@@ -13,8 +13,6 @@
 #include "../includes/framework.h"
 
 
-
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -105,7 +103,7 @@ struct Light {
 
 Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f), glm::vec3(0.5, 0.5, 0.5));
 
-int framebufferImageBinding;
+GLuint framebufferImageBinding;
 
 float currRotationAboutY;
 float currRotationAboutX;
@@ -275,8 +273,8 @@ void createOutputTexture(){
 
     glGenTextures(1,&outputTex);
     glBindTexture(GL_TEXTURE_2D, tex);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexStorage2D(GL_TEXTURE_2D,1,GL_RGBA32F, SCR_WIDTH, SCR_HEIGHT);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -326,7 +324,7 @@ int init() {
 
     glGenVertexArrays(1,&vao);
     createInitComputeProg("../Shaders/compute.shader");
-    createInitQuadShaderProg("../Shaders/vertexQuad.shader","../Shader/fragmentQuad.shader");
+    createInitQuadShaderProg("../Shaders/vertexQuad.shader","../Shaders/fragmentQuad.shader");
 
     return 0;
 }
@@ -354,12 +352,15 @@ void loop() {
             currRotationAboutY = rotationAboutY;
         }
 
+
+
+        GLClearError();
         eye=glm::vec3((float) sin(-currRotationAboutY) * 3.0f,2,(float) cos(-currRotationAboutY) * 3.0f);
 
         glm::mat4 viewMatrix = glm::lookAt(eye, lookat, up);
         glm::mat4 projectionMatrix = glm::perspective(45.0f, (float)SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
 
-        glm::mat4 projViewMatrix = projectionMatrix * viewMatrix;
+        glm::mat4 projViewMatrix = glm::matrixCompMult(projectionMatrix,  viewMatrix);
         glm::mat4 InvProjViewMatrix = glm::inverse(projViewMatrix);
         glm::mat4 inverseProjViewMatrix=glm::inverse(glm::matrixCompMult(projectionMatrix,viewMatrix));
 
@@ -368,16 +369,16 @@ void loop() {
 
         glm::vec3 frustrumVec=glm::vec3(-1, -1, 0);
         frustrumVec= mulProject(frustrumVec, inverseProjViewMatrix) - eye;
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayTopLeft"), 1, &frustrumVec.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray00"), 1, &frustrumVec.x);
 
         frustrumVec= mulProject(glm::vec3(-1, 1, 0), inverseProjViewMatrix) - eye;
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayTopRight"), 1, &frustrumVec.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray01"), 1, &frustrumVec.x);
 
         frustrumVec= mulProject(glm::vec3(1, -1, 0), inverseProjViewMatrix) - eye;
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayBottomLeft"), 1, &frustrumVec.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray10"), 1, &frustrumVec.x);
 
         frustrumVec= mulProject(glm::vec3(1, 1, 0), inverseProjViewMatrix) - eye;
-        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "rayBottomRight"), 1, &frustrumVec.x);
+        glUniform3fv(glGetUniformLocation(shaderComputeProgram.getShaderProgram_id(), "ray11"), 1, &frustrumVec.x);
 
         glBindImageTexture(framebufferImageBinding,tex,0,false,0, GL_WRITE_ONLY, GL_RGBA32F);
 
@@ -400,7 +401,10 @@ void loop() {
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(0);
         glUseProgram(0);
-        
+
+
+
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
@@ -415,6 +419,7 @@ int main() {
     }
 
     loop();
+    GLCheckError();
     glfwTerminate();
 
     return 0;
