@@ -49,7 +49,6 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     vec3 pvec = cross(ray.dir, v0v2);
     float det = dot(v0v1, pvec);
 
-
     if (abs(det) < 0.008){
         hit.t=-1;
         return hit;// Culling is off
@@ -110,17 +109,23 @@ Hit firstIntersect(Ray ray){
     return besthit;
 }
 
-
-
-
-
-
+bool shadowIntersect(Ray ray){
+    for (int i=0;i<indicesC.length();i++){
+        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
+        if (rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC).t>0){
+            return true;
+        }
+    }
+    return false;
+}
 
 
 vec3 trace(Ray ray){
-    vec3 color;
-    vec3 ka=vec3(0.5215, 0.1745, 0.0215);
-
+    vec3 color= vec3(0,0,0);
+    vec3 ka= vec3(0.135,0.2225,	0.1575);
+    vec3 kd= vec3(0.54,	0.89,0.63);
 
     Hit hit;
     hit=firstIntersect(ray);
@@ -129,18 +134,19 @@ vec3 trace(Ray ray){
     }
     color=lights[0].La*ka;
 
-
-
     Ray shadowRay;
-    shadowRay.orig=hit.orig+hit.normal*0.0001f;
+    shadowRay.orig=hit.orig+hit.normal*0.001f;
     shadowRay.dir=lights[0].direction;
-    for (int i=0;i<lights.length();i++){
-        Hit shadowHit=firstIntersect(shadowRay);
+        float cosTheta = dot(hit.normal, lights[0].direction)/(length(hit.normal)*length(lights[0].direction));
+        if (cosTheta > 0 && shadowIntersect(shadowRay)){
+            color+=lights[0].Le*cosTheta*kd;
 
-        if (shadowHit.t<0){
-            color+=lights[0].Le;
+            float cosDelta=dot(hit.normal,normalize(-ray.dir + lights[0].direction));
+            if(cosDelta>0){
+                color=color+lights[0].Le*vec3(0.316228,0.316228,0.316228)*pow(cosDelta,0.1);
+            }
         }
-    }
+
     return color;
 }
 
