@@ -29,6 +29,7 @@ void initComputeProgram();
 
 void sendVerticesIndices();
 
+void buildKdTree();
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -58,18 +59,6 @@ Shader shaderFragment;
 Model mymodel;
 
 GLFWwindow *window;
-
-int workgroupSizeX;
-int workgroupSizeY;
-
-int eyeuniform;
-int ray00Uniform;
-int ray01Uniform;
-int ray10Uniform;
-int ray11Uniform;
-int timeUniform;
-int blendFactorUniform;
-int bounceCountUniform;
 
 float fov = 45;
 glm::vec3 eye = glm::vec3(0, 0, 2);
@@ -172,35 +161,6 @@ void create3DShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderProgram.linkShaderProgram();
 }
 
-/*
-void initComputeProgram() {
-    shaderCompute.use();
-    int workgroupSize[3];
-    glGetProgramiv(shaderCompute.ID, GL_COMPUTE_WORK_GROUP_SIZE, workgroupSize);
-    workgroupSizeX = workgroupSize[0];
-    workgroupSizeY = workgroupSize[1];
-
-    eyeuniform = glGetUniformLocation(shaderCompute.ID, "eye");
-    ray00Uniform = glGetUniformLocation(shaderCompute.ID, "ray00");
-    ray01Uniform = glGetUniformLocation(shaderCompute.ID, "ray01");
-    ray10Uniform = glGetUniformLocation(shaderCompute.ID, "ray10");
-    ray11Uniform = glGetUniformLocation(shaderCompute.ID, "ray11");
-    timeUniform = glGetUniformLocation(shaderCompute.ID, "time");
-    blendFactorUniform = glGetUniformLocation(shaderCompute.ID, "blendFactor");
-    bounceCountUniform = glGetUniformLocation(shaderCompute.ID, "bounceCount");
-}*/
-
-/*void present() {
-    glUseProgram(quadProgram);
-    glBindVertexArray(vao);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glBindSampler(0, this.sampler);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
-    glBindSampler(0, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-}*/
 void renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] =
@@ -242,6 +202,11 @@ void sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
+void buildKdTree() {
+
+}
+
+
 
 int init() {
 
@@ -280,19 +245,15 @@ int init() {
     mymodel = Model("../model/model.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
-    // create3DShaderProg("../Shaders/vertex.shader", "../Shaders/fragment.shader");
 
-
-    cout<<"eredeti"<<endl;
-    cout <<eye.x<<" "<<eye.y<<" "<<eye.z<<endl;
-    cout <<lookat.x<<" "<<lookat.y<<" "<<lookat.z<<endl;
-    cout <<right1.x<<", "<<right1.y<<" ,"<<right1.z<<","<<endl;
-    cout <<up.x<<", "<<up.y<<" ,"<<up.z<<","<<endl;
-    cout <<"---------------------------------------------------------------"<<endl;
     sendVerticesIndices();
+    buildKdTree();
+
 
     return 0;
 }
+
+
 
 void loop() {
 
@@ -308,55 +269,12 @@ void loop() {
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
         glm::mat4 model = glm::mat4(1.0f);
 
 
-
-
-/*
-        // Second pipeline - Perspective---------------------------------------------
-
-        model=glm::translate(model, glm::vec3(0.0,0.0,0.0));
-        model=glm::scale(model, glm::vec3(0.1,0.1,0.1));
-
-        shaderProgram.useProgram();
-
-
-        unsigned int uboMatrices;
-        glGenBuffers(1, &uboMatrices);
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-        glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
-
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,1000.0f);
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-        glm::mat4 view = camera.GetViewMatrix();
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-        shaderProgram.setUniformMat4f("modelMatrix", model);
-
-        mymodel.Draw(shaderProgram);
-*/
-
-
-
-
-        // First pipeline - Ortho --------------------------------------------------
-        glDisable(GL_DEPTH_TEST);
-        glDepthMask(0);
-
         shaderQuadProgram.useProgram();
-/*
-        model = glm::scale(model, glm::vec3(500.0f, 500.0f, 0.0f));
-        glm::mat4 orthoMatrix = glm::ortho(0.0f, float(SCR_WIDTH), 0.0f, float(SCR_HEIGHT));
-        shaderQuadProgram.setUniformMat4f("modelMatrix", model);
-        shaderQuadProgram.setUniformMat4f("projectionMatrix", orthoMatrix);*/
+
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"), 1, &lookat.x);
 
@@ -377,10 +295,6 @@ void loop() {
                      &light1.position.x);
 
         renderQuad();
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(1);
-        // ------------------------------------------------------------------------
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

@@ -15,6 +15,7 @@ uniform vec3 wEye;
 uniform  sampler2D  texture_diffuse1;
 
 
+
 struct Light{
     vec3 Le, La;
     vec3 direction;
@@ -96,6 +97,10 @@ Hit firstIntersect(Ray ray){
         vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
         Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
+        if(hit.t==-1){
+            continue;
+        }
+
         if (hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
             besthit=hit;
         }
@@ -140,10 +145,9 @@ vec3 trace(Ray ray){
         float cosTheta = dot(hit.normal, lights[0].direction)/(length(hit.normal)*length(lights[0].direction));
         if (cosTheta > 0 && shadowIntersect(shadowRay)){
             color+=lights[0].Le*cosTheta*kd;
-
             float cosDelta=dot(hit.normal,normalize(-ray.dir + lights[0].direction));
             if(cosDelta>0){
-                color=color+lights[0].Le*vec3(0.316228,0.316228,0.316228)*pow(cosDelta,0.1);
+                color=color+lights[0].Le*vec3(0.316228,0.316228,0.316228)*pow(0.1,cosDelta);
             }
         }
 
@@ -155,7 +159,6 @@ void main()
     Ray ray;
     ray.orig = wEye;
     ray.dir = normalize(p - wEye);
-
     FragColor = vec4(trace(ray), 1);
 
     // FragColor=vec4(trace(), 1.0f);
