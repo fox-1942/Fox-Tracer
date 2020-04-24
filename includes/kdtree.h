@@ -16,41 +16,97 @@
 
 using namespace std;
 
-class kdNode {
+struct BBox {
+    glm::vec4 min;
+    glm::vec4 max;
+    glm::vec4 center;
+    int longestAxis;
+
+    float length = max.x - min.x;
+    float width = max.y - min.y;
+    float height = max.z - min.z;
+
+    BBox(glm::vec4 min, glm::vec4 max, glm::vec4 center) {
+        this->min = min;
+        this->max = max;
+        this->center = center;
+        if (length > width && length > height) longestAxis = 0;
+        else if (width > length && width > height) longestAxis = 1;
+        else longestAxis = 2;
+    }
+};
+
+class KdNode {
 
 public:
-    glm::vec4 min, max;
-    vector<glm::vec4> triangles;
-    kdNode *right;
-    kdNode *left;
-    int axis;
-    vector<glm::vec4> indicesPerFaces;
     vector<glm::vec4> primitiveCoordinates;
+    vector<glm::vec4> faceCenters;
 
-    kdNode(vector<glm::vec4> &primitiveCoordinates, vector<glm::vec4> &indicesPerFaces) {
+    KdNode *right;
+    KdNode *left;
+
+    KdNode(vector<glm::vec4> &primitiveCoordinates) {
         this->primitiveCoordinates = primitiveCoordinates;
-        this->indicesPerFaces = indicesPerFaces;
+        this->left = NULL;
+        this->right = NULL;
     }
 
-private:
 
-    glm::vec3 calculateCenterofTriangle(glm::vec4 vec) {
 
+
+
+
+
+
+
+    glm::vec4 calculateCenterofTriangle(glm::vec4 vec, glm::vec4 vec1, glm::vec4 vec2) {
+        return glm::vec4((vec.x + vec1.x + vec2.x) / 3, (vec.y + vec1.y + vec2.y) / 3, (vec.z + vec1.z + vec2.z) / 3,
+                         1.0);
     }
 
-    kdNode *buildTree(int depth) {
-        if (tris.size() == 0) return NULL;
 
-        kdNode *node = new kdNode();
 
-        node->triangles = tris;
-        node->left = NULL;
-        node->right = NULL;
+
+
+
+
+    KdNode *buildTree(vector<glm::vec4> indicesPerFaces, int depth) {
+        if (indicesPerFaces.size() == 0 || primitiveCoordinates.size() == 0) return NULL;
+
+        BBox bBox = getBBox(indicesPerFaces);
+        int axis = bBox.longestAxis;
+
+
+        vector<glm::vec4> leftTree;
+        vector<glm::vec4> rightTree;
+
+        for (int i = 0; i < indicesPerFaces.size(); ++i) {
+            if (bBox.center[axis] >= faceCenters.at(i)[axis]) {
+                leftTree.push_back(indicesPerFaces.at(i));
+            } else if (bBox.center[axis] <= faceCenters.at(i)[axis]) {
+                rightTree.push_back(indicesPerFaces.at(i));
+            }
+        }
+
+        if(rightTree.size() == indicesPerFaces.size() || leftTree.size() == indicesPerFaces.size()){
+            return this;
+        }
+
+        this->left = buildTree(leftTree, depth + 1);
+        this->right = buildTree(rightTree, depth + 1);
+
+        return this;
     }
 
-    glm::vec3 getCoordinatefromIndices(float index) {
-        glm::vec3 back;
-        for (int i = 0; i < primitiveCoordinates.length(); i++) {
+
+
+
+
+
+
+    glm::vec4 getCoordinatefromIndices(float index) {
+        glm::vec4 back;
+        for (int i = 0; i < primitiveCoordinates.size(); i++) {
             if (i == index) {
                 back = primitiveCoordinates[i];
                 break;
@@ -59,31 +115,55 @@ private:
         return back;
     }
 
-    bBox getbBox(vector<glm::vec4> tris) {
-        glm::vec3 center(0, 0, 0);
+
+
+
+
+
+
+
+    BBox getBBox(vector<glm::vec4> indicesPerFaces) {
+        glm::vec4 center(0, 0, 0, 1);
 
         float minX = 1e9, maxX = 1e-9;
         float minY = 1e9, maxY = 1e-9;
         float minZ = 1e9, maxZ = 1e-9;
 
-        for (int i = 0; i < tris.size(); ++i) {
-            if (tris.at(i).x < minX) { minX = tris.at(i).x; }
-            if (tris.at(i).y < minY) { minY = tris.at(i).y; }
-            if (tris.at(i).z < minZ) { minZ = tris.at(i).z; }
+        glm::vec4 firstCoordofTri;
+        glm::vec4 secondCoordofTri;
+        glm::vec4 thirdCoordofTri;
 
-            if (tris.at(i).x < maxX) { maxX = tris.at(i).x; }
-            if (tris.at(i).y < maxY) { maxY = tris.at(i).y; }
-            if (tris.at(i).z < maxZ) { maxZ = tris.at(i).z; }
+        for (int i = 0; i < indicesPerFaces.size(); ++i) {
+            firstCoordofTri = getCoordinatefromIndices(indicesPerFaces.at(i).x);
+            secondCoordofTri = getCoordinatefromIndices(indicesPerFaces.at(i).y);
+            thirdCoordofTri = getCoordinatefromIndices(indicesPerFaces.at(i).z);
 
-            center += calculateCenterofTriangle(tris.at(i));
+            vector<glm::vec4> currentTri;
+            currentTri.push_back(firstCoordofTri);
+            currentTri.push_back(secondCoordofTri);
+            currentTri.push_back(thirdCoordofTri);
+
+            for (int j = 0; j < currentTri.size(); j++) {
+                if (currentTri.at(j).x < minX) { minX = currentTri.at(j).x; }
+                if (currentTri.at(j).y < minY) { minY = currentTri.at(j).y; }
+                if (currentTri.at(j).z < minZ) { minZ = currentTri.at(j).z; }
+
+                if (currentTri.at(j).x > maxX) { maxX = currentTri.at(j).x; }
+                if (currentTri.at(j).y > maxY) { maxY = currentTri.at(j).y; }
+                if (currentTri.at(j).z > maxZ) { maxZ = currentTri.at(j).z; }
+            }
+
+            glm::vec4 centerOfCurrTri(calculateCenterofTriangle(firstCoordofTri, secondCoordofTri, thirdCoordofTri));
+            faceCenters.push_back(centerOfCurrTri);
+            center += centerOfCurrTri;
         }
-        center = glm::vec3(center.x / tris.size(),center.y / tris.size(),
-                           center.z / tris.size());
 
-        glm::vec3 minp(minX, minY, minZ);
-        glm::vec3 maxp(maxX, maxY, maxZ);
-        bBox bBox(minp, maxp, center);
-        return bBox;
+        center /= 3; // Calculating the average centroid of the bounding box.
+
+        glm::vec4 minp(minX, minY, minZ, 1.0);
+        glm::vec4 maxp(maxX, maxY, maxZ, 1.0);
+
+        return BBox(minp, maxp, center);
     }
 };
 
