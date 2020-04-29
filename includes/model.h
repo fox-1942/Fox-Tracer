@@ -48,6 +48,7 @@ public:
 
     Model(string path) {
         this->loadModel(path);
+
     }
 
     // Draws the model, and thus all its meshes
@@ -70,11 +71,12 @@ public:
             }
         }
 
-/*
+        ofstream myfile;
+        myfile.open ("../model/vertices.txt");
          for (int i = 0; i < allPositionVertices.size(); i++) {
-               cout << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
+             myfile << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
                     << allPositionVertices.at(i).z << endl;
-           }*/
+           }
 /*
           for(int i=0;i<arr.size();i++){
               for(int j=0;j<arr.at(i).size();j++){
@@ -119,9 +121,8 @@ public:
            }
            myfile2.close();*/
 
-
-    cout<<indicesPerFaces.size()<<endl;
-
+        /*cout <<"all position vertices: "<< allPositionVertices.size() << endl;
+        cout <<"indices: "<< indicesPerFaces.size() << "\n" << endl;*/
     }
 
 private:
@@ -149,9 +150,7 @@ private:
 
         getInfoAboutModel();
         fillAllPositionVertices();
-
     }
-
 
     void getInfoAboutModel() {
         cout << "Number of meshes in the model: " << meshes.size() << endl;
@@ -162,7 +161,6 @@ private:
         }
 
         cout << "Number of vertices in the model: " << size << "\n" << endl;
-
 
     }
 

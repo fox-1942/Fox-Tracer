@@ -11,6 +11,7 @@
 #include "../includes/model.h"
 #include "../includes/filesystem.h"
 #include "../includes/framework.h"
+#include "../includes/bvhtree.h"
 
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -204,8 +205,22 @@ void sendVerticesIndices() {
 
 void buildKdTree() {
 
-}
+    cout<<"buildKDtree: "<<mymodel.allPositionVertices.size()<<endl;
+    vector<glm::vec3> primitiveCoordinatesAdapt;
+    for(int i=0;i<mymodel.allPositionVertices.size();i++){
+        primitiveCoordinatesAdapt.push_back(glm::vec3(mymodel.allPositionVertices.at(i).x,mymodel.allPositionVertices.at(i).y,mymodel.allPositionVertices.at(i).z));
+    }
 
+    cout<<"buildKDtree: "<<mymodel.indicesPerFaces.size()<<endl;
+    vector<glm::vec3> AdaptIndicesPerFaces;
+    for(int i=0;i<mymodel.indicesPerFaces.size();i++){
+        AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x,mymodel.indicesPerFaces.at(i).y,mymodel.indicesPerFaces.at(i).z));
+    }
+
+
+    BvhNode *bvhNode = new BvhNode(primitiveCoordinatesAdapt);
+    bvhNode->buildTree(AdaptIndicesPerFaces, 0);
+}
 
 
 int init() {
@@ -249,10 +264,8 @@ int init() {
     sendVerticesIndices();
     buildKdTree();
 
-
     return 0;
 }
-
 
 
 void loop() {
@@ -325,20 +338,17 @@ void setCamera(float param) {
     right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
     up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
-    cout<<"set"<<endl;
-    cout <<right1.x<<", "<<right1.y<<" ,"<<right1.z<<","<<endl;
+
 }
 
 void setCameraY(float param) {
 
-    eye = glm::vec3(eye.x, eye.y+param,eye.z) + lookat;
+    eye = glm::vec3(eye.x, eye.y + param, eye.z) + lookat;
     w = eye - lookat;
     float f = length(w);
     right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
     up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
-    cout<<"set"<<endl;
-    cout <<right1.x<<", "<<right1.y<<" ,"<<right1.z<<","<<endl;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -348,7 +358,7 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-       setCamera(0.5);
+        setCamera(0.5);
     }
 
 

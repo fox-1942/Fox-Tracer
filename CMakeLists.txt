@@ -20,6 +20,6 @@ add_executable(RayTracerBoros
         src/ShaderProgram.h
         includes/filesystem.h
         includes/root_directory.h
-        src/ShaderProgram.h includes/framework.h includes/kdtree.h)
+        src/ShaderProgram.h includes/framework.h includes/bvhtree.h)
 
 target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)

@@ -16,6 +16,13 @@ uniform  sampler2D  texture_diffuse1;
 
 
 
+
+
+
+
+
+
+
 struct Light{
     vec3 Le, La;
     vec3 direction;
@@ -77,14 +84,7 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
 
 vec3 getCoordinatefromIndices(float index){
-    vec3 back;
-    for (int i=0; i < primitiveCoordinates.length();i++){
-        if (i==index){
-            back=primitiveCoordinates[i];
-            break;
-        }
-    }
-    return back;
+    return primitiveCoordinates[int(index)];
 }
 
 
