@@ -43,7 +43,6 @@ public:
 
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
-
     Model() {}
 
     Model(string path) {

@@ -205,13 +205,13 @@ void sendVerticesIndices() {
 
 void buildKdTree() {
 
-    cout<<"buildKDtree: "<<mymodel.allPositionVertices.size()<<endl;
+    cout<<"allPositionVertices size: "<<mymodel.allPositionVertices.size()<<endl;
     vector<glm::vec3> primitiveCoordinatesAdapt;
     for(int i=0;i<mymodel.allPositionVertices.size();i++){
         primitiveCoordinatesAdapt.push_back(glm::vec3(mymodel.allPositionVertices.at(i).x,mymodel.allPositionVertices.at(i).y,mymodel.allPositionVertices.at(i).z));
     }
 
-    cout<<"buildKDtree: "<<mymodel.indicesPerFaces.size()<<endl;
+    cout<<"IndicesPerFaces size: "<<mymodel.indicesPerFaces.size()<<endl;
     vector<glm::vec3> AdaptIndicesPerFaces;
     for(int i=0;i<mymodel.indicesPerFaces.size();i++){
         AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x,mymodel.indicesPerFaces.at(i).y,mymodel.indicesPerFaces.at(i).z));

@@ -86,34 +86,35 @@ public:
 
         vector<glm::vec3> leftTree;
         vector<glm::vec3> rightTree;
-
+/*
         cout << "face-ek száma: " << indicesPerFaces.size() << endl;
         cout << "faceCenterek-ek száma: " << faceCenters.size() << endl;
 
         cout << "bbox center: " << bBox.center.x<< " "<<bBox.center.y <<" "<< bBox.center.z << endl;
         cout << "bbox center: " << bBox.center[axis] << endl;
-
+*/
         for (int i = 0; i < indicesPerFaces.size(); ++i) {
             if (bBox.center[axis] >= faceCenters.at(i)[axis]) {
-                cout<< faceCenters.at(i)[axis] <<endl;
+               // cout<< faceCenters.at(i)[axis] <<endl;
                 leftTree.push_back(indicesPerFaces.at(i));
 
             } else if (bBox.center[axis] <= faceCenters.at(i)[axis]) {
-                cout<< faceCenters.at(i)[axis] <<endl;
+               // cout<< faceCenters.at(i)[axis] <<endl;
                 rightTree.push_back(indicesPerFaces.at(i));
             }
         }
 
-        cout << endl;
 
         if (rightTree.size() == indicesPerFaces.size() || leftTree.size() == indicesPerFaces.size()) {
-            //return this;
+            return this;
         }
 
-        this->left = buildTree(leftTree, depth + 1);
-        this->right = buildTree(rightTree, depth + 1);
+        depth++;
+        cout<<"depth: "<<depth<<endl;
+        this->left = buildTree(leftTree, depth);
+        this->right = buildTree(rightTree, depth);
 
-        cout<<"Boxok száma: "<<numberofBBoxes;
+       // cout<<"Boxok száma: "<<numberofBBoxes;
         return this;
     }
 
