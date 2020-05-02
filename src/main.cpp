@@ -214,8 +214,8 @@ void buildKdTree() {
         AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x,mymodel.indicesPerFaces.at(i).y,mymodel.indicesPerFaces.at(i).z));
     }
 
-    BvhNode *bvhNode = new BvhNode(primitiveCoordinatesAdapt);
-    bvhNode->buildTree(AdaptIndicesPerFaces, 0);
+    BvhNode bvhNode = BvhNode(primitiveCoordinatesAdapt);
+    bvhNode.buildTree(AdaptIndicesPerFaces);
 }
 
 int init() {

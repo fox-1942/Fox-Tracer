@@ -1,6 +1,7 @@
 //
 // Created by fox-1942 on 4/23/20.
 //
+
 #ifndef RAYTRACERBOROS_BVHTREE_H
 #define RAYTRACERBOROS_BVHTREE_H
 
@@ -47,75 +48,73 @@ struct BBox {
 class BvhNode {
 
 public:
-
     vector<glm::vec3> primitiveCoordinates;
 
     BBox bBox;
-    BvhNode *right;
-    BvhNode *left;
-    int depth;
-    int numberofBBoxes;
+    vector<BvhNode> children;
 
     BvhNode() {}
+    ~BvhNode(){}
 
     BvhNode(vector<glm::vec3> &primitiveCoordinates) {
         this->primitiveCoordinates = primitiveCoordinates;
-        this->left = NULL;
-        this->right = NULL;
+
     }
 
     glm::vec3 calculateCenterofTriangle(glm::vec3 vec, glm::vec3 vec1, glm::vec3 vec2) {
         return glm::vec3(float((vec.x + vec1.x + vec2.x) / 3), float((vec.y + vec1.y + vec2.y) / 3),
                          float((vec.z + vec1.z + vec2.z) / 3));
     }
-    BvhNode *buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
-        BvhNode *node = new BvhNode();
 
-        if (indicesPerFaces.size() == 0 || primitiveCoordinates.size() == 0) return NULL;
+    void buildTree(vector<glm::vec3> &indicesPerFaces) {
 
-        node->bBox = getBBox(indicesPerFaces);
-        node->numberofBBoxes++;
-        node->depth=depth;
-        this->numberofBBoxes++;
+        if (indicesPerFaces.size() == 0 ) return ;
+
+        this->bBox = getBBox(indicesPerFaces);
 
         // This is a leaf node.
+        cout<<"hsz-ek száma: "<<indicesPerFaces.size()<<endl;
         if (indicesPerFaces.size() == 1) {
-            return node;
+
+            return;
         }
 
-        int axis = node->bBox.longestAxis;
+        int axis = this->bBox.longestAxis;
 
         vector<glm::vec3> leftTree;
         vector<glm::vec3> rightTree;
 
-        cout <<axis<<" "<< bBox.center.x <<" " << bBox.center.y << " "<< bBox.center.z << " VS " << bBox.center[axis] << endl;
+
+        //cout <<axis<<" "<< bBox.center.x <<" " << bBox.center.y << " "<< bBox.center.z << " VS " << bBox.center[axis] << endl;
+
 
         for (int i = 0; i < indicesPerFaces.size(); ++i) {
             switch (axis) {
                 case 0:
-                    if (bBox.center.x >= node->bBox.faceCenters.at(i).x) {
+                    if (bBox.center.x >= this->bBox.faceCenters.at(i).x) {
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         leftTree.push_back(indicesPerFaces.at(i));
 
-                    } else if (bBox.center.x <= node->bBox.faceCenters.at(i).x) {
+                    } else if (bBox.center.x <= this->bBox.faceCenters.at(i).x) {
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
                     };
                 case 1:
-                    if (bBox.center.y >= node->bBox.faceCenters.at(i).y) {
+                    if (bBox.center.y >= this->bBox.faceCenters.at(i).y) {
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         leftTree.push_back(indicesPerFaces.at(i));
 
-                    } else if (bBox.center.y <= node->bBox.faceCenters.at(i).y) {
+                    } else if (bBox.center.y <= this->bBox.faceCenters.at(i).y) {
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
                     };
                 case 2:
-                    if (bBox.center.z >= node->bBox.faceCenters.at(i).z) {
-                        // cout<< faceCenters.at(i)[axis] <<endl;
+                    if (bBox.center.z >= this->bBox.faceCenters.at(i).z) {
+                        cout<<"bbox center z: " <<bBox.center.z << endl;
+                         cout<<"node bbox facenter z: "<<this->bBox.faceCenters.at(i).z << endl;
                         leftTree.push_back(indicesPerFaces.at(i));
 
-                    } else if (bBox.center.z <= node->bBox.faceCenters.at(i).z) {
+                    } else if (bBox.center.z <= this->bBox.faceCenters.at(i).z) {
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
                     };
@@ -134,27 +133,34 @@ public:
         }
 
         // Because in this case there would be an empty node and that is why we return.
-        if (rightTree.size() == indicesPerFaces.size() || leftTree.size() == indicesPerFaces.size()) {
-            return this;
-        }
+       /* if (rightTree.size() == indicesPerFaces.size() || leftTree.size() == indicesPerFaces.size()) {
+            return;
+        }*/
 
         cout<<rightTree.size()<<endl;
         cout<<leftTree.size()<<endl;
-        this->left = buildTree(leftTree, depth+1);
-        this->right = buildTree(rightTree, depth+1);
 
-        return this;
+        BvhNode left=BvhNode(primitiveCoordinates);
+        BvhNode right=BvhNode(primitiveCoordinates);
+        left.buildTree(leftTree );
+        right.buildTree (rightTree);
+
+        children.push_back(left);
+        children.push_back(right);
+
+        return;
     }
 
     glm::vec3 getCoordinatefromIndices(float index) {
-        /*  cout << "getCoordinates: " << endl;
-          cout << primitiveCoordinates.at(index).x << " " << primitiveCoordinates.at(index).y << " "
-               << primitiveCoordinates.at(index).z << endl;*/
+          cout << "getCoordinates-ba beléptem. " <<"Index: "<<index<<endl;
+            cout<<" Primitve coordinates: "<<primitiveCoordinates.size()<< endl;
+          cout <<"Koordináták: " << primitiveCoordinates.at(index).x << " " << primitiveCoordinates.at(index).y << " "
+               << primitiveCoordinates.at(index).z << endl;
 
         return primitiveCoordinates.at(index);
     }
 
-    BBox getBBox(vector<glm::vec3> &indices) {
+    BBox getBBox(vector<glm::vec3>& indices) {
         vector<glm::vec3> faceCenters;
         glm::vec3 center(0, 0, 0);
 
@@ -165,13 +171,18 @@ public:
         glm::vec3 firstCoordofTri;
         glm::vec3 secondCoordofTri;
         glm::vec3 thirdCoordofTri;
-        vector<glm::vec3> currentTri;
 
-        for (int i = 0; i < indices.size(); ++i) {
-            firstCoordofTri = getCoordinatefromIndices(indices.at(i).x);
-            secondCoordofTri = getCoordinatefromIndices(indices.at(i).y);
-            thirdCoordofTri = getCoordinatefromIndices(indices.at(i).z);
 
+        for (const glm::vec3 index : indices) {
+
+            cout<<"Indices size: "<<indices.size()<<endl;
+            cout<<"Index.x "<<index.x<<endl;
+            firstCoordofTri = getCoordinatefromIndices(index.x);
+            cout<<"utána"<<endl;
+            secondCoordofTri = getCoordinatefromIndices(index.y);
+            thirdCoordofTri = getCoordinatefromIndices(index.z);
+
+            vector<glm::vec3> currentTri;
             currentTri.push_back(firstCoordofTri);
             currentTri.push_back(secondCoordofTri);
             currentTri.push_back(thirdCoordofTri);
@@ -194,7 +205,7 @@ public:
             center += centerOfCurrTri;
         }
 
-        center /= 3; // Calculating the average centroid of the bounding box.
+        center /= indices.size(); // Calculating the average centroid of the bounding box.
 
         glm::vec3 minp(minX, minY, minZ);
         glm::vec3 maxp(maxX, maxY, maxZ);
