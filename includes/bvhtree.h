@@ -1,7 +1,6 @@
 //
 // Created by fox-1942 on 4/23/20.
 //
-
 #ifndef RAYTRACERBOROS_BVHTREE_H
 #define RAYTRACERBOROS_BVHTREE_H
 
@@ -13,7 +12,6 @@
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 
-
 using namespace std;
 
 struct BBox {
@@ -21,13 +19,15 @@ struct BBox {
     glm::vec3 max;
     glm::vec3 center;
     int longestAxis;
+    vector<glm::vec3> faceCenters;
 
     BBox() {}
 
-    BBox(glm::vec3 min, glm::vec3 max, glm::vec3 center) {
+    BBox(glm::vec3 min, glm::vec3 max, glm::vec3 center, vector<glm::vec3> faceCenters) {
         this->min = min;
         this->max = max;
         this->center = center;
+        this->faceCenters=faceCenters;
 
         float length = max.x - min.x;
         float width = max.y - min.y;
@@ -47,15 +47,16 @@ struct BBox {
 class BvhNode {
 
 public:
-    BvhNode() {}
 
     vector<glm::vec3> primitiveCoordinates;
-    vector<glm::vec3> faceCenters;
 
     BBox bBox;
     BvhNode *right;
     BvhNode *left;
-    int numberofBBoxes = 0;
+    int depth;
+    int numberofBBoxes;
+
+    BvhNode() {}
 
     BvhNode(vector<glm::vec3> &primitiveCoordinates) {
         this->primitiveCoordinates = primitiveCoordinates;
@@ -67,8 +68,6 @@ public:
         return glm::vec3(float((vec.x + vec1.x + vec2.x) / 3), float((vec.y + vec1.y + vec2.y) / 3),
                          float((vec.z + vec1.z + vec2.z) / 3));
     }
-
-
     BvhNode *buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
         BvhNode *node = new BvhNode();
 
@@ -76,9 +75,10 @@ public:
 
         node->bBox = getBBox(indicesPerFaces);
         node->numberofBBoxes++;
+        node->depth=depth;
         this->numberofBBoxes++;
 
-
+        // This is a leaf node.
         if (indicesPerFaces.size() == 1) {
             return node;
         }
@@ -88,36 +88,60 @@ public:
         vector<glm::vec3> leftTree;
         vector<glm::vec3> rightTree;
 
-        glm::vec3 firstCoordofTri;
-        glm::vec3 secondCoordofTri;
-        glm::vec3 thirdCoordofTri;
-        vector<glm::vec3> currentTri;
-
-        cout << bBox.center.x << " " << bBox.center.x << " " << bBox.center.x << endl;
-        cout << "Axis: " << axis << endl;
+        cout <<axis<<" "<< bBox.center.x <<" " << bBox.center.y << " "<< bBox.center.z << " VS " << bBox.center[axis] << endl;
 
         for (int i = 0; i < indicesPerFaces.size(); ++i) {
-            cout << bBox.center[axis] << " VS " << faceCenters.at(i)[axis] << endl;
-            if (bBox.center[axis] >= faceCenters.at(i)[axis]) {
+            switch (axis) {
+                case 0:
+                    if (bBox.center.x >= node->bBox.faceCenters.at(i).x) {
+                        // cout<< faceCenters.at(i)[axis] <<endl;
+                        leftTree.push_back(indicesPerFaces.at(i));
+
+                    } else if (bBox.center.x <= node->bBox.faceCenters.at(i).x) {
+                        // cout<< faceCenters.at(i)[axis] <<endl;
+                        rightTree.push_back(indicesPerFaces.at(i));
+                    };
+                case 1:
+                    if (bBox.center.y >= node->bBox.faceCenters.at(i).y) {
+                        // cout<< faceCenters.at(i)[axis] <<endl;
+                        leftTree.push_back(indicesPerFaces.at(i));
+
+                    } else if (bBox.center.y <= node->bBox.faceCenters.at(i).y) {
+                        // cout<< faceCenters.at(i)[axis] <<endl;
+                        rightTree.push_back(indicesPerFaces.at(i));
+                    };
+                case 2:
+                    if (bBox.center.z >= node->bBox.faceCenters.at(i).z) {
+                        // cout<< faceCenters.at(i)[axis] <<endl;
+                        leftTree.push_back(indicesPerFaces.at(i));
+
+                    } else if (bBox.center.z <= node->bBox.faceCenters.at(i).z) {
+                        // cout<< faceCenters.at(i)[axis] <<endl;
+                        rightTree.push_back(indicesPerFaces.at(i));
+                    };
+            }
+
+            /*
+            cout << bBox.center[axis] << " VS " << node->bBox.faceCenters.at(i)[axis] << endl;
+            if (bBox.center[axis] >= node->bBox.faceCenters.at(i)[axis]) {
                 // cout<< faceCenters.at(i)[axis] <<endl;
                 leftTree.push_back(indicesPerFaces.at(i));
 
-            } else if (bBox.center[axis] <= faceCenters.at(i)[axis]) {
+            } else if (bBox.center[axis] <= node->bBox.faceCenters.at(i)[axis]) {
                 // cout<< faceCenters.at(i)[axis] <<endl;
                 rightTree.push_back(indicesPerFaces.at(i));
-            }
+            }*/
         }
-
 
         // Because in this case there would be an empty node and that is why we return.
         if (rightTree.size() == indicesPerFaces.size() || leftTree.size() == indicesPerFaces.size()) {
             return this;
         }
 
-        depth++;
-        cout << "depth: " << depth << endl;
-        this->left = buildTree(leftTree, depth);
-        this->right = buildTree(rightTree, depth);
+        cout<<rightTree.size()<<endl;
+        cout<<leftTree.size()<<endl;
+        this->left = buildTree(leftTree, depth+1);
+        this->right = buildTree(rightTree, depth+1);
 
         return this;
     }
@@ -131,12 +155,12 @@ public:
     }
 
     BBox getBBox(vector<glm::vec3> &indices) {
-
+        vector<glm::vec3> faceCenters;
         glm::vec3 center(0, 0, 0);
 
-        float minX = 999999999, maxX = -999999;
-        float minY = 999999999, maxY = -999999;
-        float minZ = 999999999, maxZ = -999999;
+        float minX = 99999, maxX = -99999;
+        float minY = 99999, maxY = -99999;
+        float minZ = 99999, maxZ = -99999;
 
         glm::vec3 firstCoordofTri;
         glm::vec3 secondCoordofTri;
@@ -166,6 +190,7 @@ public:
             glm::vec3 centerOfCurrTri(calculateCenterofTriangle(firstCoordofTri, secondCoordofTri, thirdCoordofTri));
 
             faceCenters.push_back(centerOfCurrTri);
+
             center += centerOfCurrTri;
         }
 
@@ -179,10 +204,8 @@ public:
          cout << "Min of bbox: " << minp.x << " " << minp.y << " " << minp.z << endl;
          cout << "Max of BBox: " << maxp.x << " " << maxp.y << " " << maxp.z << endl;*/
 
-        return BBox(minp, maxp, center);
+        return BBox(minp, maxp, center, faceCenters);
     }
-
-
 };
 
 #endif //RAYTRACERBOROS_BVHTREE_H

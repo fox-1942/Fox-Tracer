@@ -113,22 +113,19 @@ static bool GLCheckError() {
                 std::cout << "GL_OUT_OF_MEMORY : There is not enough memory left to execute the command.";
                 break;
             case GL_STACK_UNDERFLOW :
-                std::cout
-                        << "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
+                std::cout<< "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
                 break;
             case GL_STACK_OVERFLOW :
-                std::cout
-                        << "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
+                std::cout<< "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
                 break;
             default :
-                std::cout << "Unrecognized error" << error;
+                std::cout <<"Unrecognized error" << error;
         }
         std::cout << std::endl;
         return false;
     }
     return true;
 }
-
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 
@@ -217,11 +214,9 @@ void buildKdTree() {
         AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x,mymodel.indicesPerFaces.at(i).y,mymodel.indicesPerFaces.at(i).z));
     }
 
-
     BvhNode *bvhNode = new BvhNode(primitiveCoordinatesAdapt);
     bvhNode->buildTree(AdaptIndicesPerFaces, 0);
 }
-
 
 int init() {
 
