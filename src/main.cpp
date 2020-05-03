@@ -252,7 +252,7 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model("../model/model.obj");
+    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
@@ -356,11 +356,9 @@ void processInput(GLFWwindow *window) {
         setCamera(0.5);
     }
 
-
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         setCamera(-0.5);
     }
-
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         setCameraY(+0.5);

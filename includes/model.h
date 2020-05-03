@@ -69,13 +69,13 @@ public:
                 allPositionVertices.push_back(vectorTemp);
             }
         }
-
+/*
         ofstream myfile;
         myfile.open ("../model/vertices.txt");
          for (int i = 0; i < allPositionVertices.size(); i++) {
              myfile << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
                     << allPositionVertices.at(i).z << endl;
-           }
+           }*/
 /*
           for(int i=0;i<arr.size();i++){
               for(int j=0;j<arr.at(i).size();j++){
@@ -93,15 +93,15 @@ public:
              cout << endl;
          }*/
 
-/*
+
         ofstream myfile;
-        myfile.open ("../model/vertices.txt");
+        myfile.open ("../model/indicesperFaces.txt");
         for(int i=0;i<indicesPerFaces.size();i++){
             myfile<<indicesPerFaces.at(i).x <<" ";
             myfile<<indicesPerFaces.at(i).y <<" ";
             myfile<<indicesPerFaces.at(i).z << endl;
         }
-       */
+
 
 /*
           ofstream myfile2;
