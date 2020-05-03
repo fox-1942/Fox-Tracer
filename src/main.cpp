@@ -216,6 +216,8 @@ void buildKdTree() {
 
     BvhNode bvhNode = BvhNode(primitiveCoordinatesAdapt);
     bvhNode.buildTree(AdaptIndicesPerFaces);
+
+
 }
 
 int init() {
@@ -252,7 +254,7 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
 
-    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
+    mymodel = Model("../model/model.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 

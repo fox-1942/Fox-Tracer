@@ -1,4 +1,6 @@
 #version 460 core
+#define MIN(A, B); ((A) < (B) ? (A) : (B));
+#define MAX(A, B); ((A) > (B) ? (A) : (B));
 
 layout(std140, binding=2) buffer primitives{
     vec3 primitiveCoordinates[];
@@ -14,14 +16,14 @@ in       vec3 p;
 uniform vec3 wEye;
 uniform  sampler2D  texture_diffuse1;
 
+struct BvhNode{
+    float min, max;
+    int childrenIndices[2];
 
-
-
-
-
-
-
-
+// If node is a leaf
+    bool isLeaf;
+    vec3 indices;
+};
 
 struct Light{
     vec3 Le, La;
@@ -83,6 +85,58 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 }
 
 
+// firstIntersect alternate accelarated by bvh tree
+Hit traverseBvhTree(Ray ray, BvhNode node){
+
+    // Ha már metszette a szülőt.
+    if (rayIntersectWithBox(ray, node)){
+        bool it1 = rayIntersectWithBox(node.childrenIndices[0]);
+        bool it2 = rayIntersectWithBox(node.childrenIndices[1]);
+
+        //Mindkét gyereket metszi.
+        if (it1.t>0 && it2.t>0) {
+            // Végijárom a bal gyereket
+            Hit hitFromLeftChild=traverseBvhTree(ray,node.childrenIndices[0]);
+
+            // Végigjárom a jobb gyereket
+            Hit hitFromRightChild=traverseBvhTree(ray,node.childrenIndices[1]);
+
+            // A közelebbi metszéssel térek vissza,
+            if(hitFromLeftChild.t>0 && hitFromLeftChild.t<hitFromRightChild.t){
+                return hitFromLeftChild;
+            }
+            else if(hitFromRightChild.t>0 && hitFromRightChild.t<hitFromLeftChild.t){
+                return hitFromRightChild;
+            }
+        }
+
+
+        //Ha a Left gyereket metszi.
+        if (it1.t>0){
+            if (node.childrenIndices[0].isLeaf){
+                return rayTriangleIntersect(ray, node.childrenIndices[0].indices.x, node.childrenIndices[0].indices.y, node.childrenIndices[0].indices.z);
+            }
+        }
+
+        // Ha a Right gyereket metszi.
+        if (it2.t>0){
+            if (node.childrenIndices[1].isLeaf){
+                return rayTriangleIntersect(ray, node.childrenIndices[1].indices.x, node.childrenIndices[1].indices.y, node.childrenIndices[1].indices.z);
+            }
+        }
+
+        // Ha egyik gyereket sem metszi, csak áthalad.
+        if(it1.t==-1 && it2.t==-1){
+
+        }
+
+    }
+    return null;
+}
+
+
+
+
 vec3 getCoordinatefromIndices(float index){
     return primitiveCoordinates[int(index)];
 }
@@ -97,7 +151,7 @@ Hit firstIntersect(Ray ray){
         vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
         Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
-        if(hit.t==-1){
+        if (hit.t==-1){
             continue;
         }
 
@@ -128,9 +182,9 @@ bool shadowIntersect(Ray ray){
 
 
 vec3 trace(Ray ray){
-    vec3 color= vec3(0,0,0);
-    vec3 ka= vec3(0.135,0.2225,	0.1575);
-    vec3 kd= vec3(0.54,	0.89,0.63);
+    vec3 color= vec3(0, 0, 0);
+    vec3 ka= vec3(0.135, 0.2225, 0.1575);
+    vec3 kd= vec3(0.54, 0.89, 0.63);
 
     Hit hit;
     hit=firstIntersect(ray);
@@ -142,14 +196,14 @@ vec3 trace(Ray ray){
     Ray shadowRay;
     shadowRay.orig=hit.orig+hit.normal*0.001f;
     shadowRay.dir=lights[0].direction;
-        float cosTheta = dot(hit.normal, lights[0].direction)/(length(hit.normal)*length(lights[0].direction));
-        if (cosTheta > 0 && shadowIntersect(shadowRay)){
-            color+=lights[0].Le*cosTheta*kd;
-            float cosDelta=dot(hit.normal,normalize(-ray.dir + lights[0].direction));
-            if(cosDelta>0){
-                color=color+lights[0].Le*vec3(0.316228,0.316228,0.316228)*pow(0.1,cosDelta);
-            }
+    float cosTheta = dot(hit.normal, lights[0].direction)/(length(hit.normal)*length(lights[0].direction));
+    if (cosTheta > 0 && shadowIntersect(shadowRay)){
+        color+=lights[0].Le*cosTheta*kd;
+        float cosDelta=dot(hit.normal, normalize(-ray.dir + lights[0].direction));
+        if (cosDelta>0){
+            color=color+lights[0].Le*vec3(0.316228, 0.316228, 0.316228)*pow(0.1, cosDelta);
         }
+    }
 
     return color;
 }
