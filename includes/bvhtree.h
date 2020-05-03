@@ -64,12 +64,12 @@ public:
 
     void buildTree(vector<glm::vec3> &indicesPerFaces) {
 
-        this->bBox = getBBox(indicesPerFaces);
-
         // This is a leaf node.
         if (indicesPerFaces.size() == 2 ) {
             return;
         }
+
+        this->bBox = getBBox(indicesPerFaces);
 
         int axis = this->bBox.longestAxis;
 

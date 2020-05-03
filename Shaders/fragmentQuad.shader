@@ -1,6 +1,7 @@
 #version 460 core
+/*
 #define MIN(A, B); ((A) < (B) ? (A) : (B));
-#define MAX(A, B); ((A) > (B) ? (A) : (B));
+#define MAX(A, B); ((A) > (B) ? (A) : (B));*/
 
 layout(std140, binding=2) buffer primitives{
     vec3 primitiveCoordinates[];
@@ -24,6 +25,8 @@ struct BvhNode{
     bool isLeaf;
     vec3 indices;
 };
+
+nodes [100];
 
 struct Light{
     vec3 Le, La;
@@ -84,88 +87,72 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     return hit;
 }
 
-
-// firstIntersect alternate accelarated by bvh tree
-Hit traverseBvhTree(Ray ray, BvhNode node){
-
-    // Ha már metszette a szülőt.
-    if (rayIntersectWithBox(ray, node)){
-        bool it1 = rayIntersectWithBox(node.childrenIndices[0]);
-        bool it2 = rayIntersectWithBox(node.childrenIndices[1]);
-
-        //Mindkét gyereket metszi.
-        if (it1.t>0 && it2.t>0) {
-            // Végijárom a bal gyereket
-            Hit hitFromLeftChild=traverseBvhTree(ray,node.childrenIndices[0]);
-
-            // Végigjárom a jobb gyereket
-            Hit hitFromRightChild=traverseBvhTree(ray,node.childrenIndices[1]);
-
-            // A közelebbi metszéssel térek vissza,
-            if(hitFromLeftChild.t>0 && hitFromLeftChild.t<hitFromRightChild.t){
-                return hitFromLeftChild;
-            }
-            else if(hitFromRightChild.t>0 && hitFromRightChild.t<hitFromLeftChild.t){
-                return hitFromRightChild;
-            }
-        }
-
-
-        //Ha a Left gyereket metszi.
-        if (it1.t>0){
-            if (node.childrenIndices[0].isLeaf){
-                return rayTriangleIntersect(ray, node.childrenIndices[0].indices.x, node.childrenIndices[0].indices.y, node.childrenIndices[0].indices.z);
-            }
-        }
-
-        // Ha a Right gyereket metszi.
-        if (it2.t>0){
-            if (node.childrenIndices[1].isLeaf){
-                return rayTriangleIntersect(ray, node.childrenIndices[1].indices.x, node.childrenIndices[1].indices.y, node.childrenIndices[1].indices.z);
-            }
-        }
-
-        // Ha egyik gyereket sem metszi, csak áthalad.
-        if(it1.t==-1 && it2.t==-1){
-
-        }
-
-    }
-    return null;
-}
-
-
-
-
 vec3 getCoordinatefromIndices(float index){
     return primitiveCoordinates[int(index)];
 }
 
-
-Hit firstIntersect(Ray ray){
+Hit firstIntersect(Ray ray, BvhNode node){
     Hit besthit;
     besthit.t=-1;
-    for (int i=0;i<indicesC.length();i++){
-        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
-        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
-        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
+    for (int i=0;i<node.indices.size();i++){
+        vec3 TrianglePointA=getCoordinatefromIndices(node.indices[i].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(node.indices[i].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(node.indices[i].z);
         Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
-        if (hit.t==-1){
-            continue;
-        }
+        if (hit.t==-1){ continue; }
 
         if (hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
             besthit=hit;
         }
-
     }
-
-    // if(hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
-    //   besthit=hit;
-    //}
-
     return besthit;
+}
+
+// Traverse one Node
+Hit traverseBvhNode(Ray ray, BvhNode node){
+    Hit resultHit; resultHit.t=-2;
+
+    // Ha már metszette a node-ot.
+    if (rayIntersectWithBox(ray, node)){
+        if (!node.isLeaf){
+            Hit it1 = rayIntersectWithBox(node.childrenIndices[0]);
+            Hit it2 = rayIntersectWithBox(node.childrenIndices[1]);
+
+            //Mindkét gyereket metszi.
+            if (it1.t>0 && it2.t>0) {
+                // Végijárom a bal gyereket
+                Hit hitFromLeftChild=traverseBvhNode(ray, node.childrenIndices[0]);
+
+                if (hitFromLeftChild.t>0 && hitFromLeftChild.t<it2.t){ return hitFromLeftChild; }
+
+                // Végigjárom a jobb gyereket
+                Hit hitFromRightChild=traverseBvhNode(ray, node.childrenIndices[1]);
+
+                // A közelebbi metszéssel térek vissza
+                if (hitFromLeftChild.t>0 && (hitFromLeftChild.t<hitFromRightChild.t || hitFromRightChild.t==-1)){ return hitFromLeftChild; }
+
+                else if (hitFromRightChild.t>0 && (hitFromRightChild.t<hitFromLeftChild.t ||  hitFromLeftChild.t==-1)){ return hitFromRightChild; }
+            }
+
+            //Ha a Left gyereket metszi
+            else if (it1.t>0){ resultHit=traverseBvhNode(); }
+
+            // Ha a Right gyereket metszi.
+            else if (it2.t>0){ resultHit=traverseBvhNode(); }
+
+            // Ha egyik gyereket sem metszi, csak áthalad mindkettőn.
+            else if (it1.t==-1 && it2.t==-1){ return resultHit; }
+        }
+        else { resultHit=firstIntersect(ray, node); }
+    }
+    return resultHit;
+}
+
+void traverseBvhTree(Ray ray){
+    for (int i;i<nodes.size();i++){
+        traverseBvhNode(ray, nodes[i]);
+    }
 }
 
 bool shadowIntersect(Ray ray){

@@ -57,7 +57,7 @@ public:
         }
     }
 
-    void fillAllPositionVertices() {
+    void fillAllPositionVertices()  {
 
         glm::vec4 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
@@ -93,13 +93,12 @@ public:
              cout << endl;
          }*/
 
-
-        ofstream myfile;
-        myfile.open ("../model/indicesperFaces.txt");
+        ofstream myfile2;
+        myfile2.open ("../model/indicesperFaces.txt");
         for(int i=0;i<indicesPerFaces.size();i++){
-            myfile<<indicesPerFaces.at(i).x <<" ";
-            myfile<<indicesPerFaces.at(i).y <<" ";
-            myfile<<indicesPerFaces.at(i).z << endl;
+            myfile2<<indicesPerFaces.at(i).x <<" ";
+            myfile2<<indicesPerFaces.at(i).y <<" ";
+            myfile2<<indicesPerFaces.at(i).z << endl;
         }
 
 
@@ -199,11 +198,11 @@ private:
             vertex.Position = vector;
 
             // Normals
-            vector.x = mesh->mNormals[i].x;
+           /* vector.x = mesh->mNormals[i].x;
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
             vertex.Normal = vector;
-
+*/
             // Texture Coordinates
             if (mesh->mTextureCoords[0]) // Does the mesh contain texture coordinates?
             {
