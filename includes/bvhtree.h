@@ -19,8 +19,9 @@ struct BBox {
     glm::vec3 min;
     glm::vec3 max;
     glm::vec3 center;
-    int longestAxis = 0;
+    int longestAxis;
     vector<glm::vec3> faceCenters;
+
 
     BBox() {}
 
@@ -40,13 +41,19 @@ struct BBox {
     }
 };
 
+int numberOf = 1;
+int numberOfLeaves = 0;
+
 class BvhNode {
 
 public:
-    vector<glm::vec3> primitiveCoordinates;
-
     BBox bBox;
     vector<BvhNode> children;
+    bool isLeaf;
+    int numberOfNodes;
+
+
+    vector<glm::vec3> primitiveCoordinates;
 
     BvhNode() {}
 
@@ -54,23 +61,19 @@ public:
 
     BvhNode(vector<glm::vec3> &primitiveCoordinates) {
         this->primitiveCoordinates = primitiveCoordinates;
-
     }
 
-    glm::vec3 calculateCenterofTriangle(glm::vec3 vec, glm::vec3 vec1, glm::vec3 vec2) {
-        return glm::vec3(float((vec.x + vec1.x + vec2.x) / 3), float((vec.y + vec1.y + vec2.y) / 3),
-                         float((vec.z + vec1.z + vec2.z) / 3));
-    }
 
     void buildTree(vector<glm::vec3> &indicesPerFaces) {
 
         // This is a leaf node.
-        if (indicesPerFaces.size() == 2 ) {
+        if (indicesPerFaces.size() == 2) {
+            this->isLeaf = true;
             return;
         }
 
         this->bBox = getBBox(indicesPerFaces);
-
+        this->isLeaf = false;
         int axis = this->bBox.longestAxis;
 
         vector<glm::vec3> leftTree;
@@ -87,7 +90,7 @@ public:
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
                     } else if (bBox.center.x == this->bBox.faceCenters.at(i).x) {
-                        cout<<"Gáz van"<<endl;
+                        cout << "Gáz van" << endl;
                     }
                     break;
                 case 1:
@@ -99,7 +102,7 @@ public:
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
                     } else if (bBox.center.y == this->bBox.faceCenters.at(i).y) {
-                        cout<<"Gáz van"<<endl;
+                        cout << "Gáz van" << endl;
                     }
                     break;
                 case 2:
@@ -109,7 +112,7 @@ public:
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
                     } else if (bBox.center.z == this->bBox.faceCenters.at(i).z) {
-                        cout<<"Gáz van"<<endl;
+                        cout << "Gáz van" << endl;
                         break;
                     }
             };
@@ -118,10 +121,11 @@ public:
         cout << "Left: " << leftTree.size() << endl;
         cout << "Right: " << rightTree.size() << endl;
 
-
         BvhNode left = BvhNode(primitiveCoordinates);
         BvhNode right = BvhNode(primitiveCoordinates);
+
         left.buildTree(leftTree);
+        numberOfNodes++;
         right.buildTree(rightTree);
 
         children.push_back(left);
@@ -129,6 +133,13 @@ public:
 
         return;
     }
+
+private:
+    glm::vec3 calculateCenterofTriangle(glm::vec3 vec, glm::vec3 vec1, glm::vec3 vec2) {
+        return glm::vec3(float((vec.x + vec1.x + vec2.x) / 3), float((vec.y + vec1.y + vec2.y) / 3),
+                         float((vec.z + vec1.z + vec2.z) / 3));
+    }
+
 
     glm::vec3 getCoordinatefromIndices(float index) {
         return primitiveCoordinates.at(index);
@@ -183,6 +194,38 @@ public:
 
         return BBox(minp, maxp, center, faceCenters);
     }
+
+    int getNumberOfNodes() {
+        for (int i = 0; i < this->children.size(); i++) {
+            numberOf++;
+            children.at(i).getNumberOfNodes();
+        }
+        return numberOf;
+    }
+
+    int getNumberOfLeaves() {
+        for (int i = 0; i < this->children.size(); i++) {
+            if (children.at(i).isLeaf) {
+                numberOfLeaves++;
+            }
+            children.at(i).getNumberOfLeaves();
+        }
+        return numberOfLeaves;
+    }
+
+public:
+    string InfoAboutNode() {
+        if (this->isLeaf) {
+            cout << "Number Of leaves: " << 1 << endl;
+        } else {
+            cout << "Number Of leaves: " << getNumberOfLeaves() << endl;
+        }
+        cout << "Number Of nodes: " << getNumberOfNodes() << endl;
+    }
 };
+
+void putBvhTreeIntoArray(BvhNode root) {
+
+}
 
 #endif //RAYTRACERBOROS_BVHTREE_H

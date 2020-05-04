@@ -113,13 +113,15 @@ static bool GLCheckError() {
                 std::cout << "GL_OUT_OF_MEMORY : There is not enough memory left to execute the command.";
                 break;
             case GL_STACK_UNDERFLOW :
-                std::cout<< "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
+                std::cout
+                        << "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
                 break;
             case GL_STACK_OVERFLOW :
-                std::cout<< "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
+                std::cout
+                        << "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
                 break;
             default :
-                std::cout <<"Unrecognized error" << error;
+                std::cout << "Unrecognized error" << error;
         }
         std::cout << std::endl;
         return false;
@@ -202,21 +204,25 @@ void sendVerticesIndices() {
 
 void buildKdTree() {
 
-    cout<<"allPositionVertices size: "<<mymodel.allPositionVertices.size()<<endl;
+    cout << "allPositionVertices size: " << mymodel.allPositionVertices.size() << endl;
     vector<glm::vec3> primitiveCoordinatesAdapt;
-    for(int i=0;i<mymodel.allPositionVertices.size();i++){
-        primitiveCoordinatesAdapt.push_back(glm::vec3(mymodel.allPositionVertices.at(i).x,mymodel.allPositionVertices.at(i).y,mymodel.allPositionVertices.at(i).z));
+    for (int i = 0; i < mymodel.allPositionVertices.size(); i++) {
+        primitiveCoordinatesAdapt.push_back(
+                glm::vec3(mymodel.allPositionVertices.at(i).x, mymodel.allPositionVertices.at(i).y,
+                          mymodel.allPositionVertices.at(i).z));
     }
 
-    cout<<"IndicesPerFaces size: "<<mymodel.indicesPerFaces.size()<<endl;
+    cout << "IndicesPerFaces size: " << mymodel.indicesPerFaces.size() << endl;
     vector<glm::vec3> AdaptIndicesPerFaces;
-    for(int i=0;i<mymodel.indicesPerFaces.size();i++){
-        AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x,mymodel.indicesPerFaces.at(i).y,mymodel.indicesPerFaces.at(i).z));
+    for (int i = 0; i < mymodel.indicesPerFaces.size(); i++) {
+        AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x, mymodel.indicesPerFaces.at(i).y,
+                                                 mymodel.indicesPerFaces.at(i).z));
     }
 
     BvhNode bvhNode = BvhNode(primitiveCoordinatesAdapt);
-    bvhNode.buildTree(AdaptIndicesPerFaces);
+    bvhNode.buildTree(AdaptIndicesPerFaces, 1);
 
+    cout << bvhNode.InfoAboutNode() << endl;
 
 }
 

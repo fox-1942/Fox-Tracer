@@ -217,8 +217,6 @@ private:
             }
 
             vertices.push_back(vertex);
-
-
         }
 
         // Now walk through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
