@@ -24,9 +24,9 @@ struct BvhNode{
 // If node is a leaf
     bool isLeaf;
     vec3 indices;
-};
+} ;
 
-nodes [100];
+BvhNode nodes[100];
 
 struct Light{
     vec3 Le, La;
@@ -91,15 +91,16 @@ vec3 getCoordinatefromIndices(float index){
     return primitiveCoordinates[int(index)];
 }
 
+
 Hit firstIntersect(Ray ray, BvhNode node){
     Hit besthit;
     besthit.t=-1;
-    for (int i=0;i<node.indices.size();i++){
-        vec3 TrianglePointA=getCoordinatefromIndices(node.indices[i].x);
-        vec3 TrianglePointB=getCoordinatefromIndices(node.indices[i].y);
-        vec3 TrianglePointC=getCoordinatefromIndices(node.indices[i].z);
+    for (int j=0;j<length(node.indices);j++){
+      /*  vec3 TrianglePointA=getCoordinatefromIndices(node.indices[j].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(node.indices[j].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(node.indices[j].z);
         Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
-
+*/
         if (hit.t==-1){ continue; }
 
         if (hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){

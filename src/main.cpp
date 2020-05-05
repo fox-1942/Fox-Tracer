@@ -32,6 +32,8 @@ void sendVerticesIndices();
 
 void buildKdTree();
 
+void putNodeIntoArray();
+
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
@@ -202,6 +204,24 @@ void sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
+vector<BvhNode> nodes;
+
+void putNodeIntoArray(BvhNode node) {
+    nodes.insert(nodes.begin(), node.children.at(0));
+    nodes.insert(nodes.begin() + 1, node.children.at(1));
+
+}
+
+int AddToArray(BvhNode node, BvhNode arr[], int i) {
+    arr[i] = node;
+    i++;
+
+    AddToArray(node.children.at(0), arr, i);
+    AddToArray(node.children.at(1), arr, i);
+
+    return i;
+}
+
 void buildKdTree() {
 
     cout << "allPositionVertices size: " << mymodel.allPositionVertices.size() << endl;
@@ -220,11 +240,13 @@ void buildKdTree() {
     }
 
     BvhNode bvhNode = BvhNode(primitiveCoordinatesAdapt);
-    bvhNode.buildTree(AdaptIndicesPerFaces, 1);
+    bvhNode.buildTree(AdaptIndicesPerFaces, 0);
 
-    cout << bvhNode.InfoAboutNode() << endl;
+    bvhNode.InfoAboutNode();
+
 
 }
+
 
 int init() {
 

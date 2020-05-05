@@ -50,8 +50,7 @@ public:
     BBox bBox;
     vector<BvhNode> children;
     bool isLeaf;
-    int numberOfNodes;
-
+    int depthOfNode;
 
     vector<glm::vec3> primitiveCoordinates;
 
@@ -63,15 +62,16 @@ public:
         this->primitiveCoordinates = primitiveCoordinates;
     }
 
-
-    void buildTree(vector<glm::vec3> &indicesPerFaces) {
+    void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
 
         // This is a leaf node.
         if (indicesPerFaces.size() == 2) {
+            this->depthOfNode = depth;
             this->isLeaf = true;
             return;
         }
 
+        this->depthOfNode = depth;
         this->bBox = getBBox(indicesPerFaces);
         this->isLeaf = false;
         int axis = this->bBox.longestAxis;
@@ -124,9 +124,8 @@ public:
         BvhNode left = BvhNode(primitiveCoordinates);
         BvhNode right = BvhNode(primitiveCoordinates);
 
-        left.buildTree(leftTree);
-        numberOfNodes++;
-        right.buildTree(rightTree);
+        left.buildTree(leftTree, this->depthOfNode + 1);
+        right.buildTree(rightTree, this->depthOfNode + 1);
 
         children.push_back(left);
         children.push_back(right);
@@ -213,14 +212,28 @@ private:
         return numberOfLeaves;
     }
 
+
+    int getDeepestLevel(int &deepest) {
+        for (int i = 0; i < this->children.size(); i++) {
+            if (this->children.at(i).depthOfNode > deepest) {
+                deepest = this->children.at(i).depthOfNode;
+            }
+            children.at(i).getDeepestLevel(deepest);
+        }
+        return deepest;
+    }
+
 public:
-    string InfoAboutNode() {
+    void InfoAboutNode() {
         if (this->isLeaf) {
             cout << "Number Of leaves: " << 1 << endl;
         } else {
             cout << "Number Of leaves: " << getNumberOfLeaves() << endl;
         }
         cout << "Number Of nodes: " << getNumberOfNodes() << endl;
+
+        int deepest = -1;
+        cout << getDeepestLevel(deepest) << endl;
     }
 };
 
