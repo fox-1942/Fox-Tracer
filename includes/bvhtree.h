@@ -50,6 +50,8 @@ public:
     BBox bBox;
     vector<BvhNode> children;
     bool isLeaf;
+    bool createdEmpty = false;
+
     int depthOfNode;
 
     vector<glm::vec3> primitiveCoordinates;
@@ -65,7 +67,7 @@ public:
     void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
 
         // This is a leaf node.
-        if (indicesPerFaces.size() == 2) {
+        if (indicesPerFaces.size() <=2) {
             this->depthOfNode = depth;
             this->isLeaf = true;
             return;
@@ -212,19 +214,26 @@ private:
         return numberOfLeaves;
     }
 
-
-    int getDeepestLevel(int &deepest) {
+    int findDeep(int &deepest) {
         for (int i = 0; i < this->children.size(); i++) {
             if (this->children.at(i).depthOfNode > deepest) {
                 deepest = this->children.at(i).depthOfNode;
             }
-            children.at(i).getDeepestLevel(deepest);
+            children.at(i).findDeep(deepest);
         }
         return deepest;
     }
 
+    int getDeepestLevel() {
+        int deepest = -1;
+        return findDeep(deepest);
+    }
+
 public:
     void InfoAboutNode() {
+
+        cout << "Info about the tree:" << endl;
+        cout << "------------------- " << endl;
         if (this->isLeaf) {
             cout << "Number Of leaves: " << 1 << endl;
         } else {
@@ -233,7 +242,34 @@ public:
         cout << "Number Of nodes: " << getNumberOfNodes() << endl;
 
         int deepest = -1;
-        cout << getDeepestLevel(deepest) << endl;
+        cout << "Deepest level of the tree: " << getDeepestLevel() << endl;
+    }
+
+    void treeComplete(int deepestLev) {
+        if (this->children.empty() && this->depthOfNode != deepestLev) {
+            BvhNode emptyNode;
+            emptyNode.createdEmpty = true;
+            emptyNode.isLeaf=true;
+            emptyNode.depthOfNode = this->depthOfNode + 1;
+            this->children.push_back(emptyNode);
+            this->children.push_back(emptyNode);
+        }
+
+        /*if (this->children.size()==1 && this->depthOfNode != deepestLev) {
+            BvhNode emptyNode;
+            emptyNode.createdEmpty = true;
+            emptyNode.depthOfNode = this->depthOfNode + 1;
+            this->children.push_back(emptyNode);
+        }*/
+
+        for (int i = 0; i < this->children.size(); i++) {
+            children.at(i).treeComplete(deepestLev);
+        }
+    }
+
+    void makeBvHTreeComplete() {
+        int deep = this->getDeepestLevel();
+        this->treeComplete(deep);
     }
 };
 

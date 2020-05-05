@@ -213,13 +213,7 @@ void putNodeIntoArray(BvhNode node) {
 }
 
 int AddToArray(BvhNode node, BvhNode arr[], int i) {
-    arr[i] = node;
-    i++;
 
-    AddToArray(node.children.at(0), arr, i);
-    AddToArray(node.children.at(1), arr, i);
-
-    return i;
 }
 
 void buildKdTree() {
@@ -241,10 +235,9 @@ void buildKdTree() {
 
     BvhNode bvhNode = BvhNode(primitiveCoordinatesAdapt);
     bvhNode.buildTree(AdaptIndicesPerFaces, 0);
-
     bvhNode.InfoAboutNode();
-
-
+    bvhNode.makeBvHTreeComplete();
+    cout<<'valami'<<endl;
 }
 
 
