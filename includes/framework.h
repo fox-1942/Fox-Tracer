@@ -20,3 +20,10 @@ inline glm::vec3 normalize(const glm::vec3& v) { return v * (1 / length(v)); }
 inline glm::vec3 cross(const glm::vec3& v1, const glm::vec3& v2) {
     return glm::vec3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
+
+template<typename T>
+void pop_front(std::vector<T>& vec)
+{
+    assert(!vec.empty());
+    vec.erase(vec.begin());
+}

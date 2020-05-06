@@ -30,9 +30,9 @@ void initComputeProgram();
 
 void sendVerticesIndices();
 
-void buildKdTree();
+void buildBvhTree();
 
-void putNodeIntoArray();
+BvhNode * putNodeIntoArray();
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -203,23 +203,39 @@ void sendVerticesIndices() {
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, indices, 0, mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
+BvhNode bvhNode;
 
-vector<BvhNode> nodes;
+BvhNode* putNodeIntoArray() {
 
-void putNodeIntoArray(BvhNode node) {
-    nodes.insert(nodes.begin(), node.children.at(0));
-    nodes.insert(nodes.begin() + 1, node.children.at(1));
+    int size=bvhNode.getNumberOfNodes();
+    BvhNode nodesArray[size];
 
+    int current_index = 0;
+    vector<BvhNode> tempNodes;
+    tempNodes.push_back(bvhNode);
+    BvhNode* current_node;
+
+    while (!tempNodes.empty()) {
+        current_node = &tempNodes.at(0);
+
+        tempNodes.erase(tempNodes.begin());
+        nodesArray[current_index] = current_node;
+
+        tempNodes.push_back(current_node->children.at(0));
+        tempNodes.push_back(current_node->children.at(1));
+
+        current_index++;
+    }
+
+    return nodesArray;
 }
+vector<glm::vec3> AdaptIndicesPerFaces;
+vector<glm::vec3> primitiveCoordinatesAdapt;
 
-int AddToArray(BvhNode node, BvhNode arr[], int i) {
-
-}
-
-void buildKdTree() {
+void buildBvhTree() {
 
     cout << "allPositionVertices size: " << mymodel.allPositionVertices.size() << endl;
-    vector<glm::vec3> primitiveCoordinatesAdapt;
+
     for (int i = 0; i < mymodel.allPositionVertices.size(); i++) {
         primitiveCoordinatesAdapt.push_back(
                 glm::vec3(mymodel.allPositionVertices.at(i).x, mymodel.allPositionVertices.at(i).y,
@@ -227,17 +243,20 @@ void buildKdTree() {
     }
 
     cout << "IndicesPerFaces size: " << mymodel.indicesPerFaces.size() << endl;
-    vector<glm::vec3> AdaptIndicesPerFaces;
+
     for (int i = 0; i < mymodel.indicesPerFaces.size(); i++) {
         AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x, mymodel.indicesPerFaces.at(i).y,
                                                  mymodel.indicesPerFaces.at(i).z));
     }
 
-    BvhNode bvhNode = BvhNode(primitiveCoordinatesAdapt);
+    bvhNode = BvhNode(primitiveCoordinatesAdapt);
     bvhNode.buildTree(AdaptIndicesPerFaces, 0);
-    bvhNode.InfoAboutNode();
+
     bvhNode.makeBvHTreeComplete();
-    cout<<'valami'<<endl;
+    bvhNode.InfoAboutNode();
+
+    putNodeIntoArray();
+    cout<<"Done"<<endl;
 }
 
 
@@ -274,21 +293,17 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-
     mymodel = Model("../model/model.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
     sendVerticesIndices();
-    buildKdTree();
+    buildBvhTree();
 
     return 0;
 }
 
-
 void loop() {
-
-
     while (!glfwWindowShouldClose(window)) {
 
         float currentFrame = glfwGetTime();
@@ -346,7 +361,6 @@ int main() {
     return 0;
 
 }
-
 
 void setCamera(float param) {
 

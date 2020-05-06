@@ -22,7 +22,6 @@ struct BBox {
     int longestAxis;
     vector<glm::vec3> faceCenters;
 
-
     BBox() {}
 
     BBox(glm::vec3 min, glm::vec3 max, glm::vec3 center, vector<glm::vec3> faceCenters) {
@@ -41,6 +40,7 @@ struct BBox {
     }
 };
 
+int indDef = 0;
 int numberOf = 1;
 int numberOfLeaves = 0;
 
@@ -48,34 +48,40 @@ class BvhNode {
 
 public:
     BBox bBox;
+    int depthOfNode;
     vector<BvhNode> children;
+    int order;
     bool isLeaf;
     bool createdEmpty = false;
 
-    int depthOfNode;
 
     vector<glm::vec3> primitiveCoordinates;
 
     BvhNode() {}
 
-    ~BvhNode() {}
+    BvhNode(BvhNode *pNode) {}
 
     BvhNode(vector<glm::vec3> &primitiveCoordinates) {
         this->primitiveCoordinates = primitiveCoordinates;
     }
 
-    void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
+    void buildTree(vector<glm::vec3>& indicesPerFaces, int depth) {
 
         // This is a leaf node.
-        if (indicesPerFaces.size() <=2) {
+        if (indicesPerFaces.size() <= 2) {
             this->depthOfNode = depth;
             this->isLeaf = true;
+            this->order = indDef;
+            indDef++;
             return;
         }
 
         this->depthOfNode = depth;
         this->bBox = getBBox(indicesPerFaces);
         this->isLeaf = false;
+        this->order = indDef;
+        indDef++;
+
         int axis = this->bBox.longestAxis;
 
         vector<glm::vec3> leftTree;
@@ -134,6 +140,7 @@ public:
 
         return;
     }
+
 
 private:
     glm::vec3 calculateCenterofTriangle(glm::vec3 vec, glm::vec3 vec1, glm::vec3 vec2) {
@@ -196,13 +203,6 @@ private:
         return BBox(minp, maxp, center, faceCenters);
     }
 
-    int getNumberOfNodes() {
-        for (int i = 0; i < this->children.size(); i++) {
-            numberOf++;
-            children.at(i).getNumberOfNodes();
-        }
-        return numberOf;
-    }
 
     int getNumberOfLeaves() {
         for (int i = 0; i < this->children.size(); i++) {
@@ -229,27 +229,13 @@ private:
         return findDeep(deepest);
     }
 
-public:
-    void InfoAboutNode() {
-
-        cout << "Info about the tree:" << endl;
-        cout << "------------------- " << endl;
-        if (this->isLeaf) {
-            cout << "Number Of leaves: " << 1 << endl;
-        } else {
-            cout << "Number Of leaves: " << getNumberOfLeaves() << endl;
-        }
-        cout << "Number Of nodes: " << getNumberOfNodes() << endl;
-
-        int deepest = -1;
-        cout << "Deepest level of the tree: " << getDeepestLevel() << endl;
-    }
-
     void treeComplete(int deepestLev) {
         if (this->children.empty() && this->depthOfNode != deepestLev) {
+            //this->isLeaf=false; Commented, because semantically 'this' would remain a leaf;
+
             BvhNode emptyNode;
             emptyNode.createdEmpty = true;
-            emptyNode.isLeaf=true;
+            emptyNode.isLeaf = true;
             emptyNode.depthOfNode = this->depthOfNode + 1;
             this->children.push_back(emptyNode);
             this->children.push_back(emptyNode);
@@ -267,14 +253,45 @@ public:
         }
     }
 
+    int countNodes() {
+        for (int i = 0; i < this->children.size(); i++) {
+            numberOf++;
+            children.at(i).countNodes();
+        }
+        return numberOf;
+    }
+
+public:
+
+    int getNumberOfNodes() {
+        numberOf = 1;
+        return countNodes();
+    }
+
+    void InfoAboutNode() {
+        numberOfLeaves = 0;
+
+        cout << "Info about the tree:" << endl;
+        cout << "------------------- " << endl;
+        if (this->isLeaf) {
+            cout << "Number Of leaves: " << 1 << endl;
+        } else {
+            cout << "Number Of leaves: " << getNumberOfLeaves() << endl;
+        }
+        cout << "Number Of nodes: " << getNumberOfNodes() << endl;
+
+        cout << "Deepest level of the tree: " << getDeepestLevel() << "\n" << endl;
+    }
+
     void makeBvHTreeComplete() {
         int deep = this->getDeepestLevel();
         this->treeComplete(deep);
     }
+
+    void putBvhTreeIntoArray(BvhNode root) {
+
+    }
 };
 
-void putBvhTreeIntoArray(BvhNode root) {
-
-}
 
 #endif //RAYTRACERBOROS_BVHTREE_H
