@@ -61,7 +61,7 @@ Shader shaderVertex;
 Shader shaderFragment;
 
 Model mymodel;
-
+BvhNode bvhNode;
 GLFWwindow *window;
 
 float fov = 45;
@@ -205,8 +205,6 @@ void sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-BvhNode bvhNode;
-
 vector<BvhNode> putNodeIntoArray() {
     vector<BvhNode> result;
     result.reserve(bvhNode.getNumberOfNodes());
@@ -220,7 +218,8 @@ vector<BvhNode> putNodeIntoArray() {
         queue.pop_front();
 
         result.push_back(*curr);
-        result.back().children.clear();
+        BvhNode* res=&result.back();
+        res->children.clear();
 
         if (!curr->children.empty()) {
             queue.push_back(curr->children.at(0));

@@ -54,6 +54,7 @@ public:
     bool isLeaf;
     bool createdEmpty = false;
     vector<glm::vec3> primitiveCoordinates;
+    vector<glm::vec3> indices;
 
     BvhNode() {}
 
@@ -68,9 +69,11 @@ public:
         // This is a leaf node.
         if (indicesPerFaces.size() <= 2) {
             this->bBox = BBox();
+            this->indices = indicesPerFaces;
             this->depthOfNode = depth;
             this->isLeaf = true;
             this->order = indDef;
+            this->createdEmpty = false;
             indDef++;
             return;
         }
