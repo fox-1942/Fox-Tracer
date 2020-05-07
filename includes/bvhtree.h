@@ -49,26 +49,28 @@ class BvhNode {
 public:
     BBox bBox;
     int depthOfNode;
-    vector<BvhNode> children;
+    vector<BvhNode*> children;
     int order;
     bool isLeaf;
     bool createdEmpty = false;
+    int test=42;
 
 
     vector<glm::vec3> primitiveCoordinates;
 
     BvhNode() {}
 
-    BvhNode(BvhNode *pNode) {}
+    ~BvhNode() {}
 
     BvhNode(vector<glm::vec3> &primitiveCoordinates) {
         this->primitiveCoordinates = primitiveCoordinates;
     }
 
-    void buildTree(vector<glm::vec3>& indicesPerFaces, int depth) {
+    void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
 
         // This is a leaf node.
         if (indicesPerFaces.size() <= 2) {
+            this->bBox = BBox();
             this->depthOfNode = depth;
             this->isLeaf = true;
             this->order = indDef;
@@ -129,11 +131,11 @@ public:
         cout << "Left: " << leftTree.size() << endl;
         cout << "Right: " << rightTree.size() << endl;
 
-        BvhNode left = BvhNode(primitiveCoordinates);
-        BvhNode right = BvhNode(primitiveCoordinates);
+        BvhNode *left = new BvhNode(primitiveCoordinates);
+        BvhNode *right = new BvhNode(primitiveCoordinates);
 
-        left.buildTree(leftTree, this->depthOfNode + 1);
-        right.buildTree(rightTree, this->depthOfNode + 1);
+        left->buildTree(leftTree, this->depthOfNode + 1);
+        right->buildTree(rightTree, this->depthOfNode + 1);
 
         children.push_back(left);
         children.push_back(right);
@@ -206,20 +208,20 @@ private:
 
     int getNumberOfLeaves() {
         for (int i = 0; i < this->children.size(); i++) {
-            if (children.at(i).isLeaf) {
+            if (children.at(i)->isLeaf) {
                 numberOfLeaves++;
             }
-            children.at(i).getNumberOfLeaves();
+            children.at(i)->getNumberOfLeaves();
         }
         return numberOfLeaves;
     }
 
     int findDeep(int &deepest) {
         for (int i = 0; i < this->children.size(); i++) {
-            if (this->children.at(i).depthOfNode > deepest) {
-                deepest = this->children.at(i).depthOfNode;
+            if (this->children.at(i)->depthOfNode > deepest) {
+                deepest = this->children.at(i)->depthOfNode;
             }
-            children.at(i).findDeep(deepest);
+            children.at(i)->findDeep(deepest);
         }
         return deepest;
     }
@@ -231,14 +233,16 @@ private:
 
     void treeComplete(int deepestLev) {
         if (this->children.empty() && this->depthOfNode != deepestLev) {
-            //this->isLeaf=false; Commented, because semantically 'this' would remain a leaf;
+            this->isLeaf = false; // Commented, because semantically 'this' would remain a leaf;
 
             BvhNode emptyNode;
+            emptyNode.bBox = BBox();
             emptyNode.createdEmpty = true;
             emptyNode.isLeaf = true;
+            emptyNode.order = -1;
             emptyNode.depthOfNode = this->depthOfNode + 1;
-            this->children.push_back(emptyNode);
-            this->children.push_back(emptyNode);
+            this->children.push_back(&emptyNode);
+            this->children.push_back(&emptyNode);
         }
 
         /*if (this->children.size()==1 && this->depthOfNode != deepestLev) {
@@ -249,14 +253,14 @@ private:
         }*/
 
         for (int i = 0; i < this->children.size(); i++) {
-            children.at(i).treeComplete(deepestLev);
+            children.at(i)->treeComplete(deepestLev);
         }
     }
 
     int countNodes() {
         for (int i = 0; i < this->children.size(); i++) {
             numberOf++;
-            children.at(i).countNodes();
+            children.at(i)->countNodes();
         }
         return numberOf;
     }
@@ -287,11 +291,9 @@ public:
         int deep = this->getDeepestLevel();
         this->treeComplete(deep);
     }
-
-    void putBvhTreeIntoArray(BvhNode root) {
-
-    }
 };
+
+
 
 
 #endif //RAYTRACERBOROS_BVHTREE_H

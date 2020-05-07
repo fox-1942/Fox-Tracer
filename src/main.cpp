@@ -6,6 +6,7 @@
 #include "../Vendor/glm/gtc/type_ptr.hpp"
 
 #include <iostream>
+#include <deque>
 #include "ShaderProgram.h"
 #include "../includes/camera.h"
 #include "../includes/model.h"
@@ -32,7 +33,7 @@ void sendVerticesIndices();
 
 void buildBvhTree();
 
-BvhNode * putNodeIntoArray();
+std::vector<BvhNode> putNodeIntoArray();
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -203,32 +204,63 @@ void sendVerticesIndices() {
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, indices, 0, mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
+
 BvhNode bvhNode;
 
-BvhNode* putNodeIntoArray() {
+vector<BvhNode> putNodeIntoArray() {
 
-    int size=bvhNode.getNumberOfNodes();
-    BvhNode nodesArray[size];
+    vector<BvhNode> result;
+    result.reserve(bvhNode.getNumberOfNodes());
 
-    int current_index = 0;
-    vector<BvhNode> tempNodes;
-    tempNodes.push_back(bvhNode);
-    BvhNode* current_node;
+    deque<const BvhNode *> queue;
+    queue.push_back(&bvhNode);
+    int ind=0;
 
-    while (!tempNodes.empty()) {
-        current_node = &tempNodes.at(0);
+    while (!queue.empty()) {
 
-        tempNodes.erase(tempNodes.begin());
-        nodesArray[current_index] = current_node;
+        const BvhNode *curr = queue.front();
+        queue.pop_front();
 
-        tempNodes.push_back(current_node->children.at(0));
-        tempNodes.push_back(current_node->children.at(1));
+        result.push_back(*curr);
 
-        current_index++;
+        if (!curr->children.empty()) {
+            queue.push_back(curr->children.at(0));
+            queue.push_back(curr->children.at(1));
+        }
+        ind++;
+    }
+    cout<<"valami"<<endl;
+    return result;
+
+/*
+    vector<FlatNode> result;
+    result.reserve(...);
+
+    deque<const TreeNode*> queue;
+    queue.push_back(&root);
+
+ ---------------------------------------------
+    while (!queue.empty()) {
+        const TreeNode* curr = queue.front();
+        queue.pop_front();
+
+        result.push_back(convertToFlatNode(*curr));
+
+        if (curr->left) {
+            queue.push_back(curr->left);
+        }
+        if (curr->right) {
+            queue.push_back(curr->right);
+        }
     }
 
-    return nodesArray;
+    return result;
+*/
+
+
+
 }
+
 vector<glm::vec3> AdaptIndicesPerFaces;
 vector<glm::vec3> primitiveCoordinatesAdapt;
 
@@ -252,11 +284,11 @@ void buildBvhTree() {
     bvhNode = BvhNode(primitiveCoordinatesAdapt);
     bvhNode.buildTree(AdaptIndicesPerFaces, 0);
 
-    bvhNode.makeBvHTreeComplete();
+    //bvhNode.makeBvHTreeComplete();
     bvhNode.InfoAboutNode();
 
     putNodeIntoArray();
-    cout<<"Done"<<endl;
+    cout << "Done" << endl;
 }
 
 
