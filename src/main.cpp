@@ -208,20 +208,19 @@ void sendVerticesIndices() {
 BvhNode bvhNode;
 
 vector<BvhNode> putNodeIntoArray() {
-
     vector<BvhNode> result;
     result.reserve(bvhNode.getNumberOfNodes());
 
     deque<const BvhNode *> queue;
     queue.push_back(&bvhNode);
-    int ind=0;
+    int ind = 0;
 
     while (!queue.empty()) {
-
         const BvhNode *curr = queue.front();
         queue.pop_front();
 
         result.push_back(*curr);
+        result.back().children.clear();
 
         if (!curr->children.empty()) {
             queue.push_back(curr->children.at(0));
@@ -229,36 +228,8 @@ vector<BvhNode> putNodeIntoArray() {
         }
         ind++;
     }
-    cout<<"valami"<<endl;
+    cout << "Flatenning the tree is done." << endl;
     return result;
-
-/*
-    vector<FlatNode> result;
-    result.reserve(...);
-
-    deque<const TreeNode*> queue;
-    queue.push_back(&root);
-
- ---------------------------------------------
-    while (!queue.empty()) {
-        const TreeNode* curr = queue.front();
-        queue.pop_front();
-
-        result.push_back(convertToFlatNode(*curr));
-
-        if (curr->left) {
-            queue.push_back(curr->left);
-        }
-        if (curr->right) {
-            queue.push_back(curr->right);
-        }
-    }
-
-    return result;
-*/
-
-
-
 }
 
 vector<glm::vec3> AdaptIndicesPerFaces;
@@ -284,7 +255,7 @@ void buildBvhTree() {
     bvhNode = BvhNode(primitiveCoordinatesAdapt);
     bvhNode.buildTree(AdaptIndicesPerFaces, 0);
 
-    //bvhNode.makeBvHTreeComplete();
+    bvhNode.makeBvHTreeComplete();
     bvhNode.InfoAboutNode();
 
     putNodeIntoArray();

@@ -49,13 +49,10 @@ class BvhNode {
 public:
     BBox bBox;
     int depthOfNode;
-    vector<BvhNode*> children;
+    vector<BvhNode *> children;
     int order;
     bool isLeaf;
     bool createdEmpty = false;
-    int test=42;
-
-
     vector<glm::vec3> primitiveCoordinates;
 
     BvhNode() {}
@@ -235,14 +232,15 @@ private:
         if (this->children.empty() && this->depthOfNode != deepestLev) {
             this->isLeaf = false; // Commented, because semantically 'this' would remain a leaf;
 
-            BvhNode emptyNode;
-            emptyNode.bBox = BBox();
-            emptyNode.createdEmpty = true;
-            emptyNode.isLeaf = true;
-            emptyNode.order = -1;
-            emptyNode.depthOfNode = this->depthOfNode + 1;
-            this->children.push_back(&emptyNode);
-            this->children.push_back(&emptyNode);
+            BvhNode *emptyNode = new BvhNode();
+            emptyNode->bBox = BBox();
+            emptyNode->createdEmpty = true;
+            emptyNode->isLeaf = true;
+            emptyNode->order = -1;
+            emptyNode->depthOfNode = this->depthOfNode + 1;
+
+            this->children.push_back(emptyNode);
+            this->children.push_back(emptyNode);
         }
 
         /*if (this->children.size()==1 && this->depthOfNode != deepestLev) {
@@ -292,8 +290,6 @@ public:
         this->treeComplete(deep);
     }
 };
-
-
 
 
 #endif //RAYTRACERBOROS_BVHTREE_H
