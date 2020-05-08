@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include "../Vendor/glm/vec3.hpp"
+#include <deque>
 
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
@@ -45,24 +46,22 @@ int numberOf = 1;
 int numberOfLeaves = 0;
 
 class BvhNode {
-
 public:
+    static const vector<glm::vec3>& primitiveCoordinates;
+
+private:
+
     BBox bBox;
     int depthOfNode;
     vector<BvhNode *> children;
     int order;
     bool isLeaf;
     bool createdEmpty = false;
-    vector<glm::vec3> primitiveCoordinates;
     vector<glm::vec3> indices;
 
+public:
     BvhNode() {}
-
     ~BvhNode() {}
-
-    BvhNode(vector<glm::vec3> &primitiveCoordinates) {
-        this->primitiveCoordinates = primitiveCoordinates;
-    }
 
     void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
 
@@ -131,8 +130,8 @@ public:
         cout << "Left: " << leftTree.size() << endl;
         cout << "Right: " << rightTree.size() << endl;
 
-        BvhNode *left = new BvhNode(primitiveCoordinates);
-        BvhNode *right = new BvhNode(primitiveCoordinates);
+        BvhNode *left = new BvhNode();
+        BvhNode *right = new BvhNode();
 
         left->buildTree(leftTree, this->depthOfNode + 1);
         right->buildTree(rightTree, this->depthOfNode + 1);
@@ -258,6 +257,11 @@ private:
         }
     }
 
+    void makeBvHTreeComplete() {
+        int deep = this->getDeepestLevel();
+        this->treeComplete(deep);
+    }
+
     int countNodes() {
         for (int i = 0; i < this->children.size(); i++) {
             numberOf++;
@@ -288,11 +292,64 @@ public:
         cout << "Deepest level of the tree: " << getDeepestLevel() << "\n" << endl;
     }
 
-    void makeBvHTreeComplete() {
-        int deep = this->getDeepestLevel();
-        this->treeComplete(deep);
+    vector<BvhNode> putNodeIntoArray() {
+        makeBvHTreeComplete();
+        vector<BvhNode> result;
+        result.reserve(this->getNumberOfNodes());
+
+        deque<const BvhNode *> queue;
+        queue.push_back(this);
+        int ind = 0;
+
+        while (!queue.empty()) {
+            const BvhNode *curr = queue.front();
+            queue.pop_front();
+
+            result.push_back(*curr);
+            BvhNode &res = result.back();
+            res.children.clear();
+
+
+            if (!curr->children.empty()) {
+                queue.push_back(curr->children.at(0));
+                queue.push_back(curr->children.at(1));
+            }
+            ind++;
+        }
+        cout << "Flatenning the tree is done." << endl;
+        return result;
     }
 };
 
+/*
+ *
+ *  vector<BvhNode> putNodeIntoArray() {
+        makeBvHTreeComplete();
+        vector<BvhNode> result;
+        result.reserve(this->getNumberOfNodes());
+
+        deque<const BvhNode *> queue;
+        queue.push_back(this);
+        int ind = 0;
+
+        BvhNode *p=new BvhNode[this->getNumberOfNodes()];
+
+        while (!queue.empty()) {
+            const BvhNode *curr = queue.front();
+            queue.pop_front();
+
+            result.push_back(*curr);
+            BvhNode *res = &result.back();
+            res->children.clear();
+
+            if (!curr->children.empty()) {
+                queue.push_back(curr->children.at(0));
+                queue.push_back(curr->children.at(1));
+            }
+            ind++;
+        }
+        cout << "Flatenning the tree is done." << endl;
+        return result;
+    }*/
 
 #endif //RAYTRACERBOROS_BVHTREE_H

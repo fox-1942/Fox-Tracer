@@ -1,19 +1,13 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
+#include "../includes/errorChecking.h"
 #include "../Vendor/glm/glm.hpp"
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
 #include "../Vendor/glm/gtc/type_ptr.hpp"
-
-#include <iostream>
-#include <deque>
-#include "ShaderProgram.h"
+#include "../includes/ShaderProgram.h"
 #include "../includes/camera.h"
 #include "../includes/model.h"
 #include "../includes/filesystem.h"
 #include "../includes/framework.h"
 #include "../includes/bvhtree.h"
-
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -25,15 +19,10 @@ void processInput(GLFWwindow *window);
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path);
 
-void createComputeProgram(const GLchar *CS1_Path, const GLchar *CS2_Path, const GLchar *CS3_Path);
-
-void initComputeProgram();
-
 void sendVerticesIndices();
 
 void buildBvhTree();
 
-std::vector<BvhNode> putNodeIntoArray();
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -56,10 +45,6 @@ ShaderProgram shaderQuadProgram;
 Shader shaderQuadVertex;
 Shader shaderQuadFragment;
 
-ShaderProgram shaderProgram;
-Shader shaderVertex;
-Shader shaderFragment;
-
 Model mymodel;
 BvhNode bvhNode;
 GLFWwindow *window;
@@ -72,6 +57,9 @@ glm::vec3 w = eye - lookat;
 float f = length(w);
 glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
+
+
+
 
 
 struct Light {
@@ -91,52 +79,11 @@ struct Light {
 Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f),
                      glm::vec3(0.5, 0.5, 0.5));
 
-static void GLClearError() {
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLCheckError() {
-    while (GLenum error = glGetError()) {
-
-        std::cout << "[OpenGL Error] ";
-        switch (error) {
-            case GL_INVALID_ENUM :
-                std::cout << "GL_INVALID_ENUM : An unacceptable value is specified for an enumerated argument.";
-                break;
-            case GL_INVALID_VALUE :
-                std::cout << "GL_INVALID_OPERATION : A numeric argument is out of range.";
-                break;
-            case GL_INVALID_OPERATION :
-                std::cout << "GL_INVALID_OPERATION : The specified operation is not allowed in the current state.";
-                break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION :
-                std::cout << "GL_INVALID_FRAMEBUFFER_OPERATION : The framebuffer object is not complete.";
-                break;
-            case GL_OUT_OF_MEMORY :
-                std::cout << "GL_OUT_OF_MEMORY : There is not enough memory left to execute the command.";
-                break;
-            case GL_STACK_UNDERFLOW :
-                std::cout
-                        << "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
-                break;
-            case GL_STACK_OVERFLOW :
-                std::cout
-                        << "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
-                break;
-            default :
-                std::cout << "Unrecognized error" << error;
-        }
-        std::cout << std::endl;
-        return false;
-    }
-    return true;
-}
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 
     shaderQuadVertex = Shader();
     shaderQuadFragment = Shader();
-
     shaderQuadVertex.loadShaderFromFile(VS_Path, GL_VERTEX_SHADER);
     shaderQuadFragment.loadShaderFromFile(FS_Path, GL_FRAGMENT_SHADER);
 
@@ -146,22 +93,6 @@ void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadProgram.addShaderToProgram(shaderQuadFragment);
 
     shaderQuadProgram.linkShaderProgram();
-}
-
-void create3DShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
-
-    shaderVertex = Shader();
-    shaderFragment = Shader();
-
-    shaderVertex.loadShaderFromFile(VS_Path, GL_VERTEX_SHADER);
-    shaderFragment.loadShaderFromFile(FS_Path, GL_FRAGMENT_SHADER);
-
-    shaderProgram.CreateShaderProgram();
-
-    shaderProgram.addShaderToProgram(shaderVertex);
-    shaderProgram.addShaderToProgram(shaderFragment);
-
-    shaderProgram.linkShaderProgram();
 }
 
 void renderQuad() {
@@ -205,34 +136,13 @@ void sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-vector<BvhNode> putNodeIntoArray() {
-    vector<BvhNode> result;
-    result.reserve(bvhNode.getNumberOfNodes());
-
-    deque<const BvhNode *> queue;
-    queue.push_back(&bvhNode);
-    int ind = 0;
-
-    while (!queue.empty()) {
-        const BvhNode *curr = queue.front();
-        queue.pop_front();
-
-        result.push_back(*curr);
-        BvhNode* res=&result.back();
-        res->children.clear();
-
-        if (!curr->children.empty()) {
-            queue.push_back(curr->children.at(0));
-            queue.push_back(curr->children.at(1));
-        }
-        ind++;
-    }
-    cout << "Flatenning the tree is done." << endl;
-    return result;
-}
-
 vector<glm::vec3> AdaptIndicesPerFaces;
 vector<glm::vec3> primitiveCoordinatesAdapt;
+
+// hidden variable for BvhNode::primitiveCoordinates
+static vector<glm::vec3> hiddenPrimitives;
+// Initialize BvhNode::primitiveCoordinates to reference the hidden variable
+const vector<glm::vec3>& BvhNode::primitiveCoordinates(hiddenPrimitives);
 
 void buildBvhTree() {
 
@@ -251,14 +161,11 @@ void buildBvhTree() {
                                                  mymodel.indicesPerFaces.at(i).z));
     }
 
-    bvhNode = BvhNode(primitiveCoordinatesAdapt);
+    hiddenPrimitives=primitiveCoordinatesAdapt;
+    bvhNode = BvhNode();
     bvhNode.buildTree(AdaptIndicesPerFaces, 0);
-
-    bvhNode.makeBvHTreeComplete();
+    bvhNode.putNodeIntoArray();
     bvhNode.InfoAboutNode();
-
-    putNodeIntoArray();
-    cout << "Done" << endl;
 }
 
 
@@ -301,6 +208,7 @@ int init() {
 
     sendVerticesIndices();
     buildBvhTree();
+
 
     return 0;
 }
@@ -371,15 +279,13 @@ void setCamera(float param) {
     float f = length(w);
     right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
     up = normalize(cross(w, right1)) * f * tanf(fov / 2);
-
-
 }
 
 void setCameraY(float param) {
 
     eye = glm::vec3(eye.x, eye.y + param, eye.z) + lookat;
     w = eye - lookat;
-    float f = length(w);
+    f = length(w);
     right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
     up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 

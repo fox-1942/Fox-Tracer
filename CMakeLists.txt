@@ -16,10 +16,10 @@ message(STATUS "Found GLEW in ${GLEW_INCLUDE_DIR}")
 link_directories(/usr/local/lib)
 add_executable(RayTracerBoros
         src/main.cpp
-        src/Shader.h
-        src/ShaderProgram.h
+        includes/Shader.h
+        includes/ShaderProgram.h
         includes/filesystem.h
         includes/root_directory.h
-        src/ShaderProgram.h includes/framework.h includes/bvhtree.h)
+        includes/ShaderProgram.h includes/framework.h includes/bvhtree.h includes/errorChecking.h)
 
 target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)
