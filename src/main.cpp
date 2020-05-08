@@ -58,7 +58,10 @@ float f = length(w);
 glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
-
+// hidden variable for BvhNode::primitiveCoordinates
+static vector<glm::vec3> hiddenPrimitives;
+// Initialize BvhNode::primitiveCoordinates to reference the hidden variable
+const vector<glm::vec3> &BvhNode::primitiveCoordinates(hiddenPrimitives);
 
 
 
@@ -123,7 +126,7 @@ void sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
     glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.allPositionVertices.size() * sizeof(glm::vec4),
                  glm::value_ptr(mymodel.allPositionVertices.front()), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, primitives, 0,
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, primitives, 0,
                       mymodel.allPositionVertices.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -132,17 +135,12 @@ void sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, indices);
     glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.indicesPerFaces.size() * sizeof(glm::vec4),
                  glm::value_ptr(mymodel.indicesPerFaces.front()), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, indices, 0, mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, indices, 0, mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 vector<glm::vec3> AdaptIndicesPerFaces;
 vector<glm::vec3> primitiveCoordinatesAdapt;
-
-// hidden variable for BvhNode::primitiveCoordinates
-static vector<glm::vec3> hiddenPrimitives;
-// Initialize BvhNode::primitiveCoordinates to reference the hidden variable
-const vector<glm::vec3>& BvhNode::primitiveCoordinates(hiddenPrimitives);
 
 void buildBvhTree() {
 
@@ -161,11 +159,22 @@ void buildBvhTree() {
                                                  mymodel.indicesPerFaces.at(i).z));
     }
 
-    hiddenPrimitives=primitiveCoordinatesAdapt;
+    hiddenPrimitives = primitiveCoordinatesAdapt;
     bvhNode = BvhNode();
     bvhNode.buildTree(AdaptIndicesPerFaces, 0);
-    bvhNode.putNodeIntoArray();
+    BvhNode::FlatBvhNode *nodesArray=bvhNode.putNodeIntoArray();
     bvhNode.InfoAboutNode();
+
+    cout<<"Ez azzz:"<<sizeof(BvhNode::FlatBvhNode)<<endl;
+
+/*
+    unsigned int nodesArraytoSendtoShader;
+    glGenBuffers(1, &nodesArraytoSendtoShader);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesArraytoSendtoShader);
+
+    glBufferData(GL_SHADER_STORAGE_BUFFER, 15 * sizeof(BvhNode::FlatBvhNode),  reinterpret_cast<const void *>(nodesArraytoSendtoShader), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0, 15 * sizeof(BvhNode::FlatBvhNode));
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);*/
 }
 
 
@@ -202,7 +211,10 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    mymodel = Model("../model/model.obj");
+    mymodel = Model("../model/model2.obj");
+
+    //mymodel = Model("../model/bunny.obj");
+
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
@@ -227,7 +239,6 @@ void loop() {
 
 
         glm::mat4 model = glm::mat4(1.0f);
-
 
         shaderQuadProgram.useProgram();
 

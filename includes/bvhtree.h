@@ -47,7 +47,7 @@ int numberOfLeaves = 0;
 
 class BvhNode {
 public:
-    static const vector<glm::vec3>& primitiveCoordinates;
+    static const vector<glm::vec3> &primitiveCoordinates;
 
 private:
 
@@ -61,6 +61,7 @@ private:
 
 public:
     BvhNode() {}
+
     ~BvhNode() {}
 
     void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
@@ -149,7 +150,6 @@ private:
                          float((vec.z + vec1.z + vec2.z) / 3));
     }
 
-
     glm::vec3 getCoordinatefromIndices(float index) {
         return primitiveCoordinates.at(index);
     }
@@ -232,7 +232,7 @@ private:
 
     void treeComplete(int deepestLev) {
         if (this->children.empty() && this->depthOfNode != deepestLev) {
-            this->isLeaf = false; // Commented, because semantically 'this' would remain a leaf;
+            this->isLeaf = true; // Commented, because semantically 'this' would remain a leaf;
 
             BvhNode *emptyNode = new BvhNode();
             emptyNode->bBox = BBox();
@@ -292,55 +292,48 @@ public:
         cout << "Deepest level of the tree: " << getDeepestLevel() << "\n" << endl;
     }
 
-    vector<BvhNode> putNodeIntoArray() {
-        makeBvHTreeComplete();
-        vector<BvhNode> result;
-        result.reserve(this->getNumberOfNodes());
 
-        deque<const BvhNode *> queue;
-        queue.push_back(this);
-        int ind = 0;
+    struct FlatBvhNode {
 
-        while (!queue.empty()) {
-            const BvhNode *curr = queue.front();
-            queue.pop_front();
+        glm::vec3 min;
+        glm::vec3 max;
+        int order;
+        bool isLeaf;
+        bool createdEmpty;
+        vector<glm::vec3> indices;
 
-            result.push_back(*curr);
-            BvhNode &res = result.back();
-            res.children.clear();
+        FlatBvhNode() { }
 
-
-            if (!curr->children.empty()) {
-                queue.push_back(curr->children.at(0));
-                queue.push_back(curr->children.at(1));
-            }
-            ind++;
+        FlatBvhNode(glm::vec3 min, glm::vec3 max, int order, bool isLeaf, bool createdEmpty, vector<glm::vec3> indices) {
+            this->min=min;
+            this->max=max;
+            this->order=order;
+            this->isLeaf=isLeaf;
+            this->createdEmpty=createdEmpty;
+            this->indices=indices;
         }
-        cout << "Flatenning the tree is done." << endl;
+    };
+
+    FlatBvhNode nodeConverter(const BvhNode node) {
+        FlatBvhNode result=FlatBvhNode( node.bBox.min, node.bBox.max, node.order, node.isLeaf, node.createdEmpty, node.indices);
         return result;
     }
-};
 
-/*
- *
- *  vector<BvhNode> putNodeIntoArray() {
+    FlatBvhNode *putNodeIntoArray() {
         makeBvHTreeComplete();
-        vector<BvhNode> result;
-        result.reserve(this->getNumberOfNodes());
 
         deque<const BvhNode *> queue;
         queue.push_back(this);
+
+        int size = this->getNumberOfNodes();
+        FlatBvhNode *nodesArray = new FlatBvhNode[size];
+
         int ind = 0;
-
-        BvhNode *p=new BvhNode[this->getNumberOfNodes()];
-
         while (!queue.empty()) {
             const BvhNode *curr = queue.front();
             queue.pop_front();
 
-            result.push_back(*curr);
-            BvhNode *res = &result.back();
-            res->children.clear();
+            *(nodesArray + ind) = nodeConverter(*curr);
 
             if (!curr->children.empty()) {
                 queue.push_back(curr->children.at(0));
@@ -349,7 +342,9 @@ public:
             ind++;
         }
         cout << "Flatenning the tree is done." << endl;
-        return result;
-    }*/
+
+        return nodesArray;
+    }
+};
 
 #endif //RAYTRACERBOROS_BVHTREE_H

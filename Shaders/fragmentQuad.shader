@@ -3,12 +3,25 @@
 #define MIN(A, B); ((A) < (B) ? (A) : (B));
 #define MAX(A, B); ((A) > (B) ? (A) : (B));*/
 
-layout(std140, binding=2) buffer primitives{
+layout(std140, binding=0) buffer primitives{
     vec3 primitiveCoordinates[];
 };
 
-layout(std140, binding=3) buffer indices{
+layout(std140, binding=1) buffer indices{
     vec3 indicesC[];
+};
+
+struct FlatBvhNode{
+    vec3 min;
+    vec3 max;
+    int order;
+    bool isLeaf;
+    bool createdEmpty;
+    vec3 indices[2];
+};
+
+layout(std140, binding=2) buffer nodes{
+    FlatBvhNode nodesArray[];
 };
 
 in       vec2       TexCoords;
@@ -17,22 +30,10 @@ in       vec3 p;
 uniform vec3 wEye;
 uniform  sampler2D  texture_diffuse1;
 
-struct BvhNode{
-    float min, max;
-    int childrenIndices[2];
-
-// If node is a leaf
-    bool isLeaf;
-    vec3 indices;
-} ;
-
-BvhNode nodes[100];
-
 struct Light{
     vec3 Le, La;
     vec3 direction;
     vec3 position;
-
 };
 
 uniform Light lights[];
@@ -91,16 +92,44 @@ vec3 getCoordinatefromIndices(float index){
     return primitiveCoordinates[int(index)];
 }
 
+Hit firstIntersect(Ray ray){
+    Hit besthit;
+    besthit.t=-1;
+    for (int i=0;i<indicesC.length();i++){
+        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
+        Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
+        if(hit.t==-1){
+            continue;
+        }
+
+        if (hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
+            besthit=hit;
+        }
+
+    }
+
+    // if(hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
+    //   besthit=hit;
+    //}
+
+    return besthit;
+}
+
+
+
+/*
 Hit firstIntersect(Ray ray, BvhNode node){
     Hit besthit;
     besthit.t=-1;
-    for (int j=0;j<length(node.indices);j++){
-      /*  vec3 TrianglePointA=getCoordinatefromIndices(node.indices[j].x);
+    for (int j=0;j<10;j++){
+        vec3 TrianglePointA=getCoordinatefromIndices(node.indices[j].x);
         vec3 TrianglePointB=getCoordinatefromIndices(node.indices[j].y);
         vec3 TrianglePointC=getCoordinatefromIndices(node.indices[j].z);
         Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
-*/
+
         if (hit.t==-1){ continue; }
 
         if (hit.t>0 && (besthit.t>hit.t|| besthit.t<0)){
@@ -108,13 +137,13 @@ Hit firstIntersect(Ray ray, BvhNode node){
         }
     }
     return besthit;
-}
-
+}*/
+/*
 // Traverse one Node
 Hit traverseBvhNode(Ray ray, BvhNode node){
     Hit resultHit; resultHit.t=-2;
 
-    // Ha már metszette a node-ot.
+    // Ha már metszette a ROOT node-ot.
     if (rayIntersectWithBox(ray, node)){
         if (!node.isLeaf){
             Hit it1 = rayIntersectWithBox(node.childrenIndices[0]);
@@ -155,7 +184,7 @@ void traverseBvhTree(Ray ray){
         traverseBvhNode(ray, nodes[i]);
     }
 }
-
+*/
 bool shadowIntersect(Ray ray){
     for (int i=0;i<indicesC.length();i++){
         vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
