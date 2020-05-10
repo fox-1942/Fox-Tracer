@@ -37,9 +37,9 @@ private:
     Material mat;
 
 public:
-    vector<glm::vec4> allPositionVertices;
-    vector<glm::vec4> indicesPerFaces;
-    vector<glm::vec4> materials;
+    vector<glm::vec3> allPositionVertices;
+    vector<glm::vec3> indicesPerFaces;
+    vector<glm::vec3> materials;
 
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
@@ -59,7 +59,7 @@ public:
 
     void fillAllPositionVertices()  {
 
-        glm::vec4 vectorTemp;
+        glm::vec3 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
 
             for (int j = 0;j < meshes.at(i).vertices.size(); j++) {
@@ -92,14 +92,14 @@ public:
              }
              cout << endl;
          }*/
-
+/*
         ofstream myfile2;
         myfile2.open ("../model/indicesperFaces.txt");
         for(int i=0;i<indicesPerFaces.size();i++){
             myfile2<<indicesPerFaces.at(i).x <<" ";
             myfile2<<indicesPerFaces.at(i).y <<" ";
             myfile2<<indicesPerFaces.at(i).z << endl;
-        }
+        }*/
 
 
 /*
@@ -224,7 +224,7 @@ private:
             aiFace face = mesh->mFaces[i];
             // Retrieve all indices of the face and store them in the indices vector
 
-            glm::vec4 vec3Face;
+            glm::vec3 vec3Face;
             vec3Face.x = face.mIndices[0];
             vec3Face.y = face.mIndices[1];
             vec3Face.z = face.mIndices[2];

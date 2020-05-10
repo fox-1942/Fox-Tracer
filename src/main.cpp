@@ -64,7 +64,6 @@ static vector<glm::vec3> hiddenPrimitives;
 const vector<glm::vec3> &BvhNode::primitiveCoordinates(hiddenPrimitives);
 
 
-
 struct Light {
     glm::vec3 Le;
     glm::vec3 La;
@@ -116,65 +115,81 @@ void renderQuad() {
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glBindVertexArray(0);
 }
+vector<glm::vec4> indicesPerFacesVec4;
+vector<glm::vec4> primitiveCoordVec4;
 
 void sendVerticesIndices() {
-
     mymodel.fillAllPositionVertices();
+
+    for (int i = 0; i < mymodel.allPositionVertices.size(); i++) {
+        primitiveCoordVec4.push_back(
+                glm::vec4(mymodel.allPositionVertices.at(i).x, mymodel.allPositionVertices.at(i).y,
+                          mymodel.allPositionVertices.at(i).z,1));
+    }
+
+    for (int i = 0; i < mymodel.indicesPerFaces.size(); i++) {
+        indicesPerFacesVec4.push_back(glm::vec4(mymodel.indicesPerFaces.at(i).x, mymodel.indicesPerFaces.at(i).y,
+                                                mymodel.indicesPerFaces.at(i).z, 1));
+    }
 
     unsigned int primitives;
     glGenBuffers(1, &primitives);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.allPositionVertices.size() * sizeof(glm::vec4),
-                 glm::value_ptr(mymodel.allPositionVertices.front()), GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, primitiveCoordVec4.size() * sizeof(glm::vec4),
+                 glm::value_ptr(primitiveCoordVec4.front()), GL_STATIC_DRAW);
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, primitives, 0,
-                      mymodel.allPositionVertices.size() * sizeof(glm::vec4));
+                      primitiveCoordVec4.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     unsigned int indices;
     glGenBuffers(1, &indices);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, indices);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.indicesPerFaces.size() * sizeof(glm::vec4),
-                 glm::value_ptr(mymodel.indicesPerFaces.front()), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, indices, 0, mymodel.indicesPerFaces.size() * sizeof(glm::vec4));
+    glBufferData(GL_SHADER_STORAGE_BUFFER, indicesPerFacesVec4.size() * sizeof(glm::vec4),
+                 glm::value_ptr(indicesPerFacesVec4.front()), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, indices, 0, indicesPerFacesVec4.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-vector<glm::vec3> AdaptIndicesPerFaces;
-vector<glm::vec3> primitiveCoordinatesAdapt;
 
 void buildBvhTree() {
 
-    cout << "allPositionVertices size: " << mymodel.allPositionVertices.size() << endl;
-
-    for (int i = 0; i < mymodel.allPositionVertices.size(); i++) {
-        primitiveCoordinatesAdapt.push_back(
-                glm::vec3(mymodel.allPositionVertices.at(i).x, mymodel.allPositionVertices.at(i).y,
-                          mymodel.allPositionVertices.at(i).z));
-    }
-
-    cout << "IndicesPerFaces size: " << mymodel.indicesPerFaces.size() << endl;
-
-    for (int i = 0; i < mymodel.indicesPerFaces.size(); i++) {
-        AdaptIndicesPerFaces.push_back(glm::vec3(mymodel.indicesPerFaces.at(i).x, mymodel.indicesPerFaces.at(i).y,
-                                                 mymodel.indicesPerFaces.at(i).z));
-    }
-
-    hiddenPrimitives = primitiveCoordinatesAdapt;
+    hiddenPrimitives = mymodel.allPositionVertices;
     bvhNode = BvhNode();
-    bvhNode.buildTree(AdaptIndicesPerFaces, 0);
-    BvhNode::FlatBvhNode *nodesArray=bvhNode.putNodeIntoArray();
+    bvhNode.buildTree(mymodel.indicesPerFaces, 0);
+
+  //  vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.putNodeIntoArray();
+
     bvhNode.InfoAboutNode();
 
-    cout<<"Ez azzz:"<<sizeof(BvhNode::FlatBvhNode)<<endl;
 
-/*
+    vector<BvhNode::FlatBvhNode>* nodeArraysTest=new vector<BvhNode::FlatBvhNode>;
+
+    glm::vec3 min=glm::vec3(0.5,0.7,0.9);
+    glm::vec3 max=glm::vec3(0.1,0.4,0.8);
+    float ind=0.5;
+    int isLeaf=0;
+    int createdEmpty=1;
+
+    glm::vec3 indices1=glm::vec3(0.5,0.5,0.5);
+    glm::vec3 indices2=glm::vec3(0.1,0.1,0.1);
+    vector<glm::vec3> indices;
+    indices.push_back(indices1);
+    indices.push_back(indices2);
+
+    BvhNode::FlatBvhNode* test1=new BvhNode::FlatBvhNode(min,max,ind,isLeaf,createdEmpty,indices);
+    BvhNode::FlatBvhNode* test2=new BvhNode::FlatBvhNode(min,max,ind,isLeaf,createdEmpty,indices);
+    nodeArraysTest->push_back(*test1);
+    nodeArraysTest->push_back(*test2);
+
+
+
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesArraytoSendtoShader);
 
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 15 * sizeof(BvhNode::FlatBvhNode),  reinterpret_cast<const void *>(nodesArraytoSendtoShader), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0, 15 * sizeof(BvhNode::FlatBvhNode));
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);*/
+    glBufferData(GL_SHADER_STORAGE_BUFFER, nodeArraysTest->size() * sizeof(BvhNode::FlatBvhNode),  nodeArraysTest->data(), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0, nodeArraysTest->size() * sizeof(BvhNode::FlatBvhNode));
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 
@@ -213,7 +228,7 @@ int init() {
 
     mymodel = Model("../model/model2.obj");
 
-    //mymodel = Model("../model/bunny.obj");
+   // mymodel = Model("../model/bunny.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");

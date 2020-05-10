@@ -5,6 +5,8 @@
 #ifndef RAYTRACERBOROS_BVHTREE_H
 #define RAYTRACERBOROS_BVHTREE_H
 
+#define GLM_FORCE_SWIZZLE
+#include "../Vendor/glm/glm.hpp"
 #include <iostream>
 #include <map>
 #include <vector>
@@ -292,48 +294,53 @@ public:
         cout << "Deepest level of the tree: " << getDeepestLevel() << "\n" << endl;
     }
 
-
     struct FlatBvhNode {
-
-        glm::vec3 min;
-        glm::vec3 max;
+        glm::vec4 min;
+        glm::vec4 max;
         int order;
-        bool isLeaf;
-        bool createdEmpty;
-        vector<glm::vec3> indices;
+        int isLeaf;
+        int createdEmpty;
+        int  dummy; // alignment
+        std::array<glm::vec4, 2> indices;
 
         FlatBvhNode() { }
 
-        FlatBvhNode(glm::vec3 min, glm::vec3 max, int order, bool isLeaf, bool createdEmpty, vector<glm::vec3> indices) {
-            this->min=min;
-            this->max=max;
-            this->order=order;
+        FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty, vector<glm::vec3> indices) {
+            this->min=glm::vec4(min.x, min.y, min.z, 1.0f);
+            this->max=glm::vec4(max.x, max.y, max.z, 1.0f);
+            this->order=ind;
             this->isLeaf=isLeaf;
             this->createdEmpty=createdEmpty;
-            this->indices=indices;
+            this->dummy=5;
+
+            cout<<this->isLeaf<<endl;
+            cout<<this->createdEmpty<<endl;
+
+            for (int i = 0; i < indices.size(); i++) {
+                this->indices.at(i)=glm::vec4(indices.at(i).x, indices.at(i).y, indices.at(i).z, 1);
+            }
         }
     };
 
-    FlatBvhNode nodeConverter(const BvhNode node) {
-        FlatBvhNode result=FlatBvhNode( node.bBox.min, node.bBox.max, node.order, node.isLeaf, node.createdEmpty, node.indices);
+    FlatBvhNode nodeConverter(const BvhNode node, int ind) {
+        FlatBvhNode result=FlatBvhNode( node.bBox.min, node.bBox.max, ind, node.isLeaf, node.createdEmpty, node.indices);
         return result;
     }
 
-    FlatBvhNode *putNodeIntoArray() {
+    vector<FlatBvhNode>* putNodeIntoArray() {
         makeBvHTreeComplete();
 
         deque<const BvhNode *> queue;
         queue.push_back(this);
 
-        int size = this->getNumberOfNodes();
-        FlatBvhNode *nodesArray = new FlatBvhNode[size];
+        vector<FlatBvhNode>* nodesArray=new vector<FlatBvhNode>;
 
         int ind = 0;
         while (!queue.empty()) {
             const BvhNode *curr = queue.front();
             queue.pop_front();
 
-            *(nodesArray + ind) = nodeConverter(*curr);
+            nodesArray->push_back(nodeConverter(*curr, ind));
 
             if (!curr->children.empty()) {
                 queue.push_back(curr->children.at(0));
