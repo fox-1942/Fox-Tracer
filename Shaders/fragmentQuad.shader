@@ -1,39 +1,22 @@
 #version 460 core
-struct Primitive
-{
-    vec3 p;
 
+layout(std140, binding=0) buffer primitives{
+    vec3 primitiveCoordinates[];
 };
 
-
-
-layout(std430, binding=0) buffer primitives{
-    Primitive primitiveCoordinates[];
+layout(std140, binding=1) buffer indices{
+    vec3 indicesC[];
 };
-
-struct Indi
-{
-    vec3 i;
-
-};
-
-
-layout(std430, binding=1) buffer indices{
-    Indi indicesC[];
-};
-
-
-
 
 struct FlatBvhNode
 {
 // base aligment    aligned offset
-    vec4 min;// 16 byte          0
-    vec4 max;// 16 byte          16
+    vec3 min;// 16 byte          0
+    vec3 max;// 16 byte          16
     float order;// 4 byte           32
     int isLeaf;// 4 byte           36
     int createdEmpty;// 4 byte           40
-    vec4 indices[2];// 32 byte          48
+    vec3 indices[2];// 32 byte          48
 };
 
 layout(std430, binding=2) buffer TNodes
@@ -66,7 +49,6 @@ struct IntersectionPoint{
     float t;
 
 };
-
 
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
@@ -103,16 +85,16 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 }
 
 vec3 getCoordinatefromIndices(float index){
-    return primitiveCoordinates[int(index)].p;
+    return primitiveCoordinates[int(index)];
 }
 
 Hit firstIntersect(Ray ray){
     Hit besthit;
     besthit.t=-1;
     for (int i=0;i<indicesC.length();i++){
-        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].i.x);
-        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].i.y);
-        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].i.z);
+        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
         Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
         if (hit.t==-1){
@@ -197,9 +179,9 @@ void traverseBvhTree(Ray ray){
 */
 bool shadowIntersect(Ray ray){
     for (int i=0;i<indicesC.length();i++){
-        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].i.x);
-        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].i.y);
-        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].i.z);
+        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
         if (rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC).t>0){
             return true;
         }
@@ -240,13 +222,7 @@ void main()
     Ray ray;
     ray.orig = wEye;
     ray.dir = normalize(p - wEye);
-    // FragColor = vec4(trace(ray), 1);
+    FragColor = vec4(trace(ray), 1);
 
-    // FragColor=vec4(trace(), 1.0f);
-    //FragColor = vec4(nodesArray[0].min.x+2, nodesArray[0].min.y+2, nodesArray[0].min.z+2,1);
-
-
-
-
-    FragColor = vec4(nodes[1].min.x, 1, 1, 1);
+    //FragColor = vec4(nodes[1].min.x, 1, 1, 1);
 }

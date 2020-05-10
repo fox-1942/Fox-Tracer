@@ -127,6 +127,9 @@ void sendVerticesIndices() {
                           mymodel.allPositionVertices.at(i).z,1));
     }
 
+
+    cout<<"Number of faces: "<< mymodel.indicesPerFaces.size()<<endl;
+
     for (int i = 0; i < mymodel.indicesPerFaces.size(); i++) {
         indicesPerFacesVec4.push_back(glm::vec4(mymodel.indicesPerFaces.at(i).x, mymodel.indicesPerFaces.at(i).y,
                                                 mymodel.indicesPerFaces.at(i).z, 1));
@@ -157,38 +160,17 @@ void buildBvhTree() {
     bvhNode = BvhNode();
     bvhNode.buildTree(mymodel.indicesPerFaces, 0);
 
-  //  vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.putNodeIntoArray();
+    vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.putNodeIntoArray();
 
     bvhNode.InfoAboutNode();
-
-
-    vector<BvhNode::FlatBvhNode>* nodeArraysTest=new vector<BvhNode::FlatBvhNode>;
-
-    glm::vec3 min=glm::vec3(0.5,0.7,0.9);
-    glm::vec3 max=glm::vec3(0.1,0.4,0.8);
-    float ind=0.5;
-    int isLeaf=0;
-    int createdEmpty=1;
-
-    glm::vec3 indices1=glm::vec3(0.5,0.5,0.5);
-    glm::vec3 indices2=glm::vec3(0.1,0.1,0.1);
-    vector<glm::vec3> indices;
-    indices.push_back(indices1);
-    indices.push_back(indices2);
-
-    BvhNode::FlatBvhNode* test1=new BvhNode::FlatBvhNode(min,max,ind,isLeaf,createdEmpty,indices);
-    BvhNode::FlatBvhNode* test2=new BvhNode::FlatBvhNode(min,max,ind,isLeaf,createdEmpty,indices);
-    nodeArraysTest->push_back(*test1);
-    nodeArraysTest->push_back(*test2);
-
 
 
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesArraytoSendtoShader);
 
-    glBufferData(GL_SHADER_STORAGE_BUFFER, nodeArraysTest->size() * sizeof(BvhNode::FlatBvhNode),  nodeArraysTest->data(), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0, nodeArraysTest->size() * sizeof(BvhNode::FlatBvhNode));
+    glBufferData(GL_SHADER_STORAGE_BUFFER, nodeArrays->size() * sizeof(BvhNode::FlatBvhNode),  nodeArrays->data(), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0, nodeArrays->size() * sizeof(BvhNode::FlatBvhNode));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
@@ -226,9 +208,9 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    mymodel = Model("../model/model2.obj");
+   // mymodel = Model("../model/model2.obj");
 
-   // mymodel = Model("../model/bunny.obj");
+    mymodel = Model("../model/bunny.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");

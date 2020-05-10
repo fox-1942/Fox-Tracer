@@ -102,6 +102,7 @@ public:
                         // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
                     } else if (bBox.center.x == this->bBox.faceCenters.at(i).x) {
+                        leftTree.push_back(indicesPerFaces.at(i));
                         cout << "Gáz van" << endl;
                     }
                     break;
@@ -115,6 +116,8 @@ public:
                         rightTree.push_back(indicesPerFaces.at(i));
                     } else if (bBox.center.y == this->bBox.faceCenters.at(i).y) {
                         cout << "Gáz van" << endl;
+                        leftTree.push_back(indicesPerFaces.at(i));
+
                     }
                     break;
                 case 2:
@@ -125,9 +128,15 @@ public:
                         rightTree.push_back(indicesPerFaces.at(i));
                     } else if (bBox.center.z == this->bBox.faceCenters.at(i).z) {
                         cout << "Gáz van" << endl;
+                        leftTree.push_back(indicesPerFaces.at(i));
                         break;
                     }
             };
+        }
+
+        if(leftTree.size()==indicesPerFaces.size() || rightTree.size()==indicesPerFaces.size()){
+            this->indices = indicesPerFaces;
+            return;
         }
 
         cout << "Left: " << leftTree.size() << endl;
@@ -301,7 +310,7 @@ public:
         int isLeaf;
         int createdEmpty;
         int  dummy; // alignment
-        std::array<glm::vec4, 2> indices;
+        std::array<glm::vec4, 80> indices;
 
         FlatBvhNode() { }
 
@@ -312,9 +321,6 @@ public:
             this->isLeaf=isLeaf;
             this->createdEmpty=createdEmpty;
             this->dummy=5;
-
-            cout<<this->isLeaf<<endl;
-            cout<<this->createdEmpty<<endl;
 
             for (int i = 0; i < indices.size(); i++) {
                 this->indices.at(i)=glm::vec4(indices.at(i).x, indices.at(i).y, indices.at(i).z, 1);
