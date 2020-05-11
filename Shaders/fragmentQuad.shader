@@ -135,45 +135,41 @@ bool rayIntersectWithBox(const vec3 boxMin, const vec3 boxMax, const Ray r) {
 }
 
 // Traverse one Node
+/*
 Hit traverseBvhNode(Ray ray, FlatBvhNode node){
-    Hit resultHit; resultHit.t=-2;
+    int node_index_next = 0;
 
-    if (node.isLeaf!=1){
-
-        bool left  = rayIntersectWithBox(leftChild(node).min, leftChild(node).max, ray);
-        bool right = rayIntersectWithBox(rightChild(node).min, rightChild(node).max, ray);
-
-        //Mindkét gyereket metszi.
-        if (left && right) {
-            // Végijárom a bal gyereket
-            Hit hitFromLeftChild=traverseBvhNode(ray, leftChild(node));
-
-            // if (hitFromLeftChild.t>0 && hitFromLeftChild.t<it2.t){ return hitFromLeftChild; }
-
-            // Végigjárom a jobb gyereket
-            Hit hitFromRightChild=traverseBvhNode(ray, rightChild(node));
-
-            // A közelebbi metszéssel térek vissza
-            if (hitFromLeftChild.t>0 && (hitFromLeftChild.t<hitFromRightChild.t || hitFromRightChild.t==-1)){ return hitFromLeftChild; }
-
-            else if (hitFromRightChild.t>0 && (hitFromRightChild.t<hitFromLeftChild.t ||  hitFromLeftChild.t==-1)){ return hitFromRightChild; }
+    for (int node_index = 0; node_index < nodes.size(); node_index++) {
+        if (node_index != node_index_next) {
+            continue;
         }
 
-        //Ha a Left gyereket metszi
-        else if (left){ resultHit=traverseBvhNode(ray, leftChild(node)); }
+        bool hit = rayIntersectWithBox(nodes[node_index].min,nodes[node_index].max, ray);
+        bool leaf = nodes[node_index].indices.size() > 0;
 
-        // Ha a Right gyereket metszi.
-        else if (right){ resultHit=traverseBvhNode(ray, rightChild(node)); }
+        if (hit) {
+            if(nodes[node_index].isLeaf && nodes[node_index].right){
+                nodes[]
 
-        // Ha egyik gyereket sem metszi, csak áthalad mindkettőn.
-        else if (!left && !right){ return resultHit; }
+            }
 
+
+            node_index_next = nodes[2*nodes[node_index]+1].order; // hit link
+        } else {
+            node_index_next = nodes[node_index].links.y; // miss link
+        }
+
+        if (hit && leaf) {
+            uint a = boxes[box_index].ids_offset;
+            uint b = a + boxes[box_index].ids_count;
+
+            for (uint j = a; j < b; j++) {
+                uint triangle_id = triangle_references[j];
+                // triangle intersection code ...
+            }
+        }
     }
-
-    else { resultHit=firstIntersect(ray, node); }
-
-    return resultHit;
-}
+}*/
 
 Hit traverseBvhTree(Ray ray){
     if (rayIntersectWithBox(nodes[0].min, nodes[0].max, ray)){

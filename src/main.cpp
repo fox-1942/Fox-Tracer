@@ -160,10 +160,11 @@ void buildBvhTree() {
     bvhNode = BvhNode();
     bvhNode.buildTree(mymodel.indicesPerFaces, 0);
 
-    vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.putNodeIntoArray();
+    //vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.putNodeIntoArray();
 
-    bvhNode.InfoAboutNode();
+    vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.flatten();
 
+    //bvhNode.InfoAboutNode();
 
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
@@ -210,7 +211,7 @@ int init() {
 
    // mymodel = Model("../model/model2.obj");
 
-    mymodel = Model("../model/bunny.obj");
+    mymodel = Model("../model/model.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");

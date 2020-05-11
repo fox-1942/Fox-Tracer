@@ -6,6 +6,7 @@
 #define RAYTRACERBOROS_BVHTREE_H
 
 #define GLM_FORCE_SWIZZLE
+
 #include "../Vendor/glm/glm.hpp"
 #include <iostream>
 #include <map>
@@ -134,7 +135,7 @@ public:
             };
         }
 
-        if(leftTree.size()==indicesPerFaces.size() || rightTree.size()==indicesPerFaces.size()){
+        if (leftTree.size() == indicesPerFaces.size() || rightTree.size() == indicesPerFaces.size()) {
             this->indices = indicesPerFaces;
             return;
         }
@@ -309,37 +310,47 @@ public:
         int order;
         int isLeaf;
         int createdEmpty;
-        int  dummy; // alignment
+        int dummy; // alignment
         std::array<glm::vec4, 80> indices;
 
-        FlatBvhNode() { }
+        FlatBvhNode() {}
 
-        FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty, vector<glm::vec3> indices) {
-            this->min=glm::vec4(min.x, min.y, min.z, 1.0f);
-            this->max=glm::vec4(max.x, max.y, max.z, 1.0f);
-            this->order=ind;
-            this->isLeaf=isLeaf;
-            this->createdEmpty=createdEmpty;
-            this->dummy=5;
+        FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty,
+                    vector<glm::vec3> indices) {
+            this->min = glm::vec4(min.x, min.y, min.z, 1.0f);
+            this->max = glm::vec4(max.x, max.y, max.z, 1.0f);
+            this->order = ind;
+            this->isLeaf = isLeaf;
+            this->createdEmpty = createdEmpty;
+            this->dummy = 5;
 
             for (int i = 0; i < indices.size(); i++) {
-                this->indices.at(i)=glm::vec4(indices.at(i).x, indices.at(i).y, indices.at(i).z, 1);
+                this->indices.at(i) = glm::vec4(indices.at(i).x, indices.at(i).y, indices.at(i).z, 1);
             }
         }
     };
 
     FlatBvhNode nodeConverter(const BvhNode node, int ind) {
-        FlatBvhNode result=FlatBvhNode( node.bBox.min, node.bBox.max, ind, node.isLeaf, node.createdEmpty, node.indices);
+        FlatBvhNode result = FlatBvhNode(node.bBox.min, node.bBox.max, ind, node.isLeaf, node.createdEmpty,
+                                         node.indices);
         return result;
     }
 
-    vector<FlatBvhNode>* putNodeIntoArray() {
+    FlatBvhNode nodeConverterRec(BvhNode node, int& ind){
+        node.createdEmpty=0;
+        FlatBvhNode result = FlatBvhNode(node.bBox.min, node.bBox.max, ind, node.isLeaf, node.createdEmpty,
+                                         node.indices);
+        return result;
+    }
+
+
+    vector<FlatBvhNode> *putNodeIntoArray() {
         makeBvHTreeComplete();
 
         deque<const BvhNode *> queue;
         queue.push_back(this);
 
-        vector<FlatBvhNode>* nodesArray=new vector<FlatBvhNode>;
+        vector<FlatBvhNode> *nodesArray = new vector<FlatBvhNode>;
 
         int ind = 0;
         while (!queue.empty()) {
@@ -358,6 +369,27 @@ public:
 
         return nodesArray;
     }
+
+    void flattenRecursion(const BvhNode *bvhNode, vector<FlatBvhNode>* nodes, int& ind) {
+        ++ind;
+        nodes->push_back(nodeConverterRec(*bvhNode, ind));
+
+        if (!bvhNode->isLeaf) {
+            flattenRecursion(bvhNode->children.at(0), nodes, ind);
+            flattenRecursion(bvhNode->children.at(1), nodes,ind);
+        }
+    }
+
+    vector<FlatBvhNode>* flatten() {
+        vector<FlatBvhNode>* nodesArray=new vector<FlatBvhNode>;
+        nodesArray->reserve(this->countNodes());
+
+        int ind=0;
+        flattenRecursion(this, nodesArray, ind);
+
+        return nodesArray;
+    }
+
 };
 
 #endif //RAYTRACERBOROS_BVHTREE_H
