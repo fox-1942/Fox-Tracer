@@ -8,6 +8,8 @@
 #include "../includes/filesystem.h"
 #include "../includes/framework.h"
 #include "../includes/bvhtree.h"
+#include "../includes/BBox.h"
+#include "../includes/flatBvhNode.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -59,9 +61,9 @@ glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
 // hidden variable for BvhNode::primitiveCoordinates
-static vector<glm::vec3> hiddenPrimitives;
+static vector <glm::vec3> hiddenPrimitives;
 // Initialize BvhNode::primitiveCoordinates to reference the hidden variable
-const vector<glm::vec3> &BvhNode::primitiveCoordinates(hiddenPrimitives);
+const vector <glm::vec3> &BBox::primitiveCoordinates(hiddenPrimitives);
 
 
 struct Light {
@@ -115,8 +117,9 @@ void renderQuad() {
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glBindVertexArray(0);
 }
-vector<glm::vec4> indicesPerFacesVec4;
-vector<glm::vec4> primitiveCoordVec4;
+
+vector <glm::vec4> indicesPerFacesVec4;
+vector <glm::vec4> primitiveCoordVec4;
 
 void sendVerticesIndices() {
     mymodel.fillAllPositionVertices();
@@ -124,11 +127,11 @@ void sendVerticesIndices() {
     for (int i = 0; i < mymodel.allPositionVertices.size(); i++) {
         primitiveCoordVec4.push_back(
                 glm::vec4(mymodel.allPositionVertices.at(i).x, mymodel.allPositionVertices.at(i).y,
-                          mymodel.allPositionVertices.at(i).z,1));
+                          mymodel.allPositionVertices.at(i).z, 1));
     }
 
 
-    cout<<"Number of faces: "<< mymodel.indicesPerFaces.size()<<endl;
+    cout << "Number of faces: " << mymodel.indicesPerFaces.size() << endl;
 
     for (int i = 0; i < mymodel.indicesPerFaces.size(); i++) {
         indicesPerFacesVec4.push_back(glm::vec4(mymodel.indicesPerFaces.at(i).x, mymodel.indicesPerFaces.at(i).y,
@@ -159,20 +162,22 @@ void buildBvhTree() {
     hiddenPrimitives = mymodel.allPositionVertices;
     bvhNode = BvhNode();
     bvhNode.buildTree(mymodel.indicesPerFaces, 0);
-
+    
     //vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.putNodeIntoArray();
 
-    vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.flatten();
+   // vector <FlatBvhNode> *nodeArrays = flatten(bvhNode);
 
     //bvhNode.InfoAboutNode();
 
-    unsigned int nodesArraytoSendtoShader;
+  /*  unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesArraytoSendtoShader);
 
-    glBufferData(GL_SHADER_STORAGE_BUFFER, nodeArrays->size() * sizeof(BvhNode::FlatBvhNode),  nodeArrays->data(), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0, nodeArrays->size() * sizeof(BvhNode::FlatBvhNode));
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, nodeArrays->size() * sizeof(FlatBvhNode), nodeArrays->data(),
+                 GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0,
+                      nodeArrays->size() * sizeof(FlatBvhNode));
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);*/
 }
 
 
@@ -209,7 +214,7 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-   // mymodel = Model("../model/model2.obj");
+    // mymodel = Model("../model/model2.obj");
 
     mymodel = Model("../model/model.obj");
 
