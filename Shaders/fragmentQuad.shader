@@ -16,7 +16,8 @@ struct FlatBvhNode
     int order;// 4 byte          32
     int isLeaf;// 4 byte         36
     int createdEmpty;// 4 byte   40
-    vec3 indices[2];// 32 byte   48
+    int leftOrRight;
+    vec3 indices[400];// 32 byte   48
 };
 
 layout(std430, binding=2) buffer TNodes
@@ -32,8 +33,6 @@ struct Light{
     vec3 Le, La;
     vec3 direction;
     vec3 position;
-
-
 };
 
 uniform Light lights[];
@@ -91,13 +90,13 @@ vec3 getCoordinatefromIndices(float index){
 }
 
 
-Hit firstIntersect(Ray ray, FlatBvhNode node){
+Hit firstIntersect(Ray ray, int i){
     Hit besthit;
     besthit.t=-1;
-    for (int j=0;j<node.indices.length();j++){
-        vec3 TrianglePointA=getCoordinatefromIndices(node.indices[j].x);
-        vec3 TrianglePointB=getCoordinatefromIndices(node.indices[j].y);
-        vec3 TrianglePointC=getCoordinatefromIndices(node.indices[j].z);
+    for (int j=0;j<nodes[i].indices.length();j++){
+        vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x);
+        vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y);
+        vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z);
         Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
         if (hit.t==-1){ continue; }
@@ -118,65 +117,66 @@ FlatBvhNode rightChild(FlatBvhNode node){
 }
 
 bool rayIntersectWithBox(const vec3 boxMin, const vec3 boxMax, const Ray r) {
-    vec3 tbot = r.dir * (boxMin - r.orig);
-    vec3 ttop = r.dir * (boxMax - r.orig);
-    vec3 tmin = min(ttop, tbot);
-    vec3 tmax = max(ttop, tbot);
-    vec2 t = max(tmin.xx, tmin.yz);
-    float t0 = max(t.x, t.y);
-    t = min(tmax.xx, tmax.yz);
-    float t1 = min(t.x, t.y);
+    vec3 invdir = 1.0 / r.dir.xyz;
+    const vec3 f = (boxMax.xyz - r.orig.xyz) * invdir;
+    const vec3 n = (boxMin.xyz - r.orig.xyz) * invdir;
 
-    /* Hit hit;
-     hit.tmin = t0;
-     hit.tmax = t1;*/
+    const vec3 tmax = max(f, n);
+    const vec3 tmin = min(f, n);
 
-    return t1 > max(t0, 0.0);
+    const float t1 = min(tmax.x, min(tmax.y, tmax.z));
+    const float t0 = max(max(tmin.x, max(tmin.y, tmin.z)), 0.0f);
+
+    return t1 >= t0;
 }
 
 // Traverse one Node
-/*
-Hit traverseBvhNode(Ray ray, FlatBvhNode node){
-    int node_index_next = 0;
 
-    for (int node_index = 0; node_index < nodes.size(); node_index++) {
-        if (node_index != node_index_next) {
+Hit traverseBvhNode(Ray ray, FlatBvhNode node){
+    Hit result;
+
+
+    int next = 0;
+    for (int i = 0; i < nodes.length(); i++) {
+
+
+        if (i != next) {
             continue;
         }
 
-        bool hit = rayIntersectWithBox(nodes[node_index].min,nodes[node_index].max, ray);
-        bool leaf = nodes[node_index].indices.size() > 0;
+
+        bool hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
+
+        if (nodes[i].createdEmpty==1){
+            hit=false;
+        }
 
         if (hit) {
-            if(nodes[node_index].isLeaf && nodes[node_index].right){
-                nodes[]
+            if (nodes[i].isLeaf==1 && nodes[i].createdEmpty!=1){ return firstIntersect(ray, i); }
 
-            }
-
-
-            node_index_next = nodes[2*nodes[node_index]+1].order; // hit link
-        } else {
-            node_index_next = nodes[node_index].links.y; // miss link
+            next = 2*i+1;
         }
 
-        if (hit && leaf) {
-            uint a = boxes[box_index].ids_offset;
-            uint b = a + boxes[box_index].ids_count;
+        else if (!hit) {
 
-            for (uint j = a; j < b; j++) {
-                uint triangle_id = triangle_references[j];
-                // triangle intersection code ...
-            }
+            if (nodes[i].leftOrRight==0){
+
+                next = i+1; }
+            else if (nodes[i].leftOrRight==1){ next = int(ceil(i-2)/2); }
         }
     }
-}*/
+    result.t=-4;
+    return result;
+}
+
 
 Hit traverseBvhTree(Ray ray){
+    Hit no;
+    no.t=-4;
+
     if (rayIntersectWithBox(nodes[0].min, nodes[0].max, ray)){
         return traverseBvhNode(ray, nodes[0]);
     }
-    Hit no;
-    no.t=-1;
     return no;
 }
 
@@ -215,7 +215,6 @@ vec3 trace(Ray ray){
             color=color+lights[0].Le*vec3(0.316228, 0.316228, 0.316228)*pow(0.1, cosDelta);
         }
     }
-
     return color;
 }
 
@@ -226,5 +225,5 @@ void main()
     ray.dir = normalize(p - wEye);
     FragColor = vec4(trace(ray), 1);
 
-    //FragColor = vec4(nodes[1].min.x, 1, 1, 1);
+    //FragColor = vec4(nodes[1].leftOrRight, 1, 1, 1);
 }

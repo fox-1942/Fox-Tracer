@@ -41,6 +41,7 @@ public:
     int order;
     bool isLeaf;
     bool createdEmpty = false;
+    int leftOrRight;
     vector<glm::vec3> indices;
 
 public:
@@ -130,7 +131,9 @@ public:
         left->buildTree(leftTree, this->depthOfNode + 1);
         right->buildTree(rightTree, this->depthOfNode + 1);
 
+        left->leftOrRight=0;
         children.push_back(left);
+        right->leftOrRight=1;
         children.push_back(right);
 
         return;

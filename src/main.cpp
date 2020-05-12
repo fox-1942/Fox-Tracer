@@ -48,7 +48,7 @@ Shader shaderQuadVertex;
 Shader shaderQuadFragment;
 
 Model mymodel;
-BvhNode bvhNode;
+BvhNode *bvhNode;
 GLFWwindow *window;
 
 float fov = 45;
@@ -158,18 +158,15 @@ void sendVerticesIndices() {
 
 
 void buildBvhTree() {
-
     hiddenPrimitives = mymodel.allPositionVertices;
-    bvhNode = BvhNode();
-    bvhNode.buildTree(mymodel.indicesPerFaces, 0);
+    bvhNode = new BvhNode();
+    bvhNode->buildTree(mymodel.indicesPerFaces, 0);
+    bvhNode->makeBvHTreeComplete();
     
-    //vector<BvhNode::FlatBvhNode>* nodeArrays=bvhNode.putNodeIntoArray();
+    vector<FlatBvhNode>* nodeArrays=putNodeIntoArray(bvhNode);
 
-   // vector <FlatBvhNode> *nodeArrays = flatten(bvhNode);
 
-    //bvhNode.InfoAboutNode();
-
-  /*  unsigned int nodesArraytoSendtoShader;
+    unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesArraytoSendtoShader);
 
@@ -177,7 +174,7 @@ void buildBvhTree() {
                  GL_STATIC_DRAW);
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0,
                       nodeArrays->size() * sizeof(FlatBvhNode));
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);*/
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 
@@ -214,9 +211,9 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    // mymodel = Model("../model/model2.obj");
+   //  mymodel = Model("../model/model2.obj");
 
-    mymodel = Model("../model/model.obj");
+    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
