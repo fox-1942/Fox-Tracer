@@ -177,8 +177,12 @@ private:
             emptyNode->isLeaf = true;
             emptyNode->order = -1;
             emptyNode->depthOfNode = this->depthOfNode + 1;
+            emptyNode->children.clear();
 
+
+            emptyNode->leftOrRight=0;
             this->children.push_back(emptyNode);
+            emptyNode->leftOrRight=1;
             this->children.push_back(emptyNode);
         }
 

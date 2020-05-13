@@ -46,10 +46,6 @@ struct Hit{
     float t;
 };
 
-struct IntersectionPoint{
-    float t;
-
-};
 
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
@@ -89,21 +85,25 @@ vec3 getCoordinatefromIndices(float index){
     return primitiveCoordinates[int(index)];
 }
 
-
 Hit firstIntersect(Ray ray, int i){
     Hit besthit;
     besthit.t=-1;
     for (int j=0;j<nodes[i].indices.length();j++){
-        vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x);
-        vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y);
-        vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z);
-        Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
+        if(mod(nodes[i].indices[j].x,1)==0 && mod(nodes[i].indices[j].y,1)==0 && mod(nodes[i].indices[j].z,1)==0 ){
+            vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x);
+            vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y);
+            vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z);
 
-        if (hit.t==-1){ continue; }
+            Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
-        if (hit.t>0 && (besthit.t>hit.t || besthit.t<0)){
-            besthit=hit;
+            if (hit.t==-1){ continue; }
+
+            if (hit.t>0 && (besthit.t>hit.t || besthit.t<0)){
+                besthit=hit;
+            }
         }
+
+        else { continue;  }
     }
     return besthit;
 }
@@ -121,13 +121,10 @@ bool rayIntersectWithBox(const vec4 boxMin, const vec4 boxMax, const Ray r) {
     const vec3 f = (boxMax.xyz - r.orig.xyz) * invdir;
     const vec3 n = (boxMin.xyz - r.orig.xyz) * invdir;
 
-    const vec3 tmax = max(f, n);
-    const vec3 tmin = min(f, n);
+    const vec3 tmax = f * sign(invdir);
+    const vec3 tmin = n * sign(invdir);
 
-    const float t1 = min(tmax.x, min(tmax.y, tmax.z));
-    const float t0 = max(max(tmin.x, max(tmin.y, tmin.z)), 0.0f);
-
-    return t1 >= t0;
+    return tmin.x < tmax.x && tmin.y < tmax.y && tmin.z < tmax.z;
 }
 
 // Traverse one Node
@@ -139,36 +136,11 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     int next = 0;
     for (int i = 0; i < nodes.length(); i++) {
 
-
-        if (i != next) {
-            continue;
+        if(nodes[i].isLeaf==1 && nodes[i].createdEmpty==0){
+            return firstIntersect(ray, i);
         }
 
-
-        bool hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
-
-        if (nodes[i].createdEmpty==1){
-            hit=false;
-        }
-
-        if (hit) {
-            if (nodes[i].isLeaf==1 && nodes[i].createdEmpty!=1){ return firstIntersect(ray, i); }
-
-            next = 2*i+1;
-        }
-
-        else if (!hit) {
-
-            if (nodes[i].leftOrRight==0){ next = i+1; }
-            else if (nodes[i].leftOrRight==1){ next = int(ceil(i-2)/2);
-                if (next==5){
-                    result.t=-1;
-                    return result;
-                }
-            }
-        }
     }
-
     return result;
 }
 
@@ -183,17 +155,6 @@ Hit traverseBvhTree(Ray ray){
     return no;
 }
 
-bool shadowIntersect(Ray ray){
-    for (int i=0;i<indicesC.length();i++){
-        vec3 TrianglePointA=getCoordinatefromIndices(indicesC[i].x);
-        vec3 TrianglePointB=getCoordinatefromIndices(indicesC[i].y);
-        vec3 TrianglePointC=getCoordinatefromIndices(indicesC[i].z);
-        if (rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC).t>0){
-            return true;
-        }
-    }
-    return false;
-}
 
 
 vec3 trace(Ray ray){
@@ -203,7 +164,7 @@ vec3 trace(Ray ray){
 
     Hit hit=traverseBvhTree(ray);
 
-    if (hit.t==-1){ return lights[3].La; }
+    if (hit.t==-1){ return lights[0].La; }
 
     color=lights[0].La*ka;
 
