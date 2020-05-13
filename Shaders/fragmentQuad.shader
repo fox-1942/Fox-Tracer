@@ -11,13 +11,13 @@ layout(std140, binding=1) buffer indices{
 struct FlatBvhNode
 {
 // base aligment                aligned offset
-    vec3 min;// 16 byte          0
-    vec3 max;// 16 byte          16
-    int order;// 4 byte          32
-    int isLeaf;// 4 byte         36
-    int createdEmpty;// 4 byte   40
-    int leftOrRight;
-    vec3 indices[400];// 32 byte   48
+    vec4 min;// 16 byte          0
+    vec4 max;// 16 byte          16
+    int  order;// 4 byte           32
+    int  isLeaf;// 4 byte           36
+    int  createdEmpty;// 4 byte           40
+    int  leftOrRight;
+    vec4 indices[10];// 32 byte          48
 };
 
 layout(std430, binding=2) buffer TNodes
@@ -116,7 +116,7 @@ FlatBvhNode rightChild(FlatBvhNode node){
     return nodes[2*node.order+2];
 }
 
-bool rayIntersectWithBox(const vec3 boxMin, const vec3 boxMax, const Ray r) {
+bool rayIntersectWithBox(const vec4 boxMin, const vec4 boxMax, const Ray r) {
     vec3 invdir = 1.0 / r.dir.xyz;
     const vec3 f = (boxMax.xyz - r.orig.xyz) * invdir;
     const vec3 n = (boxMin.xyz - r.orig.xyz) * invdir;
@@ -159,20 +159,23 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
         else if (!hit) {
 
-            if (nodes[i].leftOrRight==0){
-
-                next = i+1; }
-            else if (nodes[i].leftOrRight==1){ next = int(ceil(i-2)/2); }
+            if (nodes[i].leftOrRight==0){ next = i+1; }
+            else if (nodes[i].leftOrRight==1){ next = int(ceil(i-2)/2);
+                if (next==5){
+                    result.t=-1;
+                    return result;
+                }
+            }
         }
     }
-    result.t=-4;
+
     return result;
 }
 
 
 Hit traverseBvhTree(Ray ray){
     Hit no;
-    no.t=-4;
+
 
     if (rayIntersectWithBox(nodes[0].min, nodes[0].max, ray)){
         return traverseBvhNode(ray, nodes[0]);
@@ -200,7 +203,7 @@ vec3 trace(Ray ray){
 
     Hit hit=traverseBvhTree(ray);
 
-    if (hit.t==-1){ return lights[0].La; }
+    if (hit.t==-1){ return lights[3].La; }
 
     color=lights[0].La*ka;
 
@@ -208,7 +211,7 @@ vec3 trace(Ray ray){
     shadowRay.orig=hit.orig+hit.normal*0.001f;
     shadowRay.dir=lights[0].direction;
     float cosTheta = dot(hit.normal, lights[0].direction)/(length(hit.normal)*length(lights[0].direction));
-    if (cosTheta > 0 && !shadowIntersect(shadowRay)){
+    if (cosTheta > 0){
         color+=lights[0].Le*cosTheta*kd;
         float cosDelta=dot(hit.normal, normalize(-ray.dir + lights[0].direction));
         if (cosDelta>0){
@@ -225,5 +228,5 @@ void main()
     ray.dir = normalize(p - wEye);
     FragColor = vec4(trace(ray), 1);
 
-    //FragColor = vec4(nodes[1].leftOrRight, 1, 1, 1);
+    // FragColor = vec4(nodes[4].isLeaf, 1, 1, 1);
 }

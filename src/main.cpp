@@ -213,7 +213,7 @@ int init() {
 
    //  mymodel = Model("../model/model2.obj");
 
-    mymodel = Model("../model/MAP01/doom2_MAP01.obj");
+    mymodel = Model("../model/cone.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
