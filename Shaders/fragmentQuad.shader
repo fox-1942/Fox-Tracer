@@ -1,23 +1,23 @@
 #version 460 core
 
 layout(std140, binding=0) buffer primitives{
-    vec3 primitiveCoordinates[];
+    vec4 primitiveCoordinates[];
 };
 
 layout(std140, binding=1) buffer indices{
-    vec3 indicesC[];
+    vec4 indicesC[];
 };
 
 struct FlatBvhNode
 {
 // base aligment                aligned offset
-    vec4 min;// 16 byte          0
-    vec4 max;// 16 byte          16
-    int  order;// 4 byte           32
+    vec4 min;// 16 byte              0
+    vec4 max;// 16 byte             16
+    int  order;// 4 byte            32
     int  isLeaf;// 4 byte           36
-    int  createdEmpty;// 4 byte           40
+    int  createdEmpty;// 4 byte     40
     int  leftOrRight;
-    vec4 indices[10];// 32 byte          48
+    vec4 indices[10];// 32 byte     48
 };
 
 layout(std430, binding=2) buffer TNodes
@@ -81,32 +81,10 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     return hit;
 }
 
-vec3 getCoordinatefromIndices(float index){
+vec4 getCoordinatefromIndices(float index){
     return primitiveCoordinates[int(index)];
 }
 
-Hit firstIntersect(Ray ray, int i){
-    Hit besthit;
-    besthit.t=-1;
-    for (int j=0;j<nodes[i].indices.length();j++){
-        if(mod(nodes[i].indices[j].x,1)==0 && mod(nodes[i].indices[j].y,1)==0 && mod(nodes[i].indices[j].z,1)==0 ){
-            vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x);
-            vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y);
-            vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z);
-
-            Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
-
-            if (hit.t==-1){ continue; }
-
-            if (hit.t>0 && (besthit.t>hit.t || besthit.t<0)){
-                besthit=hit;
-            }
-        }
-
-        else { continue;  }
-    }
-    return besthit;
-}
 
 FlatBvhNode leftChild(FlatBvhNode node){
     return nodes[2*node.order+1];
@@ -130,19 +108,36 @@ bool rayIntersectWithBox(const vec4 boxMin, const vec4 boxMax, const Ray r) {
 // Traverse one Node
 
 Hit traverseBvhNode(Ray ray, FlatBvhNode node){
-    Hit result;
 
+    Hit besthit;
+    besthit.t=-1;
 
     int next = 0;
     for (int i = 0; i < nodes.length(); i++) {
 
-        if(nodes[i].isLeaf==1 && nodes[i].createdEmpty==0){
-            return firstIntersect(ray, i);
-        }
+        if (nodes[i].isLeaf==1 && nodes[i].createdEmpty==0){
 
+            for (int j=0;j<nodes[i].indices.length();j++){
+                if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
+                    vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
+                    vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
+                    vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
+
+                    Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
+
+                    if (hit.t==-1){ continue; }
+
+                    if (hit.t>0 && (besthit.t>hit.t || besthit.t<0)){
+                        besthit=hit;
+                    }
+                }
+                else { continue; }
+            }
+        }
     }
-    return result;
+    return besthit;
 }
+
 
 
 Hit traverseBvhTree(Ray ray){

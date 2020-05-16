@@ -130,7 +130,7 @@ private:
     void loadModel(string path) {
         // Read file via ASSIMP
         Assimp::Importer importer;
-        scene = importer.ReadFile(path, aiProcess_Triangulate);
+        scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FindInvalidData | aiProcess_JoinIdenticalVertices);
 
 
         // Check for errors

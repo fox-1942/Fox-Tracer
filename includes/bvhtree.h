@@ -178,12 +178,18 @@ private:
             emptyNode->order = -1;
             emptyNode->depthOfNode = this->depthOfNode + 1;
             emptyNode->children.clear();
-
-
             emptyNode->leftOrRight=0;
             this->children.push_back(emptyNode);
-            emptyNode->leftOrRight=1;
-            this->children.push_back(emptyNode);
+
+            BvhNode *emptyNode2 = new BvhNode();
+            emptyNode2->bBox = BBox();
+            emptyNode2->createdEmpty = true;
+            emptyNode2->isLeaf = true;
+            emptyNode2->order = -1;
+            emptyNode2->depthOfNode = this->depthOfNode + 1;
+            emptyNode2->children.clear();
+            emptyNode2->leftOrRight=1;
+            this->children.push_back(emptyNode2);
         }
 
         /*if (this->children.size()==1 && this->depthOfNode != deepestLev) {
