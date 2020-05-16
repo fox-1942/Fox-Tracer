@@ -118,6 +118,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
         if (nodes[i].isLeaf==1 && nodes[i].createdEmpty==0){
 
             for (int j=0;j<nodes[i].indices.length();j++){
+
                 if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
                     vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
                     vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
