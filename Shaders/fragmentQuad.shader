@@ -94,13 +94,13 @@ FlatBvhNode rightChild(FlatBvhNode node){
     return nodes[2*node.order+2];
 }
 
-bool rayIntersectWithBox(const vec4 boxMin, const vec4 boxMax, const Ray r) {
+bool rayIntersectWithBox( vec4 boxMin,  vec4 boxMax,  Ray r) {
     vec3 invdir = 1.0 / r.dir.xyz;
-    const vec3 f = (boxMax.xyz - r.orig.xyz) * invdir;
-    const vec3 n = (boxMin.xyz - r.orig.xyz) * invdir;
+     vec3 f = (boxMax.xyz - r.orig.xyz) * invdir;
+     vec3 n = (boxMin.xyz - r.orig.xyz) * invdir;
 
-    const vec3 tmax = f * sign(invdir);
-    const vec3 tmin = n * sign(invdir);
+     vec3 tmax = f * sign(invdir);
+     vec3 tmin = n * sign(invdir);
 
     return tmin.x < tmax.x && tmin.y < tmax.y && tmin.z < tmax.z;
 }
@@ -168,12 +168,15 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     int i=0;
     while (i<=nodes.length()) {
 
+        bool hit;
 
-        bool hit= rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
-        if (i==3 || i==6 || i==9|| i==10 || i==11 || i==12|| i==6){
-            hit=true;
+        if(nodes[i].isLeaf==0){
+            hit= rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
         }
 
+        else if(nodes[i].isLeaf==1){
+            hit=true;
+        }
 
         if (hit) {
 
@@ -221,9 +224,8 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                     while (parent.leftOrRight==1){
                         parent=nodes[int(ceil(parent.order-2)/2)];
                         if (parent.order==0 || parent.order==-0){
-
-
-                            break; }
+                            return besthit;
+                        }
                     }
                     i = parent.order+1;
                     continue;
@@ -272,7 +274,6 @@ vec3 trace(Ray ray){
     vec3 ka= vec3(0.135, 0.2225, 0.1575);
     vec3 kd= vec3(0.54, 0.89, 0.63);
 
-    
 
     Hit hit=traverseBvhTree(ray);
 
