@@ -214,6 +214,8 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
                 while(parent.leftOrRight==1){
                     parent=nodes[int(ceil(parent.order-2)/2)];
+
+                 if(parent.order==0){break;}
                 }
                 next = parent.order+1;
                 i=next;

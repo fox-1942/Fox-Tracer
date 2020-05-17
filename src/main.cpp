@@ -214,7 +214,7 @@ int init() {
 
    //  mymodel = Model("../model/model2.obj");
 
-    mymodel = Model("../model/cone.obj");
+    mymodel = Model("../model/cube.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
