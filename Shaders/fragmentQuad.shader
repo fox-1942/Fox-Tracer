@@ -168,36 +168,18 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
     int next = 0;
     int i=-1;
-    while(i<=nodes.length()) {
-        i++;
 
+    while(i<=nodes.length()) {
         if(i > nodes.length()){ break;}
-        if (i != next) { continue; }
+        if (i != next) { i++;  continue; }
 
         bool hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
 
         if (nodes[i].createdEmpty==1){
             hit=false;
-
-            if(nodes[i].leftOrRight==1){
-                int id=int(ceil(i-2)/2);
-                FlatBvhNode parent=nodes[id];
-
-                while(parent.leftOrRight==1){
-                    parent=nodes[int(ceil(parent.order-2)/2)];
-                }
-                next = parent.order+1;
-                i=next-1;
-
-            }
-
-            else{ next = i+1; }
-
-
         }
 
         if (hit) {
-
             if (nodes[i].isLeaf==1 && nodes[i].createdEmpty!=1){
                 db++;
 
@@ -210,16 +192,16 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
                         hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
-                        if (hitreal.t==-1){ continue; }
+                        if (hitreal.t==-1){    i++;  continue; }
 
                         if (hitreal.t>0 && (besthit.t>hitreal.t || besthit.t<0)){
                             besthit=hitreal;
                         }
                     }
-                    else{ continue;}
+
                 }
             }
-            else{ next = 2*i+1;}
+            else{ next =2*i+1;}
         }
 
         else  {
@@ -234,9 +216,10 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                     parent=nodes[int(ceil(parent.order-2)/2)];
                 }
                 next = parent.order+1;
-                i=next-1;
+                i=next;
             }
         }
+        i++;
     }
 
 
