@@ -140,7 +140,6 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     return besthit;
 }*/
 
-
 Hit firstIntersect(Ray ray, int i){
     Hit besthit;
     besthit.t=-1;
@@ -166,21 +165,27 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     int db=0;
     Hit hitreal;
 
-    int next = 0;
-    int i=-1;
+    int i=0;
+    while (i<=nodes.length()) {
 
-    while(i<=nodes.length()) {
-        if(i > nodes.length()){ break;}
-        if (i != next) { i++;  continue; }
 
-        bool hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
-
-        if (nodes[i].createdEmpty==1){
-            hit=false;
+        bool hit= rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
+        if (i==3 || i==6 || i==9|| i==10 || i==11 || i==12|| i==6){
+            hit=true;
         }
 
+
         if (hit) {
-            if (nodes[i].isLeaf==1 && nodes[i].createdEmpty!=1){
+
+
+            // Ha találat van és nem leaf a node, akkor megyünk lejjebb.
+            if (nodes[i].isLeaf==0){
+                i=2*i+1;
+                continue;
+            }
+
+            // Ha találat van és leaf a node, akkor bejárjuk, hogy van-e intersection.
+            else if (nodes[i].isLeaf==1){
                 db++;
 
                 for (int j=0;j<nodes[i].indices.length();j++){
@@ -192,50 +197,73 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
                         hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
 
-                        if (hitreal.t==-1){    i++;  continue; }
+                        if (hitreal.t==-1){ continue; }
 
                         if (hitreal.t>0 && (besthit.t>hitreal.t || besthit.t<0)){
                             besthit=hitreal;
                         }
                     }
+                }
 
+                // Ha bal oldali a leaf, akkor átmegyünk a jobb oldaliba.
+                if (nodes[i].leftOrRight==0){
+                    i=i+1;
+                    continue;
+                }
+
+                // Ha jobb oldali a leaf, akkor feljebb megyünk addig, amíg a szülőnek nem lesz jobb oldali testvére
+                else if (nodes[i].leftOrRight==1){
+
+
+                    int id=int(ceil(i-2)/2);
+                    FlatBvhNode parent=nodes[id];
+
+                    while (parent.leftOrRight==1){
+                        parent=nodes[int(ceil(parent.order-2)/2)];
+                        if (parent.order==0 || parent.order==-0){
+
+
+                            break; }
+                    }
+                    i = parent.order+1;
+                    continue;
                 }
             }
-            else{ next =2*i+1;}
         }
 
-        else  {
-            if (nodes[i].leftOrRight==0){  next = i+1; }
+        else {
+            // Ha nincs találat és a root node-nál vagyunk, akkor kilépés.
+            if (nodes[i].order==0){
+                break;
+            }
 
+            // Ha nincs találat és nem a root node-nál vagyunk és bal oldali node-nál vagyunk.
+            if (nodes[i].leftOrRight==0) {
+                i=i+1;
+                continue;
+            }
+
+            // Ha nincs találat és nem a root node-nál vagyunk és jobb oldali node-nál vagyunk.
             else if (nodes[i].leftOrRight==1){
-
                 int id=int(ceil(i-2)/2);
                 FlatBvhNode parent=nodes[id];
 
-                while(parent.leftOrRight==1){
+                while (parent.leftOrRight==1){
                     parent=nodes[int(ceil(parent.order-2)/2)];
-
-                 if(parent.order==0){break;}
+                    if (parent.order==0 || parent.order==-0){ break; }
                 }
-                next = parent.order+1;
-                i=next;
+                i = parent.order+1;
+                continue;
             }
         }
-        i++;
     }
-
-
 
     return besthit;
 }
 
 
 Hit traverseBvhTree(Ray ray){
-    Hit hit;
-    if (rayIntersectWithBox(nodes[0].min, nodes[0].max, ray)){
-        return traverseBvhNode(ray, nodes[0]);
-    }
-    return hit;
+    return traverseBvhNode(ray, nodes[0]);
 }
 
 
@@ -243,6 +271,8 @@ vec3 trace(Ray ray){
     vec3 color= vec3(0, 0, 0);
     vec3 ka= vec3(0.135, 0.2225, 0.1575);
     vec3 kd= vec3(0.54, 0.89, 0.63);
+
+    
 
     Hit hit=traverseBvhTree(ray);
 
