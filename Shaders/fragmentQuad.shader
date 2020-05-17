@@ -106,7 +106,7 @@ bool rayIntersectWithBox(const vec4 boxMin, const vec4 boxMax, const Ray r) {
 }
 
 // Traverse one Node
-
+/*
 Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
     Hit besthit;
@@ -120,6 +120,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
             for (int j=0;j<nodes[i].indices.length();j++){
 
                 if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
+
                     vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
                     vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
                     vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
@@ -137,20 +138,120 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
         }
     }
     return besthit;
+}*/
+
+
+Hit firstIntersect(Ray ray, int i){
+    Hit besthit;
+    besthit.t=-1;
+    for (int j=0;j<nodes[i].indices.length();j++){
+        vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
+        vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
+        vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
+        Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
+
+        if (hit.t==-1){ continue; }
+
+        if (hit.t>0 && (besthit.t>hit.t || besthit.t<0)){
+            besthit=hit;
+        }
+    }
+    return besthit;
 }
 
+Hit traverseBvhNode(Ray ray, FlatBvhNode node){
+    Hit besthit;
+    besthit.t=-1;
+
+    int db=0;
+    Hit hitreal;
+
+    int next = 0;
+    int i=-1;
+    while(i<=nodes.length()) {
+        i++;
+
+        if(i > nodes.length()){ break;}
+        if (i != next) { continue; }
+
+        bool hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
+
+        if (nodes[i].createdEmpty==1){
+            hit=false;
+
+            if(nodes[i].leftOrRight==1){
+                int id=int(ceil(i-2)/2);
+                FlatBvhNode parent=nodes[id];
+
+                while(parent.leftOrRight==1){
+                    parent=nodes[int(ceil(parent.order-2)/2)];
+                }
+                next = parent.order+1;
+                i=next-1;
+
+            }
+
+            else{ next = i+1; }
+
+
+        }
+
+        if (hit) {
+
+            if (nodes[i].isLeaf==1 && nodes[i].createdEmpty!=1){
+                db++;
+
+                for (int j=0;j<nodes[i].indices.length();j++){
+                    if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
+
+                        vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
+                        vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
+                        vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
+
+                        hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
+
+                        if (hitreal.t==-1){ continue; }
+
+                        if (hitreal.t>0 && (besthit.t>hitreal.t || besthit.t<0)){
+                            besthit=hitreal;
+                        }
+                    }
+                    else{ continue;}
+                }
+            }
+            else{ next = 2*i+1;}
+        }
+
+        else  {
+            if (nodes[i].leftOrRight==0){  next = i+1; }
+
+            else if (nodes[i].leftOrRight==1){
+
+                int id=int(ceil(i-2)/2);
+                FlatBvhNode parent=nodes[id];
+
+                while(parent.leftOrRight==1){
+                    parent=nodes[int(ceil(parent.order-2)/2)];
+                }
+                next = parent.order+1;
+                i=next-1;
+            }
+        }
+    }
+
+
+
+    return besthit;
+}
 
 
 Hit traverseBvhTree(Ray ray){
-    Hit no;
-
-
+    Hit hit;
     if (rayIntersectWithBox(nodes[0].min, nodes[0].max, ray)){
         return traverseBvhNode(ray, nodes[0]);
     }
-    return no;
+    return hit;
 }
-
 
 
 vec3 trace(Ray ray){

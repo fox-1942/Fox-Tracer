@@ -162,9 +162,10 @@ void buildBvhTree() {
     bvhNode = new BvhNode();
     bvhNode->buildTree(mymodel.indicesPerFaces, 0);
     bvhNode->makeBvHTreeComplete();
+
+    bvhNode->InfoAboutNode();
     
     vector<FlatBvhNode>* nodeArrays=putNodeIntoArray(bvhNode);
-
 
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
@@ -213,7 +214,7 @@ int init() {
 
    //  mymodel = Model("../model/model2.obj");
 
-    mymodel = Model("../model/cube.obj");
+    mymodel = Model("../model/cone.obj");
 
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
