@@ -17,7 +17,7 @@ struct FlatBvhNode
     int  isLeaf;// 4 byte           36
     int  createdEmpty;// 4 byte     40
     int  leftOrRight;
-    vec4 indices[10];// 32 byte     48
+    vec4 indices[100];// 32 byte     48
 };
 
 layout(std430, binding=2) buffer TNodes
@@ -94,142 +94,75 @@ FlatBvhNode rightChild(FlatBvhNode node){
     return nodes[2*node.order+2];
 }
 
-bool rayIntersectWithBox( vec4 boxMin,  vec4 boxMax,  Ray r) {
+bool rayIntersectWithBox(vec4 boxMin, vec4 boxMax, Ray r) {
     vec3 invdir = 1.0 / r.dir.xyz;
-     vec3 f = (boxMax.xyz - r.orig.xyz) * invdir;
-     vec3 n = (boxMin.xyz - r.orig.xyz) * invdir;
+    vec3 f = (boxMax.xyz - r.orig.xyz) * invdir;
+    vec3 n = (boxMin.xyz - r.orig.xyz) * invdir;
 
-     vec3 tmax = f * sign(invdir);
-     vec3 tmin = n * sign(invdir);
+    vec3 tmax = f * sign(invdir);
+    vec3 tmin = n * sign(invdir);
 
     return tmin.x < tmax.x && tmin.y < tmax.y && tmin.z < tmax.z;
 }
 
-// Traverse one Node
-/*
-Hit traverseBvhNode(Ray ray, FlatBvhNode node){
-
-    Hit besthit;
-    besthit.t=-1;
-
-    int next = 0;
-    for (int i = 0; i < nodes.length(); i++) {
-
-        if (nodes[i].isLeaf==1 && nodes[i].createdEmpty==0){
-
-            for (int j=0;j<nodes[i].indices.length();j++){
-
-                if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
-
-                    vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
-                    vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
-                    vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
-
-                    Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
-
-                    if (hit.t==-1){ continue; }
-
-                    if (hit.t>0 && (besthit.t>hit.t || besthit.t<0)){
-                        besthit=hit;
-                    }
-                }
-                else { continue; }
-            }
-        }
-    }
-    return besthit;
-}*/
-
-Hit firstIntersect(Ray ray, int i){
-    Hit besthit;
-    besthit.t=-1;
-    for (int j=0;j<nodes[i].indices.length();j++){
-        vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
-        vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
-        vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
-        Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
-
-        if (hit.t==-1){ continue; }
-
-        if (hit.t>0 && (besthit.t>hit.t || besthit.t<0)){
-            besthit=hit;
-        }
-    }
-    return besthit;
-}
 
 Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     Hit besthit;
     besthit.t=-1;
 
-    int db=0;
     Hit hitreal;
 
     int i=0;
     while (i<=nodes.length()) {
 
+        // Ha találat van és leaf a node, akkor bejárjuk, hogy van-e intersection.
+        if (nodes[i].isLeaf==1){
+            for (int j=0;j<nodes[i].indices.length();j++){
+                if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
+                    vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
+                    vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
+                    vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
+
+                    hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
+
+                    if (hitreal.t==-1){ continue; }
+
+                    if (hitreal.t>0 && (besthit.t>hitreal.t || besthit.t<0)){
+                        besthit=hitreal;
+                    }
+                }
+            }
+            // Ha bal oldali a leaf, akkor átmegyünk a jobb oldaliba.
+            if (nodes[i].leftOrRight==0){
+                i=i+1;
+                continue;
+            }
+
+            // Ha jobb oldali a leaf, akkor feljebb megyünk addig, amíg a szülőnek nem lesz jobb oldali testvére
+            else if (nodes[i].leftOrRight==1){
+
+                int id=int(ceil(i-2)/2);
+                FlatBvhNode parent=nodes[id];
+
+                while (parent.leftOrRight==1){
+                    parent=nodes[int(ceil(parent.order-2)/2)];
+                    if (parent.order==0){
+                        return besthit;
+                    }
+                }
+                i = parent.order+1;
+                continue;
+            }
+        }
+
         bool hit;
-
-        if(nodes[i].isLeaf==0){
-            hit= rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
-        }
-
-        else if(nodes[i].isLeaf==1){
-            hit=true;
-        }
+        hit= rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
 
         if (hit) {
-
-
             // Ha találat van és nem leaf a node, akkor megyünk lejjebb.
             if (nodes[i].isLeaf==0){
                 i=2*i+1;
                 continue;
-            }
-
-            // Ha találat van és leaf a node, akkor bejárjuk, hogy van-e intersection.
-            else if (nodes[i].isLeaf==1){
-                db++;
-
-                for (int j=0;j<nodes[i].indices.length();j++){
-                    if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
-
-                        vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
-                        vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
-                        vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
-
-                        hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
-
-                        if (hitreal.t==-1){ continue; }
-
-                        if (hitreal.t>0 && (besthit.t>hitreal.t || besthit.t<0)){
-                            besthit=hitreal;
-                        }
-                    }
-                }
-
-                // Ha bal oldali a leaf, akkor átmegyünk a jobb oldaliba.
-                if (nodes[i].leftOrRight==0){
-                    i=i+1;
-                    continue;
-                }
-
-                // Ha jobb oldali a leaf, akkor feljebb megyünk addig, amíg a szülőnek nem lesz jobb oldali testvére
-                else if (nodes[i].leftOrRight==1){
-
-
-                    int id=int(ceil(i-2)/2);
-                    FlatBvhNode parent=nodes[id];
-
-                    while (parent.leftOrRight==1){
-                        parent=nodes[int(ceil(parent.order-2)/2)];
-                        if (parent.order==0 || parent.order==-0){
-                            return besthit;
-                        }
-                    }
-                    i = parent.order+1;
-                    continue;
-                }
             }
         }
 
@@ -252,14 +185,17 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
                 while (parent.leftOrRight==1){
                     parent=nodes[int(ceil(parent.order-2)/2)];
-                    if (parent.order==0 || parent.order==-0){ break; }
+                    if (parent.order==0){
+                        if (parent.order==0){
+                            return besthit;
+                        }
+                    }
                 }
                 i = parent.order+1;
                 continue;
             }
         }
     }
-
     return besthit;
 }
 
