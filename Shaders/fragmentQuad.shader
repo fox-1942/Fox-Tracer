@@ -4,9 +4,6 @@ layout(std140, binding=0) buffer primitives{
     vec4 primitiveCoordinates[];
 };
 
-layout(std140, binding=1) buffer indices{
-    vec4 indicesC[];
-};
 
 struct FlatBvhNode
 {
@@ -109,10 +106,10 @@ bool rayIntersectWithBox(vec4 boxMin, vec4 boxMax, Ray r) {
 Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     Hit besthit;
     besthit.t=-1;
-
+    bool hit;
     Hit hitreal;
-
     int i=0;
+
     while (i<=nodes.length()) {
 
         // Ha találat van és leaf a node, akkor bejárjuk, hogy van-e intersection.
@@ -155,8 +152,8 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
             }
         }
 
-        bool hit;
-        hit= rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
+
+        hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
 
         if (hit) {
             // Ha találat van és nem leaf a node, akkor megyünk lejjebb.
@@ -180,8 +177,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
             // Ha nincs találat és nem a root node-nál vagyunk és jobb oldali node-nál vagyunk.
             else if (nodes[i].leftOrRight==1){
-                int id=int(ceil(i-2)/2);
-                FlatBvhNode parent=nodes[id];
+                FlatBvhNode parent=nodes[int(ceil(i-2)/2)];
 
                 while (parent.leftOrRight==1){
                     parent=nodes[int(ceil(parent.order-2)/2)];
@@ -204,12 +200,28 @@ Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
 
+bool shadowIntersect(Ray ray) {	// for directional lights
+
+    for(int i;i<nodes.length();i++){
+        for (int j=0;j<nodes[i].indices.length();j++){
+            vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
+            vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
+            vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
+            Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
+            if (hit.t>0){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
 
 vec3 trace(Ray ray){
     vec3 color= vec3(0, 0, 0);
     vec3 ka= vec3(0.135, 0.2225, 0.1575);
     vec3 kd= vec3(0.54, 0.89, 0.63);
-
 
     Hit hit=traverseBvhTree(ray);
 
@@ -220,12 +232,13 @@ vec3 trace(Ray ray){
     Ray shadowRay;
     shadowRay.orig=hit.orig+hit.normal*0.001f;
     shadowRay.dir=lights[0].direction;
+
     float cosTheta = dot(hit.normal, lights[0].direction)/(length(hit.normal)*length(lights[0].direction));
     if (cosTheta > 0){
         color+=lights[0].Le*cosTheta*kd;
         float cosDelta=dot(hit.normal, normalize(-ray.dir + lights[0].direction));
-        if (cosDelta>0){
-            color=color+lights[0].Le*vec3(0.316228, 0.316228, 0.316228)*pow(0.1, cosDelta);
+        if (cosDelta>0  && shadowIntersect(shadowRay) ){
+            color+=lights[0].Le*kd*pow(0.1, cosDelta);
         }
     }
     return color;

@@ -80,6 +80,9 @@ struct Light {
     }
 };
 
+
+
+
 Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f),
                      glm::vec3(0.5, 0.5, 0.5));
 
@@ -146,14 +149,6 @@ void sendVerticesIndices() {
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, primitives, 0,
                       primitiveCoordVec4.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    unsigned int indices;
-    glGenBuffers(1, &indices);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, indices);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, indicesPerFacesVec4.size() * sizeof(glm::vec4),
-                 glm::value_ptr(indicesPerFacesVec4.front()), GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, indices, 0, indicesPerFacesVec4.size() * sizeof(glm::vec4));
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 
@@ -214,7 +209,7 @@ int init() {
 
    //  mymodel = Model("../model/model2.obj");
 
-    mymodel = Model("../model/cube.obj");
+    mymodel = Model("../model/cubeplane.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
