@@ -47,13 +47,15 @@ struct Hit{
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
     Hit hit;
+    hit.t=-1;
     float t; float u; float v;
     vec3 v0v1 = v1 - v0;
     vec3 v0v2 = v2 - v0;
     vec3 pvec = cross(ray.dir, v0v2);
     float det = dot(v0v1, pvec);
 
-    if (abs(det) < 0.008){
+
+    if (abs(det) <  0.0001){
         hit.t=-1;
         return hit;// Culling is off
     }
@@ -200,48 +202,54 @@ Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
 
-bool shadowIntersect(Ray ray) {	// for directional lights
-
-    for(int i;i<nodes.length();i++){
+bool shadowIntersect(Ray ray1) { // for directional lights
+    for (int i;i<nodes.length();i++){
         for (int j=0;j<nodes[i].indices.length();j++){
-            vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
-            vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
-            vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
-            Hit hit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
-            if (hit.t>0){
-                return true;
+            if (mod(nodes[i].indices[j].x,1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
+                vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
+                vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
+                vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
+                Hit hit=rayTriangleIntersect(ray1, TrianglePointA, TrianglePointB, TrianglePointC);
+                if (hit.t>0){
+                    return true;
+                }
             }
         }
     }
     return false;
 }
-
-
-
 vec3 trace(Ray ray){
-    vec3 color= vec3(0, 0, 0);
-    vec3 ka= vec3(0.135, 0.2225, 0.1575);
-    vec3 kd= vec3(0.54, 0.89, 0.63);
+    const float epsilon = 0.0001f;
+    vec3 outRadiance = vec3(0, 0, 0);
+    vec3 gold_ka = vec3(0.24725f, 0.1995f, 0.0745f);
+    vec3 gold_kd = vec3 (40.75164f, 0.60648f, 0.22648f);
+    vec3 gold_ks = vec3 (0.628281f, 0.555802f, 0.366065f);
+    float goldshininess= 0.4f;
 
     Hit hit=traverseBvhTree(ray);
+    // Ha nincs metszés az objektummal oda ambiens fényt teszek.
+    if (hit.t<0){ return lights[0].La;}
 
-    if (hit.t==-1){ return lights[0].La; }
-
-    color=lights[0].La*ka;
+    // Ha van metszés az objektummal oda ambiens fény mellett ambiens fényforrás is teszek.
+    // mert különben fekete lenne az egész objektum
+    outRadiance+= gold_ka * lights[0].La;
 
     Ray shadowRay;
-    shadowRay.orig=hit.orig+hit.normal*0.001f;
-    shadowRay.dir=lights[0].direction;
+    shadowRay.orig = normalize(hit.orig) + normalize(hit.normal) * epsilon;
+    shadowRay.dir  = normalize(lights[0].direction);
 
-    float cosTheta = dot(hit.normal, lights[0].direction)/(length(hit.normal)*length(lights[0].direction));
-    if (cosTheta > 0){
-        color+=lights[0].Le*cosTheta*kd;
-        float cosDelta=dot(hit.normal, normalize(-ray.dir + lights[0].direction));
-        if (cosDelta>0  && shadowIntersect(shadowRay) ){
-            color+=lights[0].Le*kd*pow(0.1, cosDelta);
-        }
+    if(shadowIntersect(shadowRay)==true){
+        return vec3(0.5,0.5,0.5);
     }
-    return color;
+
+    // Mivel normalizált az alábbi sor skaláris szorzótényezői, ezért az eredmény megegyezik az általuk bezárt szög cos-val
+    // ha kisebb, mint nulla a cosTheta, akkor a szög nagyobb 90 foknál, ezért az objektum önmagának árnyékol.
+    float cosTheta = normalize(dot(normalize(hit.normal), normalize(lights[0].direction)));
+    if (cosTheta>0 && shadowIntersect(shadowRay)==false) {
+        outRadiance +=lights[0].La * gold_kd * cosTheta;
+
+    }
+    return outRadiance;
 }
 
 void main()

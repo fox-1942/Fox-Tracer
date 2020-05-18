@@ -83,7 +83,7 @@ struct Light {
 
 
 
-Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.3f, 0.3f, 0.3f),
+Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f),
                      glm::vec3(0.5, 0.5, 0.5));
 
 
