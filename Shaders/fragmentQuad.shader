@@ -76,6 +76,7 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     }
 
     hit.t = dot(v0v2, qvec) * invDet;
+    hit.orig=ray.orig+normalize(ray.dir)*hit.t;
     hit.normal= cross(v0v1, v0v2);
     return hit;
 }
@@ -202,22 +203,6 @@ Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
 
-bool shadowIntersect(Ray ray1) { // for directional lights
-    for (int i;i<nodes.length();i++){
-        for (int j=0;j<nodes[i].indices.length();j++){
-            if (mod(nodes[i].indices[j].x,1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
-                vec3 TrianglePointA=getCoordinatefromIndices(nodes[i].indices[j].x).xyz;
-                vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
-                vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
-                Hit hit=rayTriangleIntersect(ray1, TrianglePointA, TrianglePointB, TrianglePointC);
-                if (hit.t>0){
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
 vec3 trace(Ray ray){
     const float epsilon = 0.0001f;
     vec3 outRadiance = vec3(0, 0, 0);
@@ -235,19 +220,18 @@ vec3 trace(Ray ray){
     outRadiance+= gold_ka * lights[0].La;
 
     Ray shadowRay;
-    shadowRay.orig = normalize(hit.orig) + normalize(hit.normal) * epsilon;
+    shadowRay.orig = hit.orig + normalize(hit.normal) * epsilon;
     shadowRay.dir  = normalize(lights[0].direction);
 
-    if(shadowIntersect(shadowRay)==true){
-        return vec3(0.5,0.5,0.5);
-    }
 
     // Mivel normalizált az alábbi sor skaláris szorzótényezői, ezért az eredmény megegyezik az általuk bezárt szög cos-val
     // ha kisebb, mint nulla a cosTheta, akkor a szög nagyobb 90 foknál, ezért az objektum önmagának árnyékol.
-    float cosTheta = normalize(dot(normalize(hit.normal), normalize(lights[0].direction)));
-    if (cosTheta>0 && shadowIntersect(shadowRay)==false) {
+    float cosTheta = dot(normalize(hit.normal), normalize(lights[0].direction));
+    if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
         outRadiance +=lights[0].La * gold_kd * cosTheta;
-
+        vec3 halfway = normalize(-ray.dir + lights[0].direction);
+        float cosDelta = dot(hit.normal, halfway);
+        if (cosDelta > 0) outRadiance += lights[0].Le * gold_ks * pow(cosDelta, goldshininess);
     }
     return outRadiance;
 }
