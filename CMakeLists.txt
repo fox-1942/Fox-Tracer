@@ -20,6 +20,13 @@ add_executable(RayTracerBoros
         includes/ShaderProgram.h
         includes/filesystem.h
         includes/root_directory.h
-        includes/ShaderProgram.h includes/framework.h includes/bvhtree.h includes/errorChecking.h includes/flatBvhNode.h includes/BBox.h includes/flatBvhNode.h)
+        includes/ShaderProgram.h
+        includes/framework.h
+        includes/bvhtree.h
+        includes/errorChecking.h
+        includes/flatBvhNode.h
+        includes/BBox.h
+        includes/flatBvhNode.h
+        includes/stb_image.h includes/stb_image.cpp)
 
 target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)

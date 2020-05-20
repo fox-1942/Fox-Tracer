@@ -10,6 +10,7 @@
 #include "../includes/bvhtree.h"
 #include "../includes/BBox.h"
 #include "../includes/flatBvhNode.h"
+#include "../includes/stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -61,9 +62,9 @@ glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
 // hidden variable for BvhNode::primitiveCoordinates
-static vector <glm::vec3> hiddenPrimitives;
+static vector<glm::vec3> hiddenPrimitives;
 // Initialize BvhNode::primitiveCoordinates to reference the hidden variable
-const vector <glm::vec3> &BBox::primitiveCoordinates(hiddenPrimitives);
+const vector<glm::vec3> &BBox::primitiveCoordinates(hiddenPrimitives);
 
 
 struct Light {
@@ -79,8 +80,6 @@ struct Light {
         position = position_;
     }
 };
-
-
 
 
 Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f),
@@ -121,8 +120,8 @@ void renderQuad() {
     glBindVertexArray(0);
 }
 
-vector <glm::vec4> indicesPerFacesVec4;
-vector <glm::vec4> primitiveCoordVec4;
+vector<glm::vec4> indicesPerFacesVec4;
+vector<glm::vec4> primitiveCoordVec4;
 
 void sendVerticesIndices() {
     mymodel.fillAllPositionVertices();
@@ -159,8 +158,8 @@ void buildBvhTree() {
     bvhNode->makeBvHTreeComplete();
 
     bvhNode->InfoAboutNode();
-    
-    vector<FlatBvhNode>* nodeArrays=putNodeIntoArray(bvhNode);
+
+    vector<FlatBvhNode> *nodeArrays = putNodeIntoArray(bvhNode);
 
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
@@ -175,7 +174,6 @@ void buildBvhTree() {
 
 
 int init() {
-
     /* Initialize the library */
     if (!glfwInit())
         return -1;
@@ -207,15 +205,38 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-   //  mymodel = Model("../model/model2.obj");
+    //  mymodel = Model("../model/model2.obj");
 
     mymodel = Model("../model/cubeplane.obj");
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
+
     sendVerticesIndices();
     buildBvhTree();
 
+//-----------------------------------------------------------------------------
+    unsigned int texture1;
+    glGenTextures(1, &texture1);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load(FileSystem::getPath("model/rust.jpg").c_str(), &width, &height, &nrChannels,
+                                    0);
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    } else {
+        std::cout << "ERROR: FAILED to load texture." << std::endl;
+    }
+    stbi_image_free(data);
+
+//-----------------------------------------------------------------------------
     return 0;
 }
 
@@ -236,6 +257,7 @@ void loop() {
 
         shaderQuadProgram.useProgram();
 
+        glUniform1i(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "texture1"), 0);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"), 1, &lookat.x);
 

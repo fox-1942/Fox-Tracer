@@ -25,6 +25,8 @@ out vec4 FragColor;
 in vec3 p;
 uniform vec3 wEye;
 
+uniform sampler2D texture1;
+
 struct Light{
     vec3 Le, La;
     vec3 direction;
@@ -39,8 +41,13 @@ struct Ray{
 
 struct Hit{
     vec3 orig, dir, normal;
+    float u, v;
     float t;
 };
+
+
+
+
 
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
@@ -51,7 +58,6 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     vec3 v0v2 = v2 - v0;
     vec3 pvec = cross(ray.dir, v0v2);
     float det = dot(v0v1, pvec);
-
 
     float invDet = 1 / det;
 
@@ -72,20 +78,15 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     hit.t = dot(v0v2, qvec) * invDet;
     hit.orig=ray.orig+normalize(ray.dir)*hit.t;
     hit.normal= cross(v0v1, v0v2);
+
+    hit.u=u;
+    hit.v=v;
+
     return hit;
 }
 
 vec4 getCoordinatefromIndices(float index){
     return primitiveCoordinates[int(index)];
-}
-
-
-FlatBvhNode leftChild(FlatBvhNode node){
-    return nodes[2*node.order+1];
-}
-
-FlatBvhNode rightChild(FlatBvhNode node){
-    return nodes[2*node.order+2];
 }
 
 bool rayIntersectWithBox(vec4 boxMin, vec4 boxMax, Ray r) {
@@ -149,7 +150,6 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
             }
         }
 
-
         hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
 
         if (hit) {
@@ -197,34 +197,54 @@ Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
 
+void set(float u, float v){
+        int width=textureSize(texture1,0).x;
+        int height=textureSize(texture1,0).y;
+
+        int U=int(u*width);
+        int V=int((1-v)*height);
+        if (U>width-1) U=width-1;
+        if (V>height - 1) V=height-1;
+
+}
+
 vec3 trace(Ray ray){
     const float epsilon = 0.0001f;
     vec3 outRadiance = vec3(0, 0, 0);
     vec3 gold_ka = vec3(0.24725f, 0.1995f, 0.0745f);
     vec3 gold_kd = vec3 (40.75164f, 0.60648f, 0.22648f);
     vec3 gold_ks = vec3 (0.628281f, 0.555802f, 0.366065f);
-    float goldshininess= 0.4f;
+    float goldshininess = 0.4f;
 
-    Hit hit=traverseBvhTree(ray);
-    // Ha nincs metszés az objektummal oda ambiens fényt teszek.
-    if (hit.t<0){ return lights[0].La;}
+    int maxdepth=1;
 
-    // Ha van metszés az objektummal oda ambiens fény mellett ambiens fényforrás is teszek.
-    // mert különben fekete lenne az egész objektum
-    outRadiance+= gold_ka * lights[0].La;
+    for (int i=0; i < maxdepth; i++){
+        Hit hit=traverseBvhTree(ray);
+        // Ha nincs metszés az objektummal oda ambiens fényt teszek.
+        if (hit.t<0){ return lights[0].La; }
 
-    Ray shadowRay;
-    shadowRay.orig = hit.orig + normalize(hit.normal) * epsilon;
-    shadowRay.dir  = normalize(lights[0].direction);
+        vec4 textColor = texture(texture1, vec2(hit.u, hit.v));
 
-    // Mivel normalizált az alábbi sor skaláris szorzótényezői, ezért az eredmény megegyezik az általuk bezárt szög cos-val
-    // ha kisebb, mint nulla a cosTheta, akkor a szög nagyobb 90 foknál, ezért az objektum önmagának árnyékol.
-    float cosTheta = dot(normalize(hit.normal), normalize(lights[0].direction));
-    if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
-        outRadiance +=lights[0].La * gold_kd * cosTheta;
-        vec3 halfway = normalize(-ray.dir + lights[0].direction);
-        float cosDelta = dot(normalize(hit.normal), halfway);
-        if (cosDelta > 0) outRadiance += lights[0].Le * gold_ks * pow(cosDelta, goldshininess);
+        // Ha van metszés az objektummal oda ambiens fény mellett ambiens fényforrás is teszek.
+        // mert különben fekete lenne az egész objektum
+        outRadiance+= gold_ka * lights[0].La+textColor.xyz;
+        
+        Ray shadowRay;
+        shadowRay.orig = hit.orig + normalize(hit.normal) * epsilon;
+        shadowRay.dir  = normalize(lights[0].direction);
+
+        // Mivel normalizált az alábbi sor skaláris szorzótényezői, ezért az eredmény megegyezik az általuk bezárt szög cos-val
+        // ha kisebb, mint nulla a cosTheta, akkor a szög nagyobb 90 foknál, ezért az objektum önmagának árnyékol.
+        float cosTheta = dot(normalize(hit.normal), normalize(lights[0].direction));
+        if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
+            outRadiance +=lights[0].La * gold_kd * cosTheta*textColor.xyz;
+            vec3 halfway = normalize(-ray.dir + lights[0].direction);
+            float cosDelta = dot(normalize(hit.normal), halfway);
+            if (cosDelta > 0) outRadiance += lights[0].Le * gold_ks * pow(cosDelta, goldshininess);
+        }
+
+        ray.orig=hit.orig;
+        ray.dir=reflect(ray.dir, normalize(hit.normal));
     }
     return outRadiance;
 }
