@@ -77,7 +77,7 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
     hit.t = dot(v0v2, qvec) * invDet;
     hit.orig=ray.orig+normalize(ray.dir)*hit.t;
-    hit.normal= cross(v0v1, v0v2);
+    hit.normal= normalize(cross(v0v1, v0v2));
 
     hit.u=u;
     hit.v=v;
@@ -197,16 +197,6 @@ Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
 
-void set(float u, float v){
-        int width=textureSize(texture1,0).x;
-        int height=textureSize(texture1,0).y;
-
-        int U=int(u*width);
-        int V=int((1-v)*height);
-        if (U>width-1) U=width-1;
-        if (V>height - 1) V=height-1;
-
-}
 
 vec3 trace(Ray ray){
     const float epsilon = 0.0001f;
@@ -220,31 +210,33 @@ vec3 trace(Ray ray){
 
     for (int i=0; i < maxdepth; i++){
         Hit hit=traverseBvhTree(ray);
-        // Ha nincs metszés az objektummal oda ambiens fényt teszek.
         if (hit.t<0){ return lights[0].La; }
 
         vec4 textColor = texture(texture1, vec2(hit.u, hit.v));
-
-        // Ha van metszés az objektummal oda ambiens fény mellett ambiens fényforrás is teszek.
-        // mert különben fekete lenne az egész objektum
-        outRadiance+= gold_ka * lights[0].La+textColor.xyz;
-        
         Ray shadowRay;
-        shadowRay.orig = hit.orig + normalize(hit.normal) * epsilon;
+        shadowRay.orig = hit.orig + hit.normal * epsilon;
         shadowRay.dir  = normalize(lights[0].direction);
 
-        // Mivel normalizált az alábbi sor skaláris szorzótényezői, ezért az eredmény megegyezik az általuk bezárt szög cos-val
-        // ha kisebb, mint nulla a cosTheta, akkor a szög nagyobb 90 foknál, ezért az objektum önmagának árnyékol.
-        float cosTheta = dot(normalize(hit.normal), normalize(lights[0].direction));
+
+        // Ambient Light
+        outRadiance+= gold_ka * lights[0].La;
+
+        // Diffuse light
+        float cosTheta = dot(hit.normal, normalize(lights[0].direction));
         if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
+
             outRadiance +=lights[0].La * gold_kd * cosTheta*textColor.xyz;
+
             vec3 halfway = normalize(-ray.dir + lights[0].direction);
-            float cosDelta = dot(normalize(hit.normal), halfway);
-            if (cosDelta > 0) outRadiance += lights[0].Le * gold_ks * pow(cosDelta, goldshininess);
+            float cosDelta = dot(hit.normal, halfway);
+
+            // Specular light
+            if (cosDelta > 0){
+                outRadiance += lights[0].Le * gold_ks * pow(cosDelta, goldshininess); }
         }
 
         ray.orig=hit.orig;
-        ray.dir=reflect(ray.dir, normalize(hit.normal));
+        ray.dir=reflect(ray.dir, hit.normal);
     }
     return outRadiance;
 }
