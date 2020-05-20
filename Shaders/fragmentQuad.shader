@@ -4,7 +4,6 @@ layout(std140, binding=0) buffer primitives{
     vec4 primitiveCoordinates[];
 };
 
-
 struct FlatBvhNode
 {
 // base aligment                aligned offset
@@ -43,7 +42,6 @@ struct Hit{
     float t;
 };
 
-
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
     Hit hit;
@@ -55,10 +53,6 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     float det = dot(v0v1, pvec);
 
 
-    if (abs(det) <  0.0001){
-        hit.t=-1;
-        return hit;// Culling is off
-    }
     float invDet = 1 / det;
 
     vec3 tvec = ray.orig - v0;
@@ -223,14 +217,13 @@ vec3 trace(Ray ray){
     shadowRay.orig = hit.orig + normalize(hit.normal) * epsilon;
     shadowRay.dir  = normalize(lights[0].direction);
 
-
     // Mivel normalizált az alábbi sor skaláris szorzótényezői, ezért az eredmény megegyezik az általuk bezárt szög cos-val
     // ha kisebb, mint nulla a cosTheta, akkor a szög nagyobb 90 foknál, ezért az objektum önmagának árnyékol.
     float cosTheta = dot(normalize(hit.normal), normalize(lights[0].direction));
     if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
         outRadiance +=lights[0].La * gold_kd * cosTheta;
         vec3 halfway = normalize(-ray.dir + lights[0].direction);
-        float cosDelta = dot(hit.normal, halfway);
+        float cosDelta = dot(normalize(hit.normal), halfway);
         if (cosDelta > 0) outRadiance += lights[0].Le * gold_ks * pow(cosDelta, goldshininess);
     }
     return outRadiance;

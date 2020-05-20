@@ -302,20 +302,20 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        setCamera(0.5);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        setCamera(-0.5);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        setCamera(0.1);
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        setCameraY(+0.5);
+        setCamera(-0.1);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        setCameraY(-0.5);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        setCameraY(+0.1);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        setCameraY(-0.1);
     }
 
 }
