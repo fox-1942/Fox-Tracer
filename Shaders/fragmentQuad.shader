@@ -49,7 +49,7 @@ struct Hit{
     vec3 orig, dir, normal;
     float u, v;
     float t;
-    Material mat;
+    int mat;
 };
 
 uniform Light lights[];
@@ -59,9 +59,7 @@ uniform sampler2D texture1;
 in vec3 p;
 out vec4 FragColor;
 
-
-
-Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
+Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2, int matIndex){
 
     Hit hit;
     hit.t=-1;
@@ -98,10 +96,7 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
     hit.u=u;
     hit.v=v;
-
-    /*
-    hit.
-    */
+    hit.mat=matIndex;
 
     return hit;
 }
@@ -129,7 +124,6 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     int i=0;
 
     while (i<=nodes.length()) {
-
         // Ha találat van és leaf a node, akkor bejárjuk, hogy van-e intersection.
         if (nodes[i].isLeaf==1){
             for (int j=0;j<nodes[i].indices.length();j++){
@@ -138,7 +132,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                     vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
                     vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
 
-                    hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC);
+                    hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC, int(nodes[i].indices[j].w) );
 
                     if (hitreal.t==-1){ continue; }
 
