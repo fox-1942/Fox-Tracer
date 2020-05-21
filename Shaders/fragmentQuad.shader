@@ -13,7 +13,7 @@ struct FlatBvhNode
     int  isLeaf;// 4 byte           36
     int  createdEmpty;// 4 byte     40
     int  leftOrRight;
-    vec4 indices[100];// 32 byte     48
+    vec4 indices[5];// 32 byte     48
 };
 
 layout(std430, binding=2) buffer TNodes
@@ -45,10 +45,6 @@ struct Hit{
     float t;
 };
 
-
-
-
-
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 
     Hit hit;
@@ -58,6 +54,11 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     vec3 v0v2 = v2 - v0;
     vec3 pvec = cross(ray.dir, v0v2);
     float det = dot(v0v1, pvec);
+
+    if (abs(det) < 0.008){
+        hit.t=-1;
+        return hit;// Culling is off
+    }
 
     float invDet = 1 / det;
 

@@ -18,7 +18,6 @@
 
 using namespace std;
 
-
 int indDef = 0;
 int numberOf = 1;
 int numberOfLeaves = 0;
@@ -52,7 +51,7 @@ public:
     void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
 
         // This is a leaf node.
-        if (indicesPerFaces.size() <= 2) {
+        if (indicesPerFaces.size() <= 5) {
             this->bBox = BBox();
             this->indices = indicesPerFaces;
             this->depthOfNode = depth;
@@ -119,6 +118,7 @@ public:
 
         if (leftTree.size() == indicesPerFaces.size() || rightTree.size() == indicesPerFaces.size()) {
             this->indices = indicesPerFaces;
+            this->isLeaf = true;
             return;
         }
 
@@ -182,12 +182,7 @@ private:
             this->children.push_back(emptyNode);
 
             BvhNode *emptyNode2 = new BvhNode();
-            emptyNode2->bBox = BBox();
-            emptyNode2->createdEmpty = true;
-            emptyNode2->isLeaf = true;
-            emptyNode2->order = -1;
-            emptyNode2->depthOfNode = this->depthOfNode + 1;
-            emptyNode2->children.clear();
+            *emptyNode2=*emptyNode;
             emptyNode2->leftOrRight=1;
             this->children.push_back(emptyNode2);
         }

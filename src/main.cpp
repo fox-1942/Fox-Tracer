@@ -207,10 +207,10 @@ int init() {
 
     //  mymodel = Model("../model/model2.obj");
 
-    mymodel = Model("../model/cubeplane.obj");
+    mymodel  = Model("../model/cubeplane.obj");
+
 
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
-
 
     sendVerticesIndices();
     buildBvhTree();
@@ -310,7 +310,17 @@ void setCamera(float param) {
 
 void setCameraY(float param) {
 
-    eye = glm::vec3(eye.x, eye.y + param, eye.z) + lookat;
+    eye = glm::vec3(eye.x, eye.y + param, eye.z) ;
+    w = eye - lookat;
+    f = length(w);
+    right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
+    up = normalize(cross(w, right1)) * f * tanf(fov / 2);
+
+}
+
+void setCameraZ(float param) {
+
+    eye = glm::vec3(eye.x, eye.y , eye.z+ param) ;
     w = eye - lookat;
     f = length(w);
     right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
@@ -339,6 +349,15 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         setCameraY(-0.1);
     }
+
+    if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+        setCameraZ(+0.1);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
+        setCameraZ(-0.1);
+    }
+
 
 }
 
