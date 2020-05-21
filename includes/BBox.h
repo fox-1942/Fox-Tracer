@@ -14,7 +14,7 @@
 using namespace std;
 
 struct BBox {
-    static const vector<glm::vec3> &primitiveCoordinates;
+    static const vector<glm::vec4> &primitiveCoordinates;
 
     glm::vec3 min;
     glm::vec3 max;

@@ -6,13 +6,13 @@ layout(std140, binding=0) buffer primitives{
 
 struct FlatBvhNode
 {
-// base aligment                aligned offset
-    vec4 min;// 16 byte              0
-    vec4 max;// 16 byte             16
-    int  order;// 4 byte            32
-    int  isLeaf;// 4 byte           36
-    int  createdEmpty;// 4 byte     40
-    int  leftOrRight;
+// base aligment             aligned offset
+    vec4 min;// 16 byte             0
+    vec4 max;// 16 byte            16
+    int  order;// 4 byte           32
+    int  isLeaf;// 4 byte          36
+    int  createdEmpty;// 4 byte    40
+    int  leftOrRight;// 4 byte     44
     vec4 indices[5];// 32 byte     48
 };
 
@@ -21,29 +21,25 @@ layout(std430, binding=1) buffer TNodes
     FlatBvhNode nodes[];
 };
 
-out vec4 FragColor;
-in vec3 p;
-uniform vec3 wEye;
+struct Material{
+    vec4 Ka;
+    vec4 Kd;
+    vec4 Ks;
+    float opacity;
+    float shadingModel;
+    float shininess;
+};
 
-uniform sampler2D texture1;
+layout(std430, binding=2) buffer Materials
+{
+    Material materials[];
+};
 
 struct Light{
     vec3 Le, La;
     vec3 direction;
     vec3 position;
 };
-
-uniform Light lights[];
-
-
-struct Material{
-    float Ka;
-    float Kd;
-    float Ks;
-    float spec;
-    float opacity;
-};
-
 
 struct Ray{
     vec3 orig, dir;
@@ -55,6 +51,15 @@ struct Hit{
     float t;
     Material mat;
 };
+
+uniform Light lights[];
+uniform vec3 wEye;
+uniform sampler2D texture1;
+
+in vec3 p;
+out vec4 FragColor;
+
+
 
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
 

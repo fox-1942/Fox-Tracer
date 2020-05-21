@@ -37,7 +37,7 @@ public:
     Material mat;
 
 public:
-    vector<glm::vec3> allPositionVertices;
+    vector<glm::vec4> allPositionVertices;
     vector<glm::vec4> indicesPerFaces;
     vector<Material> materials;
 
@@ -66,63 +66,10 @@ public:
                 vectorTemp.x = meshes.at(i).vertices.at(j).Position.x;
                 vectorTemp.y = meshes.at(i).vertices.at(j).Position.y;
                 vectorTemp.z = meshes.at(i).vertices.at(j).Position.z;
+                vectorTemp.w = 1;
                 allPositionVertices.push_back(vectorTemp);
             }
         }
-
-
-/*
-        ofstream myfile;
-        myfile.open ("../model/vertices.txt");
-         for (int i = 0; i < allPositionVertices.size(); i++) {
-             myfile << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
-                    << allPositionVertices.at(i).z << endl;
-           }*/
-/*
-          for(int i=0;i<arr.size();i++){
-              for(int j=0;j<arr.at(i).size();j++){
-                  cout<<arr.at(i).at(j).x<<" "<<arr.at(i).at(j).y<<" "<<arr.at(i).at(j).z<<endl;
-              }
-          } */
-
-        /* for(int i=0;i<meshes.size();i++){
-             for(int j=0;j<meshes.at(i).indices.size()-1;j++){
-                 if(meshes.at(i).indices.at(j)>meshes.at(i).indices.at(j+1)){
-                   cout<<"megvan"<<endl;
-                 }
-                 //cout<< meshes.at(i).indices.at(j)<< endl;
-             }
-             cout << endl;
-         }*/
-/*
-        ofstream myfile2;
-        myfile2.open ("../model/indicesperFaces.txt");
-        for(int i=0;i<indicesPerFaces.size();i++){
-            myfile2<<indicesPerFaces.at(i).x <<" ";
-            myfile2<<indicesPerFaces.at(i).y <<" ";
-            myfile2<<indicesPerFaces.at(i).z << endl;
-        }*/
-
-
-/*
-          ofstream myfile2;
-           myfile2.open ("../model/originalindices.txt");
-
-           for(int i=0;i<meshes.size();i++) {
-               int db=0;
-               for(int j=0;j<meshes.at(i).indices.size();j++){
-                   myfile2 << meshes.at(i).indices.at(j) << " ";
-                   db++;
-                   if(db%3==0){
-                       myfile2<<endl;
-                   }
-               }
-
-           }
-           myfile2.close();*/
-
-        /*cout <<"all position vertices: "<< allPositionVertices.size() << endl;
-        cout <<"indices: "<< indicesPerFaces.size() << "\n" << endl;*/
     }
 
 private:
@@ -153,17 +100,14 @@ private:
     }
 
     void getInfoAboutModel() {
-        cout << "Number of meshes in the model: " << meshes.size() << endl;
-
         int size = 0;
         for (int i = 0; i < meshes.size(); i++) {
             size += meshes.at(i).vertices.size();
         }
-
-        cout << "Number of vertices in the model: " << size << "\n" << endl;
-
+        cout << "Number of meshes in the model: " << meshes.size() << endl;
+        cout << "Number of vertices in the model: " << size << endl;
+        cout << "Number of faces in the model: " <<indicesPerFaces.size() << "\n" << endl;
     }
-
 
     // Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode *node, const aiScene *scene) {
@@ -230,18 +174,28 @@ private:
             aiColor3D color;
             float d;
             float shadingModel;
+            float shininess;
             // Read mtl file vertex data
 
             material->Get(AI_MATKEY_COLOR_AMBIENT, color);
             mat.Ka = glm::vec4(color.r, color.g, color.b,1.0);
+
             material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
             mat.Kd = glm::vec4(color.r, color.g, color.b,1.0);
+
             material->Get(AI_MATKEY_COLOR_SPECULAR, color);
             mat.Ks = glm::vec4(color.r, color.g, color.b,1.0);
+
             material->Get(AI_MATKEY_OPACITY, d);
             mat.opacity=d;
+
             material->Get(AI_MATKEY_SHADING_MODEL, shadingModel);
-            mat.shading_model=shadingModel-1;  //Assimp problem to read illumination model
+            mat.shadingModel= shadingModel - 1;  //Assimp problem to read illumination model
+
+            material->Get(AI_MATKEY_SHININESS, shininess);
+            mat.shininess=shininess;  //Assimp problem to read illumination model
+
+            cout<<"shininess"<<mat.shininess<<endl;
 
             materials.push_back(mat);
 
@@ -323,13 +277,6 @@ private:
 
         return textures;
     }
-
-public:
-
-    void sendDataAsTextureToShader(ShaderProgram shaderProgram) {
-
-
-    }
 };
 
 GLint TextureFromFile(const char *path, string directory) {
@@ -360,3 +307,61 @@ GLint TextureFromFile(const char *path, string directory) {
 }
 
 #endif
+
+
+
+
+
+
+/*
+        ofstream myfile;
+        myfile.open ("../model/vertices.txt");
+         for (int i = 0; i < allPositionVertices.size(); i++) {
+             myfile << allPositionVertices.at(i).x << " " << allPositionVertices.at(i).y << " "
+                    << allPositionVertices.at(i).z << endl;
+           }*/
+/*
+          for(int i=0;i<arr.size();i++){
+              for(int j=0;j<arr.at(i).size();j++){
+                  cout<<arr.at(i).at(j).x<<" "<<arr.at(i).at(j).y<<" "<<arr.at(i).at(j).z<<endl;
+              }
+          } */
+
+/* for(int i=0;i<meshes.size();i++){
+     for(int j=0;j<meshes.at(i).indices.size()-1;j++){
+         if(meshes.at(i).indices.at(j)>meshes.at(i).indices.at(j+1)){
+           cout<<"megvan"<<endl;
+         }
+         //cout<< meshes.at(i).indices.at(j)<< endl;
+     }
+     cout << endl;
+ }*/
+/*
+        ofstream myfile2;
+        myfile2.open ("../model/indicesperFaces.txt");
+        for(int i=0;i<indicesPerFaces.size();i++){
+            myfile2<<indicesPerFaces.at(i).x <<" ";
+            myfile2<<indicesPerFaces.at(i).y <<" ";
+            myfile2<<indicesPerFaces.at(i).z << endl;
+        }*/
+
+
+/*
+          ofstream myfile2;
+           myfile2.open ("../model/originalindices.txt");
+
+           for(int i=0;i<meshes.size();i++) {
+               int db=0;
+               for(int j=0;j<meshes.at(i).indices.size();j++){
+                   myfile2 << meshes.at(i).indices.at(j) << " ";
+                   db++;
+                   if(db%3==0){
+                       myfile2<<endl;
+                   }
+               }
+
+           }
+           myfile2.close();*/
+
+/*cout <<"all position vertices: "<< allPositionVertices.size() << endl;
+cout <<"indices: "<< indicesPerFaces.size() << "\n" << endl;*/

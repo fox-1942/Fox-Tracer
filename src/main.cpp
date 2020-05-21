@@ -6,11 +6,10 @@
 #include "../includes/camera.h"
 #include "../includes/model.h"
 #include "../includes/filesystem.h"
-#include "../includes/framework.h"
 #include "../includes/bvhtree.h"
-#include "../includes/BBox.h"
 #include "../includes/flatBvhNode.h"
 #include "../includes/stb_image.h"
+#include "../includes/light.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -62,28 +61,17 @@ glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
 // hidden variable for BvhNode::primitiveCoordinates
-static vector<glm::vec3> hiddenPrimitives;
+static vector<glm::vec4> hiddenPrimitives;
 // Initialize BvhNode::primitiveCoordinates to reference the hidden variable
-const vector<glm::vec3> &BBox::primitiveCoordinates(hiddenPrimitives);
+const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);
+
+Light light = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
 
 
-struct Light {
-    glm::vec3 Le;
-    glm::vec3 La;
-    glm::vec3 direction;
-    glm::vec3 position;
-
-    Light(glm::vec3 direction_, glm::vec3 Le_, glm::vec3 La_, glm::vec3 position_) {
-        direction = normalize(direction_);
-        Le = Le_;
-        La = La_;
-        position = position_;
-    }
-};
 
 
-Light light1 = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f),
-                     glm::vec3(0.5, 0.5, 0.5));
+
+
 
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
@@ -120,26 +108,27 @@ void renderQuad() {
     glBindVertexArray(0);
 }
 
-vector<glm::vec4> primitiveCoordVec4;
-
 void sendVerticesIndices() {
     mymodel.fillAllPositionVertices();
-
-    for (int i = 0; i < mymodel.allPositionVertices.size(); i++) {
-        primitiveCoordVec4.push_back(
-                glm::vec4(mymodel.allPositionVertices.at(i).x, mymodel.allPositionVertices.at(i).y,
-                          mymodel.allPositionVertices.at(i).z, 1));
-    }
-    cout << "Number of faces: " << mymodel.indicesPerFaces.size() << endl;
 
     unsigned int primitives;
     glGenBuffers(1, &primitives);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, primitives);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, primitiveCoordVec4.size() * sizeof(glm::vec4),
-                 glm::value_ptr(primitiveCoordVec4.front()), GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.allPositionVertices.size() * sizeof(glm::vec4),
+                 glm::value_ptr(mymodel.allPositionVertices.front()), GL_STATIC_DRAW);
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, primitives, 0,
-                      primitiveCoordVec4.size() * sizeof(glm::vec4));
+                      mymodel.allPositionVertices.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    unsigned int materials;
+    glGenBuffers(1, &materials);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, materials);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.materials.size() * sizeof(Material),
+                  &mymodel.materials.front(), GL_STATIC_DRAW);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, materials, 0,
+                      mymodel.materials.size() * sizeof(Material));
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 }
 
 void buildBvhTree() {
@@ -174,7 +163,7 @@ int init() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "RaytracerBoros", nullptr, nullptr);
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -193,15 +182,12 @@ int init() {
         std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
         exit(1);
     }
+
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
-
-
-
     mymodel  = Model("../model/cubeplane.obj");
-
-
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
+
 
     sendVerticesIndices();
     buildBvhTree();
@@ -258,15 +244,15 @@ void loop() {
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wEye"), 1, &eye.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].Le"), 1, &light1.Le.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].Le"), 1, &light.Le.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1, &light1.La.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1, &light.La.x);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].direction"), 1,
-                     &light1.direction.x);
+                     &light.direction.x);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].position"), 1,
-                     &light1.position.x);
+                     &light.position.x);
 
         renderQuad();
 

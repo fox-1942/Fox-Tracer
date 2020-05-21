@@ -39,7 +39,9 @@ struct Material {
     //Mirror reflection
     glm::vec4 Ks;
     float opacity;
-    float shading_model;
+    float shadingModel;
+    float shininess;
+    float dummy;
 };
 
 
