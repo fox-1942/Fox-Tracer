@@ -27,7 +27,7 @@ GLint TextureFromFile(const char *path, string directory);
 
 class Model {
 
-private:
+public:
     const aiScene *scene;
 
     /*  Model Data  */
@@ -38,7 +38,7 @@ private:
 
 public:
     vector<glm::vec3> allPositionVertices;
-    vector<glm::vec3> indicesPerFaces;
+    vector<glm::vec4> indicesPerFaces;
     vector<glm::vec3> materials;
 
     /*  Functions   */
@@ -59,7 +59,7 @@ public:
 
     void fillAllPositionVertices()  {
 
-        glm::vec3 vectorTemp;
+        glm::vec4 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
 
             for (int j = 0;j < meshes.at(i).vertices.size(); j++) {
@@ -69,6 +69,8 @@ public:
                 allPositionVertices.push_back(vectorTemp);
             }
         }
+
+
 /*
         ofstream myfile;
         myfile.open ("../model/vertices.txt");
@@ -219,23 +221,6 @@ private:
             vertices.push_back(vertex);
         }
 
-        // Now walk through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-        for (GLuint i = 0; i < mesh->mNumFaces; i++) {
-            aiFace face = mesh->mFaces[i];
-            // Retrieve all indices of the face and store them in the indices vector
-
-            glm::vec3 vec3Face;
-            vec3Face.x = face.mIndices[0];
-            vec3Face.y = face.mIndices[1];
-            vec3Face.z = face.mIndices[2];
-
-
-            indicesPerFaces.push_back(vec3Face);
-
-            for (GLuint j = 0; j < face.mNumIndices; j++) {
-                indices.push_back(face.mIndices[j]);
-            }
-        }
 
         // Process materials
         if (mesh->mMaterialIndex >= 0) {
@@ -243,7 +228,8 @@ private:
 
 
             aiColor3D color;
-
+            float d;
+            float shadingModel;
             // Read mtl file vertex data
 
             material->Get(AI_MATKEY_COLOR_AMBIENT, color);
@@ -252,8 +238,10 @@ private:
             mat.Kd = glm::vec4(color.r, color.g, color.b,1.0);
             material->Get(AI_MATKEY_COLOR_SPECULAR, color);
             mat.Ks = glm::vec4(color.r, color.g, color.b,1.0);
-
-
+            material->Get(AI_MATKEY_OPACITY, d);
+            mat.opacity=d;
+            material->Get(AI_MATKEY_SHADING_MODEL, shadingModel);
+            mat.shading_model=shadingModel-1;  //Assimp problem to read illumination model
 
             // We assume a convention for sampler names in the shaders. Each diffuse texture should be named
             // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
@@ -273,6 +261,26 @@ private:
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         }
 
+
+        // Now walk through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+        for (GLuint i = 0; i < mesh->mNumFaces; i++) {
+            aiFace face = mesh->mFaces[i];
+            // Retrieve all indices of the face and store them in the indices vector
+
+            glm::vec4 vec3Face;
+
+            vec3Face.x = face.mIndices[0];
+            vec3Face.y = face.mIndices[1];
+            vec3Face.z = face.mIndices[2];
+            vec3Face.w = mat.shading_model;
+            indicesPerFaces.push_back(vec3Face);
+
+            for (GLuint j = 0; j < face.mNumIndices-1; j++) {
+                indices.push_back(face.mIndices[j]);
+            }
+
+
+        }
 
         // Return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures, mat);

@@ -5,8 +5,6 @@
 #ifndef RAYTRACERBOROS_FLATBVHNODE_H
 #define RAYTRACERBOROS_FLATBVHNODE_H
 
-
-
 #include <array>
 #include <vector>
 #include "../Vendor/glm/glm.hpp"
@@ -26,13 +24,13 @@ struct FlatBvhNode {
     FlatBvhNode() {}
 
     FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty,
-                vector<glm::vec3> indices, int leftOrRight) {
+                vector<glm::vec4> indices, int leftOrRight) {
         this->min = glm::vec4(min.x, min.y, min.z, 1.0f);
         this->max = glm::vec4(max.x, max.y, max.z, 1.0f);
         this->order = ind;
         this->isLeaf = isLeaf;
         this->createdEmpty = createdEmpty;
-        this->leftOrRight=leftOrRight;
+        this->leftOrRight= leftOrRight;
 
         for (int i = 0; i < indices.size(); i++) {
             this->indices.at(i) = glm::vec4(indices.at(i).x, indices.at(i).y, indices.at(i).z, 1);
@@ -64,7 +62,6 @@ vector<FlatBvhNode> *putNodeIntoArray(const BvhNode * node) {
         if (!curr->children.empty()) {
 
             queue.push_back(curr->children.at(0));
-
             queue.push_back(curr->children.at(1));
         }
         ind++;

@@ -51,7 +51,7 @@ glm::vec3 getCoordinatefromIndices(float index) {
     return BBox::primitiveCoordinates.at(index);
 }
 
-BBox getBBox(vector<glm::vec3> &indices) {
+BBox getBBox(vector<glm::vec4> &indices) {
     vector<glm::vec3> faceCenters;
     glm::vec3 center(0, 0, 0);
 
@@ -64,7 +64,7 @@ BBox getBBox(vector<glm::vec3> &indices) {
     glm::vec3 thirdCoordofTri;
 
 
-    for (const glm::vec3 index : indices) {
+    for (const glm::vec4 index : indices) {
 
         firstCoordofTri = getCoordinatefromIndices(index.x);
         secondCoordofTri = getCoordinatefromIndices(index.y);

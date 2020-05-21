@@ -16,7 +16,7 @@ struct FlatBvhNode
     vec4 indices[5];// 32 byte     48
 };
 
-layout(std430, binding=2) buffer TNodes
+layout(std430, binding=1) buffer TNodes
 {
     FlatBvhNode nodes[];
 };
@@ -35,6 +35,16 @@ struct Light{
 
 uniform Light lights[];
 
+
+struct Material{
+    float Ka;
+    float Kd;
+    float Ks;
+    float spec;
+    float opacity;
+};
+
+
 struct Ray{
     vec3 orig, dir;
 };
@@ -43,6 +53,7 @@ struct Hit{
     vec3 orig, dir, normal;
     float u, v;
     float t;
+    Material mat;
 };
 
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
@@ -83,6 +94,10 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2){
     hit.u=u;
     hit.v=v;
 
+    /*
+    hit.
+    */
+
     return hit;
 }
 
@@ -100,7 +115,6 @@ bool rayIntersectWithBox(vec4 boxMin, vec4 boxMax, Ray r) {
 
     return tmin.x < tmax.x && tmin.y < tmax.y && tmin.z < tmax.z;
 }
-
 
 Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     Hit besthit;
@@ -197,7 +211,6 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
-
 
 vec3 trace(Ray ray){
     const float epsilon = 0.0001f;

@@ -41,14 +41,14 @@ public:
     bool isLeaf;
     bool createdEmpty = false;
     int leftOrRight;
-    vector<glm::vec3> indices;
+    vector<glm::vec4> indices;
 
 public:
     BvhNode() {}
 
     ~BvhNode() {}
 
-    void buildTree(vector<glm::vec3> &indicesPerFaces, int depth) {
+    void buildTree(vector<glm::vec4> &indicesPerFaces, int depth) {
 
         // This is a leaf node.
         if (indicesPerFaces.size() <= 5) {
@@ -70,8 +70,8 @@ public:
 
         int axis = this->bBox.longestAxis;
 
-        vector<glm::vec3> leftTree;
-        vector<glm::vec3> rightTree;
+        vector<glm::vec4> leftTree;
+        vector<glm::vec4> rightTree;
 
         for (int i = 0; i < indicesPerFaces.size(); ++i) {
             switch (axis) {

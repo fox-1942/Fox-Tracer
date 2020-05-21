@@ -131,14 +131,7 @@ void sendVerticesIndices() {
                 glm::vec4(mymodel.allPositionVertices.at(i).x, mymodel.allPositionVertices.at(i).y,
                           mymodel.allPositionVertices.at(i).z, 1));
     }
-
-
     cout << "Number of faces: " << mymodel.indicesPerFaces.size() << endl;
-
-    for (int i = 0; i < mymodel.indicesPerFaces.size(); i++) {
-        indicesPerFacesVec4.push_back(glm::vec4(mymodel.indicesPerFaces.at(i).x, mymodel.indicesPerFaces.at(i).y,
-                                                mymodel.indicesPerFaces.at(i).z, 1));
-    }
 
     unsigned int primitives;
     glGenBuffers(1, &primitives);
@@ -149,7 +142,6 @@ void sendVerticesIndices() {
                       primitiveCoordVec4.size() * sizeof(glm::vec4));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
-
 
 void buildBvhTree() {
     hiddenPrimitives = mymodel.allPositionVertices;
@@ -167,7 +159,7 @@ void buildBvhTree() {
 
     glBufferData(GL_SHADER_STORAGE_BUFFER, nodeArrays->size() * sizeof(FlatBvhNode), nodeArrays->data(),
                  GL_STATIC_DRAW);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, nodesArraytoSendtoShader, 0,
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, nodesArraytoSendtoShader, 0,
                       nodeArrays->size() * sizeof(FlatBvhNode));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
@@ -205,7 +197,7 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
 
-    //  mymodel = Model("../model/model2.obj");
+
 
     mymodel  = Model("../model/cubeplane.obj");
 
