@@ -33,7 +33,7 @@ struct FlatBvhNode {
         this->leftOrRight= leftOrRight;
 
         for (int i = 0; i < indices.size(); i++) {
-            this->indices.at(i) = glm::vec4(indices.at(i).x, indices.at(i).y, indices.at(i).z, 1);
+            this->indices.at(i) = glm::vec4(indices.at(i).x, indices.at(i).y, indices.at(i).z, indices.at(i).w);
         }
     }
 };

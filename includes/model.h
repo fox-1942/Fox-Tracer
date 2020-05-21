@@ -39,7 +39,7 @@ public:
 public:
     vector<glm::vec3> allPositionVertices;
     vector<glm::vec4> indicesPerFaces;
-    vector<glm::vec3> materials;
+    vector<Material> materials;
 
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
@@ -243,6 +243,8 @@ private:
             material->Get(AI_MATKEY_SHADING_MODEL, shadingModel);
             mat.shading_model=shadingModel-1;  //Assimp problem to read illumination model
 
+            materials.push_back(mat);
+
             // We assume a convention for sampler names in the shaders. Each diffuse texture should be named
             // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
             // Same applies to other texture as the following list summarizes:
@@ -267,15 +269,15 @@ private:
             aiFace face = mesh->mFaces[i];
             // Retrieve all indices of the face and store them in the indices vector
 
-            glm::vec4 vec3Face;
+            glm::vec4 vec3FacePlusMatIndex;
 
-            vec3Face.x = face.mIndices[0];
-            vec3Face.y = face.mIndices[1];
-            vec3Face.z = face.mIndices[2];
-            vec3Face.w = mat.shading_model;
-            indicesPerFaces.push_back(vec3Face);
+            vec3FacePlusMatIndex.x = face.mIndices[0];
+            vec3FacePlusMatIndex.y = face.mIndices[1];
+            vec3FacePlusMatIndex.z = face.mIndices[2];
+            vec3FacePlusMatIndex.w = materials.size()-1;
+            indicesPerFaces.push_back(vec3FacePlusMatIndex);
 
-            for (GLuint j = 0; j < face.mNumIndices-1; j++) {
+            for (GLuint j = 0; j < face.mNumIndices; j++) {
                 indices.push_back(face.mIndices[j]);
             }
 

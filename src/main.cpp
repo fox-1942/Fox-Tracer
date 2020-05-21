@@ -120,7 +120,6 @@ void renderQuad() {
     glBindVertexArray(0);
 }
 
-vector<glm::vec4> indicesPerFacesVec4;
 vector<glm::vec4> primitiveCoordVec4;
 
 void sendVerticesIndices() {
