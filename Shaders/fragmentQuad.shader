@@ -69,10 +69,10 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2, int matIndex){
     vec3 pvec = cross(ray.dir, v0v2);
     float det = dot(v0v1, pvec);
 
-   /* if (abs(det) < 0.002){
-        hit.t=-1;
-        return hit;
-    }*/
+    /* if (abs(det) < 0.002){
+         hit.t=-1;
+         return hit;
+     }*/
 
     float invDet = 1 / det;
 
@@ -132,7 +132,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                     vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
                     vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
 
-                    hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC, int(nodes[i].indices[j].w) );
+                    hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC, int(nodes[i].indices[j].w));
 
                     if (hitreal.t==-1){ continue; }
 
@@ -211,19 +211,20 @@ Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
 
+vec3 Fresnel(vec3 F0, float cosTheta) {
+    return F0 + (vec3(1, 1, 1) - F0) * pow(1-cosTheta, 5);
+}
+
 vec3 trace(Ray ray){
+    vec3 weight = vec3(1, 1, 1);
     const float epsilon = 0.0001f;
     vec3 outRadiance = vec3(0, 0, 0);
-    vec3 gold_ka = vec3(0.24725f, 0.1995f, 0.0745f);
-    vec3 gold_kd = vec3 (40.75164f, 0.60648f, 0.22648f);
-    vec3 gold_ks = vec3 (0.628281f, 0.555802f, 0.366065f);
-    float goldshininess = 0.4f;
 
-    int maxdepth=1;
+    int maxdepth=5;
 
     for (int i=0; i < maxdepth; i++){
         Hit hit=traverseBvhTree(ray);
-        if (hit.t<0){ return lights[0].La; }
+        if (hit.t<0){ return weight * lights[0].La; }
 
         vec4 textColor = texture(texture1, vec2(hit.u, hit.v));
         Ray shadowRay;
@@ -232,24 +233,27 @@ vec3 trace(Ray ray){
 
 
         // Ambient Light
-        outRadiance+= materials[hit.mat].Ka.xyz * lights[0].La;
+        outRadiance+= materials[hit.mat].Ka.xyz * lights[0].La*textColor.xyz * weight;
 
         // Diffuse light
-        float cosTheta = dot(hit.normal, normalize(lights[0].direction));
+        float cosTheta = dot(hit.normal, normalize(lights[0].direction));// Lambert-féle cosinus törvény alapján.
         if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
 
-            outRadiance +=lights[0].La * materials[hit.mat].Kd.xyz * cosTheta*textColor.xyz;
+            outRadiance +=lights[0].La * materials[hit.mat].Kd.xyz * cosTheta * weight;
 
             vec3 halfway = normalize(-ray.dir + lights[0].direction);
             float cosDelta = dot(hit.normal, halfway);
 
             // Specular light
             if (cosDelta > 0){
-                outRadiance += lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
+                outRadiance +=weight * lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
         }
 
-        ray.orig=hit.orig;
-        ray.dir=reflect(ray.dir, hit.normal);
+        if (materials[hit.mat].shadingModel == 1) {
+            weight *= Fresnel(vec3(0.9f/2, 0.85f/2, 0.8f/2), dot(-ray.dir, hit.normal));
+            ray.orig=hit.orig+hit.normal*epsilon;
+            ray.dir=reflect(ray.dir, hit.normal);
+        } else return outRadiance;
     }
     return outRadiance;
 }

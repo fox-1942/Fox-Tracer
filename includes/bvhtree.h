@@ -50,7 +50,7 @@ public:
     void buildTree(vector<glm::vec4> &indicesPerFaces, int depth) {
 
         // This is a leaf node.
-        if (indicesPerFaces.size() <= 15) {
+        if (indicesPerFaces.size() <= 5) {
             this->bBox = BBox();
             this->indices = indicesPerFaces;
             this->depthOfNode = depth;

@@ -65,7 +65,7 @@ static vector<glm::vec4> hiddenPrimitives;
 // Initialize BvhNode::primitiveCoordinates to reference the hidden variable
 const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);
 
-Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
+Light light = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
 
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
@@ -179,7 +179,7 @@ int init() {
 
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
-    mymodel  = Model("../model/test.obj");
+    mymodel  = Model("../model/cubeplane2.obj");
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
 
