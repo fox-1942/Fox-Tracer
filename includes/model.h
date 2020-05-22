@@ -29,7 +29,7 @@ class Model {
 
 public:
     const aiScene *scene;
-
+    unsigned int offset = 0;
     /*  Model Data  */
     vector<Mesh> meshes;
     string directory;
@@ -57,12 +57,11 @@ public:
         }
     }
 
-    void fillAllPositionVertices()  {
-
+    void fillAllPositionVertices() {
         glm::vec4 vectorTemp;
         for (int i = 0; i < meshes.size(); i++) {
 
-            for (int j = 0;j < meshes.at(i).vertices.size(); j++) {
+            for (int j = 0; j < meshes.at(i).vertices.size(); j++) {
                 vectorTemp.x = meshes.at(i).vertices.at(j).Position.x;
                 vectorTemp.y = meshes.at(i).vertices.at(j).Position.y;
                 vectorTemp.z = meshes.at(i).vertices.at(j).Position.z;
@@ -79,8 +78,7 @@ private:
     void loadModel(string path) {
         // Read file via ASSIMP
         Assimp::Importer importer;
-        scene = importer.ReadFile(path, aiProcess_Triangulate );
-
+        scene = importer.ReadFile(path, aiProcess_Triangulate);
 
         // Check for errors
         if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -106,7 +104,7 @@ private:
         }
         cout << "Number of meshes in the model: " << meshes.size() << endl;
         cout << "Number of vertices in the model: " << size << endl;
-        cout << "Number of faces in the model: " <<indicesPerFaces.size() << "\n" << endl;
+        cout << "Number of faces in the model: " << indicesPerFaces.size() << "\n" << endl;
     }
 
     // Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -144,11 +142,11 @@ private:
             vertex.Position = vector;
 
             // Normals
-           /* vector.x = mesh->mNormals[i].x;
-            vector.y = mesh->mNormals[i].y;
-            vector.z = mesh->mNormals[i].z;
-            vertex.Normal = vector;
-*/
+            /* vector.x = mesh->mNormals[i].x;
+             vector.y = mesh->mNormals[i].y;
+             vector.z = mesh->mNormals[i].z;
+             vertex.Normal = vector;
+ */
             // Texture Coordinates
             if (mesh->mTextureCoords[0]) // Does the mesh contain texture coordinates?
             {
@@ -178,24 +176,22 @@ private:
             // Read mtl file vertex data
 
             material->Get(AI_MATKEY_COLOR_AMBIENT, color);
-            mat.Ka = glm::vec4(color.r, color.g, color.b,1.0);
+            mat.Ka = glm::vec4(color.r, color.g, color.b, 1.0);
 
             material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-            mat.Kd = glm::vec4(color.r, color.g, color.b,1.0);
+            mat.Kd = glm::vec4(color.r, color.g, color.b, 1.0);
 
             material->Get(AI_MATKEY_COLOR_SPECULAR, color);
-            mat.Ks = glm::vec4(color.r, color.g, color.b,1.0);
+            mat.Ks = glm::vec4(color.r, color.g, color.b, 1.0);
 
             material->Get(AI_MATKEY_OPACITY, d);
-            mat.opacity=d;
+            mat.opacity = d;
 
             material->Get(AI_MATKEY_SHADING_MODEL, shadingModel);
-            mat.shadingModel= shadingModel - 1;  //Assimp problem to read illumination model
+            mat.shadingModel = shadingModel - 1;  //Assimp problem to read illumination model
 
             material->Get(AI_MATKEY_SHININESS, shininess);
-            mat.shininess=shininess;  //Assimp problem to read illumination model
-
-            cout<<"shininess"<<mat.shininess<<endl;
+            mat.shininess = shininess;  //Assimp problem to read illumination model
 
             materials.push_back(mat);
 
@@ -225,18 +221,18 @@ private:
 
             glm::vec4 vec3FacePlusMatIndex;
 
-            vec3FacePlusMatIndex.x = face.mIndices[0];
-            vec3FacePlusMatIndex.y = face.mIndices[1];
-            vec3FacePlusMatIndex.z = face.mIndices[2];
-            vec3FacePlusMatIndex.w = materials.size()-1;
+            vec3FacePlusMatIndex.x = face.mIndices[0] + offset;
+            vec3FacePlusMatIndex.y = face.mIndices[1] + offset;
+            vec3FacePlusMatIndex.z = face.mIndices[2] + offset;
+            vec3FacePlusMatIndex.w = materials.size() - 1;
             indicesPerFaces.push_back(vec3FacePlusMatIndex);
 
             for (GLuint j = 0; j < face.mNumIndices; j++) {
                 indices.push_back(face.mIndices[j]);
             }
-
-
         }
+
+        offset += mesh->mNumVertices; //Need to renumber the indices when all vertices are stored in one vertex buffer. Increasing the current index by the offset of the number of vertices.
 
         // Return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures, mat);
