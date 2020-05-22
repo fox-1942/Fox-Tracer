@@ -13,7 +13,7 @@ struct FlatBvhNode
     int  isLeaf;// 4 byte          36
     int  createdEmpty;// 4 byte    40
     int  leftOrRight;// 4 byte     44
-    vec4 indices[5];// 32 byte     48
+    vec4 indices[50];// 32 byte     48
 };
 
 layout(std430, binding=1) buffer TNodes
@@ -69,10 +69,10 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2, int matIndex){
     vec3 pvec = cross(ray.dir, v0v2);
     float det = dot(v0v1, pvec);
 
-    if (abs(det) < 0.008){
+   /* if (abs(det) < 0.002){
         hit.t=-1;
-        return hit;// Culling is off
-    }
+        return hit;
+    }*/
 
     float invDet = 1 / det;
 
@@ -232,20 +232,20 @@ vec3 trace(Ray ray){
 
 
         // Ambient Light
-        outRadiance+= gold_ka * lights[0].La;
+        outRadiance+= materials[hit.mat].Ka.xyz * lights[0].La;
 
         // Diffuse light
         float cosTheta = dot(hit.normal, normalize(lights[0].direction));
         if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
 
-            outRadiance +=lights[0].La * gold_kd * cosTheta*textColor.xyz;
+            outRadiance +=lights[0].La * materials[hit.mat].Kd.xyz * cosTheta*textColor.xyz;
 
             vec3 halfway = normalize(-ray.dir + lights[0].direction);
             float cosDelta = dot(hit.normal, halfway);
 
             // Specular light
             if (cosDelta > 0){
-                outRadiance += lights[0].Le * gold_ks * pow(cosDelta, goldshininess); }
+                outRadiance += lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
         }
 
         ray.orig=hit.orig;
@@ -253,6 +253,7 @@ vec3 trace(Ray ray){
     }
     return outRadiance;
 }
+
 
 void main()
 {

@@ -33,7 +33,6 @@ public:
     }
 
 public:
-
     BBox bBox;
     int depthOfNode;
     vector<BvhNode *> children;

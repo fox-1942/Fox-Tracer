@@ -68,12 +68,6 @@ const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);
 Light light = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
 
 
-
-
-
-
-
-
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 
     shaderQuadVertex = Shader();
@@ -185,7 +179,7 @@ int init() {
 
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
-    mymodel  = Model("../model/cubeplane.obj");
+    mymodel  = Model("../model/sphere.obj");
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
 
@@ -226,7 +220,7 @@ void loop() {
 
         processInput(window);
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 

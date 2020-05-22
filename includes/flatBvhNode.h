@@ -19,7 +19,7 @@ struct FlatBvhNode {
     int isLeaf;
     int createdEmpty;
     int leftOrRight; // alignment
-    array<glm::vec4, 5> indices;
+    array<glm::vec4, 50> indices;
 
     FlatBvhNode() {}
 
