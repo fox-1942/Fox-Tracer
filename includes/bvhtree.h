@@ -23,7 +23,12 @@ int numberOf = 1;
 int numberOfLeaves = 0;
 
 class BvhNode {
+
+
+
 public:
+    static const int &numberOfPolyInLeaf;
+
     int countNodes() const {
         for (int i = 0; i < this->children.size(); i++) {
             numberOf++;
@@ -48,9 +53,8 @@ public:
     ~BvhNode() {}
 
     void buildTree(vector<glm::vec4> &indicesPerFaces, int depth) {
-
-        // This is a leaf node.
-        if (indicesPerFaces.size() <= 5) {
+        
+        if (indicesPerFaces.size() <= numberOfPolyInLeaf/3) {
             this->bBox = BBox();
             this->indices = indicesPerFaces;
             this->depthOfNode = depth;
@@ -130,9 +134,9 @@ public:
         left->buildTree(leftTree, this->depthOfNode + 1);
         right->buildTree(rightTree, this->depthOfNode + 1);
 
-        left->leftOrRight=0;
+        left->leftOrRight = 0;
         children.push_back(left);
-        right->leftOrRight=1;
+        right->leftOrRight = 1;
         children.push_back(right);
 
         return;
@@ -177,12 +181,12 @@ private:
             emptyNode->order = -1;
             emptyNode->depthOfNode = this->depthOfNode + 1;
             emptyNode->children.clear();
-            emptyNode->leftOrRight=0;
+            emptyNode->leftOrRight = 0;
             this->children.push_back(emptyNode);
 
             BvhNode *emptyNode2 = new BvhNode();
-            *emptyNode2=*emptyNode;
-            emptyNode2->leftOrRight=1;
+            *emptyNode2 = *emptyNode;
+            emptyNode2->leftOrRight = 1;
             this->children.push_back(emptyNode2);
         }
 
@@ -224,6 +228,8 @@ public:
 
         cout << "Deepest level of the tree: " << getDeepestLevel() << "\n" << endl;
     }
+
+
 };
 
 #endif //RAYTRACERBOROS_BVHTREE_H

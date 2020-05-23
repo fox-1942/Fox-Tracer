@@ -93,8 +93,9 @@ private:
         this->processNode(scene->mRootNode, scene);
 
 
-        getInfoAboutModel();
+
         fillAllPositionVertices();
+        getInfoAboutModel();
     }
 
     void getInfoAboutModel() {

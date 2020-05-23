@@ -60,12 +60,15 @@ float f = length(w);
 glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
-// hidden variable for BvhNode::primitiveCoordinates
+
 static vector<glm::vec4> hiddenPrimitives;
-// Initialize BvhNode::primitiveCoordinates to reference the hidden variable
 const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);
 
-Light light = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
+static int hiddenNumberOfPolyInLeaf;
+const int &BvhNode::numberOfPolyInLeaf(hiddenNumberOfPolyInLeaf);
+
+
+Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
 
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
@@ -123,10 +126,14 @@ void sendVerticesIndices() {
                       mymodel.materials.size() * sizeof(Material));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
+
+
 }
 
 void buildBvhTree() {
     hiddenPrimitives = mymodel.allPositionVertices;
+    hiddenNumberOfPolyInLeaf=mymodel.indicesPerFaces.size();
+
     bvhNode = new BvhNode();
     bvhNode->buildTree(mymodel.indicesPerFaces, 0);
     bvhNode->makeBvHTreeComplete();
