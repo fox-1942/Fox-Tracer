@@ -185,8 +185,8 @@ private:
             material->Get(AI_MATKEY_COLOR_SPECULAR, color);
             mat.Ks = glm::vec4(color.r, color.g, color.b, 1.0);
 
-            material->Get(AI_MATKEY_OPACITY, d);
-            mat.opacity = d;
+            material->Get(AI_MATKEY_REFRACTI, d);
+            mat.Ni = d;
 
             material->Get(AI_MATKEY_SHADING_MODEL, shadingModel);
             mat.shadingModel = shadingModel - 1;  //Assimp problem to read illumination model

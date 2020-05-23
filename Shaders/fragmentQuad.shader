@@ -25,7 +25,7 @@ struct Material{
     vec4 Ka;
     vec4 Kd;
     vec4 Ks;
-    float opacity;
+    float Ni;
     float shadingModel;
     float shininess;
 };
@@ -211,9 +211,18 @@ Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
 
+
+
+
 vec3 Fresnel(vec3 F0, float cosTheta) {
     return F0 + (vec3(1, 1, 1) - F0) * pow(1-cosTheta, 5);
 }
+
+float schlickApprox(float Ni, float cosTheta){
+    float F0=pow((1-Ni)/(1+Ni),2);
+    return F0 + (1 - F0) * pow((1 - cosTheta), 5);
+}
+
 
 vec3 trace(Ray ray){
     vec3 weight = vec3(1, 1, 1);
@@ -249,8 +258,28 @@ vec3 trace(Ray ray){
                 outRadiance +=weight * lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
         }
 
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         if (materials[hit.mat].shadingModel == 1) {
-            weight *= Fresnel(vec3(0.9f/2, 0.85f/2, 0.8f/2), dot(-ray.dir, hit.normal));
+            weight *= schlickApprox(materials[hit.mat].Ni, cosTheta);
             ray.orig=hit.orig+hit.normal*epsilon;
             ray.dir=reflect(ray.dir, hit.normal);
         } else return outRadiance;
