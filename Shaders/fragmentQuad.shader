@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(std140, binding=0) buffer primitives{
+layout(std430, binding=0) buffer primitives{
     vec4 primitiveCoordinates[];
 };
 
@@ -11,7 +11,6 @@ struct FlatBvhNode
     vec4 max;// 16 byte            16
     int  order;// 4 byte           32
     int  isLeaf;// 4 byte          36
-    int  createdEmpty;// 4 byte    40
     int  leftOrRight;// 4 byte     44
     vec4 indices[50];// 32 byte     48
 };
@@ -66,31 +65,25 @@ Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2, int matIndex){
     float t; float u; float v;
     vec3 v0v1 = v1 - v0;
     vec3 v0v2 = v2 - v0;
-    vec3 pvec = cross(ray.dir, v0v2);
-    float det = dot(v0v1, pvec);
-
-    /* if (abs(det) < 0.002){
-         hit.t=-1;
-         return hit;
-     }*/
-
+    vec3 p_vec = cross(ray.dir, v0v2);
+    float det = dot(v0v1, p_vec);
     float invDet = 1 / det;
 
-    vec3 tvec = ray.orig - v0;
-    u = dot(tvec, pvec) * invDet;
+    vec3 t_vec = ray.orig - v0;
+    u = dot(t_vec, p_vec) * invDet;
     if (u < 0 || u > 1){
         hit.t=-1;
         return hit;
     }
 
-    vec3 qvec = cross(tvec, v0v1);
-    v = dot(ray.dir, qvec) * invDet;
+    vec3 q_vec = cross(t_vec, v0v1);
+    v = dot(ray.dir, q_vec) * invDet;
     if (v < 0 || u + v > 1) {
         hit.t=-1;
         return hit;
     }
 
-    hit.t = dot(v0v2, qvec) * invDet;
+    hit.t = dot(v0v2, q_vec) * invDet;
     hit.orig=ray.orig+normalize(ray.dir)*hit.t;
     hit.normal= normalize(cross(v0v1, v0v2));
 
@@ -219,72 +212,103 @@ vec3 Fresnel(vec3 F0, float cosTheta) {
 }
 
 float schlickApprox(float Ni, float cosTheta){
-    float F0=pow((1-Ni)/(1+Ni),2);
+    float F0=pow((1-Ni)/(1+Ni), 2);
     return F0 + (1 - F0) * pow((1 - cosTheta), 5);
 }
 
 
+
+struct Stack
+{
+    Ray ray;
+    vec3 coeff;
+    int depth;
+};
+
+
 vec3 trace(Ray ray){
-    vec3 weight = vec3(1, 1, 1);
-    const float epsilon = 0.0001f;
-    vec3 outRadiance = vec3(0, 0, 0);
-
-    int maxdepth=5;
-
-    for (int i=0; i < maxdepth; i++){
-        Hit hit=traverseBvhTree(ray);
-        if (hit.t<0){ return weight * lights[0].La; }
-
-        vec4 textColor = texture(texture1, vec2(hit.u, hit.v));
-        Ray shadowRay;
-        shadowRay.orig = hit.orig + hit.normal * epsilon;
-        shadowRay.dir  = normalize(lights[0].direction);
+    vec3 color;
+    float epsilon=0.001;
+    Stack stack[8];// max depth
+    int stackSize = 0;// current depth
+    int bounceCount = 0;
+    vec3 coeff = vec3(1, 1, 1);
+    bool continueLoop = true;
 
 
-        // Ambient Light
-        outRadiance+= materials[hit.mat].Ka.xyz * lights[0].La*textColor.xyz * weight;
+    while (continueLoop){
+        Hit hit = traverseBvhTree(ray);
+        if (hit.t>0){
 
-        // Diffuse light
-        float cosTheta = dot(hit.normal, normalize(lights[0].direction));// Lambert-féle cosinus törvény alapján.
-        if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
+            bounceCount++;
 
-            outRadiance +=lights[0].La * materials[hit.mat].Kd.xyz * cosTheta * weight;
+            //----------------------------------------------------------------------------------------------------------------
+            Ray shadowRay;
+            shadowRay.orig = hit.orig + hit.normal * epsilon;
+            shadowRay.dir  = normalize(lights[0].direction);
 
-            vec3 halfway = normalize(-ray.dir + lights[0].direction);
-            float cosDelta = dot(hit.normal, halfway);
+            color+= materials[hit.mat].Ka.xyz * lights[0].La * coeff;
+            // Diffuse light
+            float cosTheta = dot(hit.normal, normalize(lights[0].direction));// Lambert-féle cosinus törvény alapján.
+            if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
+                color +=lights[0].La * materials[hit.mat].Kd.xyz * cosTheta * coeff;
+                vec3 halfway = normalize(-ray.dir + lights[0].direction);
+                float cosDelta = dot(hit.normal, halfway);
 
-            // Specular light
-            if (cosDelta > 0){
-                outRadiance +=weight * lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
+                // Specular light
+                if (cosDelta > 0){
+                    color +=coeff * lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
+            }
+
+            //---------------------------------------------------------------------------------------------------------------
+              if (materials[hit.mat].shadingModel == 2 && bounceCount <=3){
+
+                  float eta = 1.0/materials[hit.mat].Ni;
+                  Ray refractedRay;
+                  refractedRay.dir = dot(ray.dir, hit.normal) <= 0.0 ? refract(ray.dir, hit.normal, eta) : refract(ray.dir, -hit.normal, 1.0/eta);
+                  bool totalInternalReflection = length(refractedRay.dir) < 0.001;
+                  if(!totalInternalReflection){
+
+                      refractedRay.orig = hit.orig + hit.normal*epsilon*sign(dot(ray.dir, hit.normal));
+                      refractedRay.dir = normalize(refractedRay.dir);
+                      stack[stackSize].coeff = coeff *(1 - schlickApprox(materials[hit.mat].Ni, dot(-ray.dir, hit.normal)));
+                      stack[stackSize].depth = bounceCount;
+                      stack[stackSize++].ray = refractedRay;
+                  }
+
+                  else{
+                      return vec3(1,1,0.5);
+                      coeff *= schlickApprox(materials[hit.mat].Ni, dot(-ray.dir, hit.normal));
+                      ray.dir = reflect(ray.dir, -hit.normal);
+                      ray.orig = hit.orig - hit.normal*epsilon;
+                  }
+              }
+
+            else if (materials[hit.mat].shadingModel == 1){
+                coeff *= schlickApprox(materials[hit.mat].Ni, dot(-ray.dir, hit.normal));
+                ray.orig=hit.orig+hit.normal*epsilon;
+                ray.dir=reflect(ray.dir, hit.normal);
+            }
+
+
+            else { //Diffuse Material
+                continueLoop=false;
+            }
         }
 
+        else {
+            color+= coeff * lights[0].La;
+            continueLoop=false;
+        }
 
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        if (materials[hit.mat].shadingModel == 1) {
-            weight *= schlickApprox(materials[hit.mat].Ni, cosTheta);
-            ray.orig=hit.orig+hit.normal*epsilon;
-            ray.dir=reflect(ray.dir, hit.normal);
-        } else return outRadiance;
+        if (!continueLoop && stackSize > 0){
+            ray = stack[stackSize--].ray;
+            bounceCount = stack[stackSize].depth;
+            coeff = stack[stackSize].coeff;
+            continueLoop = true;
+        }
     }
-    return outRadiance;
+    return color;
 }
 
 
