@@ -25,6 +25,7 @@ struct Material{
     vec4 Kd;
     vec4 Ks;
     float Ni;
+    float opacity;
     float shadingModel;
     float shininess;
 };
@@ -261,30 +262,32 @@ vec3 trace(Ray ray){
             }
 
             //---------------------------------------------------------------------------------------------------------------
-              if (materials[hit.mat].shadingModel == 2 && bounceCount <=3){
+              if (materials[hit.mat].opacity == 0.5 && bounceCount <=4){
 
                   float eta = 1.0/materials[hit.mat].Ni;
                   Ray refractedRay;
                   refractedRay.dir = dot(ray.dir, hit.normal) <= 0.0 ? refract(ray.dir, hit.normal, eta) : refract(ray.dir, -hit.normal, 1.0/eta);
-                  bool totalInternalReflection = length(refractedRay.dir) < 0.001;
+                  bool totalInternalReflection = length(refractedRay.dir) < 0.02;
                   if(!totalInternalReflection){
 
                       refractedRay.orig = hit.orig + hit.normal*epsilon*sign(dot(ray.dir, hit.normal));
                       refractedRay.dir = normalize(refractedRay.dir);
-                      stack[stackSize].coeff = coeff *(1 - schlickApprox(materials[hit.mat].Ni, dot(-ray.dir, hit.normal)));
-                      stack[stackSize].depth = bounceCount;
-                      stack[stackSize++].ray = refractedRay;
+
+                      if (materials[hit.mat].opacity != 0){
+                          stack[stackSize].coeff = coeff *(1 - schlickApprox(materials[hit.mat].Ni, dot(ray.dir, hit.normal)));
+                          stack[stackSize].depth = bounceCount;
+                          stack[stackSize++].ray = refractedRay;
+                      }
                   }
 
                   else{
-                      return vec3(1,1,0.5);
-                      coeff *= schlickApprox(materials[hit.mat].Ni, dot(-ray.dir, hit.normal));
+
                       ray.dir = reflect(ray.dir, -hit.normal);
                       ray.orig = hit.orig - hit.normal*epsilon;
                   }
               }
 
-            else if (materials[hit.mat].shadingModel == 1){
+            else if (materials[hit.mat].opacity == 0){
                 coeff *= schlickApprox(materials[hit.mat].Ni, dot(-ray.dir, hit.normal));
                 ray.orig=hit.orig+hit.normal*epsilon;
                 ray.dir=reflect(ray.dir, hit.normal);

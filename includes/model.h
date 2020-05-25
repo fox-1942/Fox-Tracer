@@ -174,6 +174,7 @@ private:
             float d;
             float shadingModel;
             float shininess;
+            float opacity;
             // Read mtl file vertex data
 
             material->Get(AI_MATKEY_COLOR_AMBIENT, color);
@@ -194,6 +195,9 @@ private:
             material->Get(AI_MATKEY_SHININESS, shininess);
             mat.shininess = shininess;  //Assimp problem to read illumination model
 
+            material->Get(AI_MATKEY_OPACITY, opacity);
+            mat.opacity = opacity;  //Assimp problem to read illumination model
+            
             materials.push_back(mat);
 
             // We assume a convention for sampler names in the shaders. Each diffuse texture should be named

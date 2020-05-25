@@ -68,7 +68,7 @@ static int hiddenNumberOfPolyInLeaf;
 const int &BvhNode::numberOfPolyInLeaf(hiddenNumberOfPolyInLeaf);
 
 
-Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
+Light light = Light(glm::vec3(0.5, 0.5, 0.5), glm::vec3(1, 1, 1), glm::vec3(0.7f, 0.7f, 0.7f));
 
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
