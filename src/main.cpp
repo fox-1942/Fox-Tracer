@@ -68,7 +68,7 @@ static int hiddenNumberOfPolyInLeaf;
 const int &BvhNode::numberOfPolyInLeaf(hiddenNumberOfPolyInLeaf);
 
 
-Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
+Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
 
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
@@ -186,7 +186,7 @@ int init() {
 
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
-    mymodel  = Model("../model/cubeplane2.obj");
+    mymodel  = Model("../model/cubeplane.obj");
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
 
@@ -205,7 +205,7 @@ int init() {
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load(FileSystem::getPath("model/gold.jpg").c_str(), &width, &height, &nrChannels,
+    unsigned char *data = stbi_load(FileSystem::getPath("model/concrete.jpg").c_str(), &width, &height, &nrChannels,
                                     0);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);

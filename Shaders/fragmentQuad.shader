@@ -13,7 +13,7 @@ struct FlatBvhNode
     int  isLeaf;// 4 byte          36
     int  createdEmpty;// 4 byte    40
     int  leftOrRight;// 4 byte     44
-    vec4 indices[50];// 32 byte     48
+    vec4 indices[300];// 32 byte     48
 };
 
 layout(std430, binding=1) buffer TNodes
@@ -46,7 +46,7 @@ struct Ray{
 };
 
 struct Hit{
-    vec3 orig, dir, normal;
+    vec3 orig, normal;
     float u, v;
     float t;
     int mat;
@@ -246,7 +246,7 @@ vec3 trace(Ray ray){
 
         // Diffuse light
         float cosTheta = dot(hit.normal, normalize(lights[0].direction));// Lambert-féle cosinus törvény alapján.
-        if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
+        if (cosTheta>0 && traverseBvhTree(shadowRay).t<=0) {
 
             outRadiance +=lights[0].La * materials[hit.mat].Kd.xyz * cosTheta * weight;
 
@@ -257,26 +257,6 @@ vec3 trace(Ray ray){
             if (cosDelta > 0){
                 outRadiance +=weight * lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
         }
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         if (materials[hit.mat].shadingModel == 1) {
             weight *= schlickApprox(materials[hit.mat].Ni, cosTheta);
