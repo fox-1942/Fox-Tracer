@@ -12,10 +12,6 @@
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-
 void getInputFromKeyboard(GLFWwindow *window);
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path);
@@ -43,8 +39,8 @@ glm::vec3 posCamera = glm::vec3(0, 0, 2);
 glm::vec3 upVector = glm::vec3(0, 1, 0);
 glm::vec3 viewPoint = glm::vec3(0, 0, 0);
 glm::vec3 connect = posCamera - viewPoint;
-glm::vec3 canvasX = cross(upVector, connect) * length(connect) * tanf(fieldOfview / 2);
-glm::vec3 canvasY = cross(connect, canvasX) * length(connect) * tanf(fieldOfview / 2);
+glm::vec3 canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
+glm::vec3 canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
 
 
 static vector<glm::vec4> hiddenPrimitives;
@@ -241,21 +237,18 @@ int main() {
 }
 
 void setCamera(float param) {
-
     posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y,-posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
     connect = posCamera - viewPoint;
-    canvasX = cross(upVector, connect) * length(connect) * tanf(fieldOfview / 2);
-    canvasY = cross(connect, canvasX) * length(connect) * tanf(fieldOfview / 2);
+    canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
+    canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
 }
 
 void setCameraY(float param) {
     posCamera = glm::vec3(posCamera.x, posCamera.y + param, posCamera.z);
     connect = posCamera - viewPoint;
-    canvasX = cross(upVector, connect) * length(connect) * tanf(fieldOfview / 2);
-    canvasY = cross(connect, canvasX) * length(connect) * tanf(fieldOfview / 2);
-
+    canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
+    canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
 }
-
 
 void getInputFromKeyboard(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -270,22 +263,13 @@ void getInputFromKeyboard(GLFWwindow *window) {
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        setCameraY(+0.1);
+        if(posCamera.y<0.4){ setCameraY(+0.1);}
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        setCameraY(-0.1);
+        if(posCamera.y>-0.5){ setCameraY(-0.1);}
+
     }
-
-    /*if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
-        setCameraZ(+0.1);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
-        setCameraZ(-0.1);
-    }*/
-
-
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {

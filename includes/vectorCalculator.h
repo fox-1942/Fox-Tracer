@@ -9,14 +9,14 @@
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
 #include "../Vendor/glm/gtc/type_ptr.hpp"
 
-inline float dot(const glm::vec3& v1, const glm::vec3& v2) { return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z); }
+float dot( glm::vec3& param1,  glm::vec3& param2) { return (param1.x * param2.x + param1.y * param2.y + param1.z * param2.z); }
 
-inline float length(const glm::vec3& v) { return sqrtf(dot(v, v)); }
+float getLength(glm::vec3& param) { return sqrtf(dot(param, param)); }
 
-inline glm::vec3 normalize(const glm::vec3& v) { return v * (1 / length(v)); }
+glm::vec3 normalize( glm::vec3& param) { return param * (1 / getLength(param)); }
 
-inline glm::vec3 cross(const glm::vec3& v1, const glm::vec3& v2) {
-    return normalize(glm::vec3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x));
+glm::vec3 cross( glm::vec3& param1,  glm::vec3& param2) {
+    return normalize(glm::vec3(param1.y * param2.z - param1.z * param2.y, param1.z * param2.x - param1.x * param2.z, param1.x * param2.y - param1.y * param2.x));
 }
 
 #endif //RAYTRACERBOROS_VECTORCALCULATOR_H

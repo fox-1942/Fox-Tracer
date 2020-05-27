@@ -5,11 +5,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 message(CMAKE_MODULE_PATH " ${CMAKE_MODULE_PATH}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 ")
 
-
-#configure_file(includes/root_directory.h.in includes/root_directory.h)
-#find_package(ASSIMP REQUIRED)
-#message(STATUS "Found ASSIMP in ${ASSIMP_LIBRARY_DIR}")
-
 find_package(GLEW REQUIRED)
 message(STATUS "Found GLEW in ${GLEW_INCLUDE_DIR}")
 
@@ -27,6 +22,8 @@ add_executable(RayTracerBoros
         includes/flatBvhNode.h
         includes/BBox.h
         includes/flatBvhNode.h
-        includes/stb_image.h includes/stb_image.cpp includes/light.h)
+        includes/stb_image.h
+        includes/stb_image.cpp
+        includes/light.h)
 
 target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)
