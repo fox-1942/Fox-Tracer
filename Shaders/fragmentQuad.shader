@@ -59,40 +59,40 @@ uniform sampler2D texture1;
 in vec3 pixel;
 out vec4 FragColor;
 
-Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2, int matIndex){
+Hit rayTriangleIntersect(Ray ray, vec3 pointA, vec3 pointB, vec3 pointC, int matIndex){
 
     Hit hit;
     hit.t=-1;
     float t; float u; float v;
-    vec3 v0v1 = v1 - v0;
-    vec3 v0v2 = v2 - v0;
-    vec3 pvec = cross(ray.dir, v0v2);
-    float det = dot(v0v1, pvec);
+    vec3 pApB = pointB - pointA;
+    vec3 pApC = pointC - pointA;
+    vec3 vec90 = cross(ray.dir, pApC);
+    float determinant = dot(vec90, pApB);
 
     /* if (abs(det) < 0.002){
          hit.t=-1;
          return hit;
      }*/
 
-    float invDet = 1 / det;
+    float determinantInv = 1 / determinant;
 
-    vec3 tvec = ray.orig - v0;
-    u = dot(tvec, pvec) * invDet;
+    vec3 vecT = ray.orig - pointA;
+    u = determinantInv* dot(vecT, vec90);
     if (u < 0 || u > 1){
         hit.t=-1;
         return hit;
     }
 
-    vec3 qvec = cross(tvec, v0v1);
-    v = dot(ray.dir, qvec) * invDet;
+    vec3 vecQ = cross(vecT, pApB);
+    v = determinantInv*dot(vecQ, ray.dir);
     if (v < 0 || u + v > 1) {
         hit.t=-1;
         return hit;
     }
 
-    hit.t = dot(v0v2, qvec) * invDet;
+    hit.t = dot(pApC, vecQ) * determinantInv;
     hit.orig=ray.orig+normalize(ray.dir)*hit.t;
-    hit.normal= normalize(cross(v0v1, v0v2));
+    hit.normal= normalize(cross(pApB, pApC));
 
     hit.u=u;
     hit.v=v;
@@ -219,7 +219,7 @@ vec3 Fresnel(vec3 F0, float cosTheta) {
 }
 
 float schlickApprox(float Ni, float cosTheta){
-    float F0=pow((1-Ni)/(1+Ni),2);
+    float F0=pow((1-Ni)/(1+Ni), 2);
     return F0 + (1 - F0) * pow((1 - cosTheta), 5);
 }
 

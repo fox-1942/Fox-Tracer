@@ -42,7 +42,6 @@ glm::vec3 connect = posCamera - viewPoint;
 glm::vec3 canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
 glm::vec3 canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
 
-
 static vector<glm::vec4> hiddenPrimitives;
 const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);
 
