@@ -38,14 +38,13 @@ Model mymodel;
 BvhNode *bvhNode;
 GLFWwindow *window;
 
-float fov = 45;
+float fieldOfview = 45;
 glm::vec3 posCamera = glm::vec3(0, 0, 2);
-glm::vec3 vup = glm::vec3(0, 1, 0);
+glm::vec3 upVector = glm::vec3(0, 1, 0);
 glm::vec3 viewPoint = glm::vec3(0, 0, 0);
-glm::vec3 w = posCamera - viewPoint;
-float f = length(w);
-glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
-glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
+glm::vec3 connect = posCamera - viewPoint;
+glm::vec3 canvasX = cross(upVector, connect) * length(connect) * tanf(fieldOfview / 2);
+glm::vec3 canvasY = cross(connect, canvasX) * length(connect) * tanf(fieldOfview / 2);
 
 
 static vector<glm::vec4> hiddenPrimitives;
@@ -106,18 +105,17 @@ void sendVerticesIndices() {
     glGenBuffers(1, &materials);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, materials);
     glBufferData(GL_SHADER_STORAGE_BUFFER, mymodel.materials.size() * sizeof(Material),
-                  &mymodel.materials.front(), GL_STATIC_DRAW);
+                 &mymodel.materials.front(), GL_STATIC_DRAW);
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, materials, 0,
                       mymodel.materials.size() * sizeof(Material));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
 
 
 }
 
 void buildBvhTree() {
     hiddenPrimitives = mymodel.allPositionVertices;
-    hiddenNumberOfPolyInLeaf=mymodel.indicesPerFaces.size();
+    hiddenNumberOfPolyInLeaf = mymodel.indicesPerFaces.size();
 
     bvhNode = new BvhNode();
     bvhNode->buildTree(mymodel.indicesPerFaces, 0);
@@ -169,7 +167,7 @@ int init() {
 
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
-    mymodel  = Model("../model/CornellBox-Original.obj");
+    mymodel = Model("../model/CornellBox-Original.obj");
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
 
@@ -204,39 +202,26 @@ int init() {
 void loop() {
     while (!glfwWindowShouldClose(window)) {
 
-
         getInputFromKeyboard(window);
-
         glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
         glm::mat4 model = glm::mat4(1.0f);
-
         shaderQuadProgram.useProgram();
 
         glUniform1i(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "texture1"), 0);
-
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "viewPoint"), 1, &viewPoint.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasX"), 1, &right1.x);
-
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasY"), 1, &vup.x);
-
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasX"), 1, &canvasX.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasY"), 1, &upVector.x);
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "camera"), 1, &posCamera.x);
-
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].Le"), 1, &light.Le.x);
-
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1, &light.La.x);
-
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].direction"), 1,
                      &light.direction.x);
-
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].position"), 1,
                      &light.position.x);
 
         renderQuad();
-
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -257,32 +242,20 @@ int main() {
 
 void setCamera(float param) {
 
-    posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y, -posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
-    w = posCamera - viewPoint;
-    float f = length(w);
-    right1 = cross(vup, w) * f * tanf(fov / 2);
-    up = cross(w, right1) * f * tanf(fov / 2);
+    posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y,-posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
+    connect = posCamera - viewPoint;
+    canvasX = cross(upVector, connect) * length(connect) * tanf(fieldOfview / 2);
+    canvasY = cross(connect, canvasX) * length(connect) * tanf(fieldOfview / 2);
 }
 
 void setCameraY(float param) {
-
-    posCamera = glm::vec3(posCamera.x, posCamera.y + param, posCamera.z) ;
-    w = posCamera - viewPoint;
-    f = length(w);
-    right1 = cross(vup, w) * f * tanf(fov / 2);
-    up = cross(w, right1) * f * tanf(fov / 2);
+    posCamera = glm::vec3(posCamera.x, posCamera.y + param, posCamera.z);
+    connect = posCamera - viewPoint;
+    canvasX = cross(upVector, connect) * length(connect) * tanf(fieldOfview / 2);
+    canvasY = cross(connect, canvasX) * length(connect) * tanf(fieldOfview / 2);
 
 }
 
-void setCameraZ(float param) {
-
-    posCamera = glm::vec3(posCamera.x, posCamera.y , posCamera.z + param) ;
-    w = posCamera - viewPoint;
-    f = length(w);
-    right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
-    up = normalize(cross(w, right1)) * f * tanf(fov / 2);
-
-}
 
 void getInputFromKeyboard(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
