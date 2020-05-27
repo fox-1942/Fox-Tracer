@@ -27,7 +27,7 @@ struct Material{
     vec4 Ks;
     float Ni;
     float shadingModel;
-    float shininess;
+    float shine;
 };
 
 layout(std430, binding=2) buffer Materials
@@ -227,11 +227,11 @@ float schlickApprox(float Ni, float cosTheta){
 vec3 trace(Ray ray){
     vec3 weight = vec3(1, 1, 1);
     const float epsilon = 0.0001f;
-    vec3 outRadiance = vec3(0, 0, 0);
+    vec3 color = vec3(0, 0, 0);
 
-    int maxdepth=5;
+    int tracingDepth=5;
 
-    for (int i=0; i < maxdepth; i++){
+    for (int i=0; i < tracingDepth; i++){
         Hit hit=traverseBvhTree(ray);
         if (hit.t<0){ return weight * lights[0].La; }
 
@@ -242,29 +242,29 @@ vec3 trace(Ray ray){
 
 
         // Ambient Light
-        outRadiance+= materials[hit.mat].Ka.xyz * lights[0].La*textColor.xyz * weight;
+        color+= materials[hit.mat].Ka.xyz * lights[0].La*textColor.xyz * weight;
 
         // Diffuse light
         float cosTheta = dot(hit.normal, normalize(lights[0].direction));// Lambert-féle cosinus törvény alapján.
-        if (cosTheta>0 && traverseBvhTree(shadowRay).t<=0) {
+        if (cosTheta>0 && traverseBvhTree(shadowRay).t<0) {
 
-            outRadiance +=lights[0].La * materials[hit.mat].Kd.xyz * cosTheta * weight;
+            color +=lights[0].Le * materials[hit.mat].Kd.xyz * cosTheta * weight;
 
-            vec3 halfway = normalize(-ray.dir + lights[0].direction);
-            float cosDelta = dot(hit.normal, halfway);
+            vec3 halfVec = normalize(-ray.dir + lights[0].direction);
+            float cosDelta = dot(hit.normal, halfVec);
 
             // Specular light
             if (cosDelta > 0){
-                outRadiance +=weight * lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shininess); }
+                color +=weight * lights[0].Le * materials[hit.mat].Ks.xyz * pow(cosDelta, materials[hit.mat].shine); }
         }
 
         if (materials[hit.mat].shadingModel == 1) {
             weight *= schlickApprox(materials[hit.mat].Ni, cosTheta);
             ray.orig=hit.orig+hit.normal*epsilon;
             ray.dir=reflect(ray.dir, hit.normal);
-        } else return outRadiance;
+        } else return color;
     }
-    return outRadiance;
+    return color;
 }
 
 
