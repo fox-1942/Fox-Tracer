@@ -24,6 +24,6 @@ add_executable(RayTracerBoros
         includes/flatBvhNode.h
         includes/stb_image.h
         includes/stb_image.cpp
-        includes/light.h)
+        includes/light.h includes/main.h)
 
 target_link_libraries(RayTracerBoros GL glfw GLEW assimp SOIL)
