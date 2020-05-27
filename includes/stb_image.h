@@ -2729,9 +2729,9 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
    }
 
    // row pass
-   // vrshrn_n_s32 only supports shifts up to 16, we need
+   // vrshrn_n_s32 only supports shifts canvasY to 16, we need
    // 17. so do a non-rounding shift of 16 first then follow
-   // up with a rounding shift by 1.
+   // canvasY with a rounding shift by 1.
    dct_pass(vshrn_n_s32, 16);
 
    {

@@ -15,7 +15,7 @@ struct FlatBvhNode {
     int isLeaf;
     int createdEmpty;
     int leftOrRight;
-    array<glm::vec4,20> indices;
+    array<glm::vec4,12> indices;
 
     FlatBvhNode() {}
 

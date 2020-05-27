@@ -163,8 +163,12 @@ int init() {
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
     mymodel = Model("../model/CornellBox-Original.obj");
-    createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
+    /* If throwing an instance of 'std::out_of_range', increase the number of 'indices' array size in struct FlatBvhNode
+    *  and the 'indices' array size in fragmentQuad.shader to the maximum number of triangles in a leaf (info in console).
+    */
+
+    createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
     sendVerticesIndices();
     buildBvhTree();
@@ -181,7 +185,7 @@ int init() {
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load(File::getPath("model/concrete.jpg").c_str(), &width, &height, &nrChannels,
+    unsigned char *data = stbi_load(File::getPath("model/gold.jpg").c_str(), &width, &height, &nrChannels,
                                     0);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);

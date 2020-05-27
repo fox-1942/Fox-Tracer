@@ -13,7 +13,7 @@ struct FlatBvhNode
     int  isLeaf;// 4 byte          36
     int  createdEmpty;// 4 byte    40
     int  leftOrRight;// 4 byte     44
-    vec4 indices[20];// 32 byte     48
+    vec4 indices[12];// 32 byte     48
 };
 
 layout(std430, binding=1) buffer TNodes

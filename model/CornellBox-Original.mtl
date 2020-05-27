@@ -52,7 +52,7 @@ newmtl ceiling
 newmtl backWall
   Ns 10.0000
   Ni 10.0000
-  illum 1
+  illum 2
   Ka 0.725 0.71 0.68 # White
   Kd 0.725 0.71 0.68
   Ks 0 0 0
@@ -72,7 +72,7 @@ newmtl shortBox
 newmtl tallBox
   Ns 10.0000
   Ni 19.0000
-  illum 2
+  illum 1
   Ka 0.725 0.71 0.68 # White
   Kd 0.725 0.71 0.68
   Ks 0 0 0
