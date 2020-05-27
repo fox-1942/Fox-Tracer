@@ -13,7 +13,6 @@
 #include "BBox.h"
 #include <deque>
 
-
 using namespace std;
 
 int indDef = 0;
@@ -49,8 +48,8 @@ public:
     ~BvhNode() {}
 
     void buildTree(vector<glm::vec4> &indicesPerFaces, int depth) {
-        
-        if (indicesPerFaces.size() <= numberOfPolyInLeaf/3) {
+
+        if (indicesPerFaces.size() <= numberOfPolyInLeaf / 3) {
             this->bBox = BBox();
             this->indices = indicesPerFaces;
             this->depthOfNode = depth;
@@ -75,42 +74,24 @@ public:
         for (int i = 0; i < indicesPerFaces.size(); ++i) {
             switch (axis) {
                 case 0:
-                    if (bBox.center.x > this->bBox.faceCenters.at(i).x) {
-                        // cout<< faceCenters.at(i)[axis] <<endl;
+                    if (bBox.center.x >= this->bBox.faceCenters.at(i).x) {
                         leftTree.push_back(indicesPerFaces.at(i));
-
                     } else if (bBox.center.x < this->bBox.faceCenters.at(i).x) {
-                        // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
-                    } else if (bBox.center.x == this->bBox.faceCenters.at(i).x) {
-                        leftTree.push_back(indicesPerFaces.at(i));
-                        cout << "Gáz van" << endl;
                     }
                     break;
                 case 1:
-                    if (bBox.center.y > this->bBox.faceCenters.at(i).y) {
-                        // cout<< faceCenters.at(i)[axis] <<endl;
+                    if (bBox.center.y >= this->bBox.faceCenters.at(i).y) {
                         leftTree.push_back(indicesPerFaces.at(i));
-
                     } else if (bBox.center.y < this->bBox.faceCenters.at(i).y) {
-                        // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
-                    } else if (bBox.center.y == this->bBox.faceCenters.at(i).y) {
-                        cout << "Gáz van" << endl;
-                        leftTree.push_back(indicesPerFaces.at(i));
-
                     }
                     break;
                 case 2:
-                    if (bBox.center.z > this->bBox.faceCenters.at(i).z) {
+                    if (bBox.center.z >= this->bBox.faceCenters.at(i).z) {
                         leftTree.push_back(indicesPerFaces.at(i));
                     } else if (bBox.center.z < this->bBox.faceCenters.at(i).z) {
-                        // cout<< faceCenters.at(i)[axis] <<endl;
                         rightTree.push_back(indicesPerFaces.at(i));
-                    } else if (bBox.center.z == this->bBox.faceCenters.at(i).z) {
-                        cout << "Gáz van" << endl;
-                        leftTree.push_back(indicesPerFaces.at(i));
-                        break;
                     }
             };
         }
@@ -221,11 +202,8 @@ public:
             cout << "Number Of leaves: " << getNumberOfLeaves() << endl;
         }
         cout << "Number Of nodes: " << getNumberOfNodes() << endl;
-
         cout << "Deepest level of the tree: " << getDeepestLevel() << "\n" << endl;
     }
-
-
 };
 
 #endif //RAYTRACERBOROS_BVHNODE_H

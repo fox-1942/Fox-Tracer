@@ -1,7 +1,3 @@
-//
-// Created by fox-1942 on 5/13/20.
-//
-
 #ifndef RAYTRACERBOROS_FLATBVHNODE_H
 #define RAYTRACERBOROS_FLATBVHNODE_H
 

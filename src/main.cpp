@@ -16,7 +16,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
-void processInput(GLFWwindow *window);
+void getInputFromKeyboard(GLFWwindow *window);
 
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path);
 
@@ -26,8 +26,6 @@ void buildBvhTree();
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
-
-glm::vec3 camera(glm::vec3(0.0f, 0.0f, 0.0f));
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
@@ -41,10 +39,10 @@ BvhNode *bvhNode;
 GLFWwindow *window;
 
 float fov = 45;
-glm::vec3 eye = glm::vec3(0, 0, 2);
+glm::vec3 posCamera = glm::vec3(0, 0, 2);
 glm::vec3 vup = glm::vec3(0, 1, 0);
-glm::vec3 lookat = glm::vec3(0, 0, 0);
-glm::vec3 w = eye - lookat;
+glm::vec3 viewPoint = glm::vec3(0, 0, 0);
+glm::vec3 w = posCamera - viewPoint;
 float f = length(w);
 glm::vec3 right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
 glm::vec3 up = normalize(cross(w, right1)) * f * tanf(fov / 2);
@@ -190,7 +188,7 @@ int init() {
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load(FileSystem::getPath("model/concrete.jpg").c_str(), &width, &height, &nrChannels,
+    unsigned char *data = stbi_load(File::getPath("model/concrete.jpg").c_str(), &width, &height, &nrChannels,
                                     0);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -207,7 +205,7 @@ void loop() {
     while (!glfwWindowShouldClose(window)) {
 
 
-        processInput(window);
+        getInputFromKeyboard(window);
 
         glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -219,13 +217,13 @@ void loop() {
 
         glUniform1i(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "texture1"), 0);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "viewPoint"), 1, &lookat.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "viewPoint"), 1, &viewPoint.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "x"), 1, &right1.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasX"), 1, &right1.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "y"), 1, &vup.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasY"), 1, &vup.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "camera"), 1, &eye.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "camera"), 1, &posCamera.x);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].Le"), 1, &light.Le.x);
 
@@ -259,34 +257,34 @@ int main() {
 
 void setCamera(float param) {
 
-    eye = glm::vec3(eye.x * cos(param) + eye.z * sin(param), eye.y, -eye.x * sin(param) + eye.z * cos(param)) + lookat;
-    w = eye - lookat;
+    posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y, -posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
+    w = posCamera - viewPoint;
     float f = length(w);
-    right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
-    up = normalize(cross(w, right1)) * f * tanf(fov / 2);
+    right1 = cross(vup, w) * f * tanf(fov / 2);
+    up = cross(w, right1) * f * tanf(fov / 2);
 }
 
 void setCameraY(float param) {
 
-    eye = glm::vec3(eye.x, eye.y + param, eye.z) ;
-    w = eye - lookat;
+    posCamera = glm::vec3(posCamera.x, posCamera.y + param, posCamera.z) ;
+    w = posCamera - viewPoint;
     f = length(w);
-    right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
-    up = normalize(cross(w, right1)) * f * tanf(fov / 2);
+    right1 = cross(vup, w) * f * tanf(fov / 2);
+    up = cross(w, right1) * f * tanf(fov / 2);
 
 }
 
 void setCameraZ(float param) {
 
-    eye = glm::vec3(eye.x, eye.y , eye.z+ param) ;
-    w = eye - lookat;
+    posCamera = glm::vec3(posCamera.x, posCamera.y , posCamera.z + param) ;
+    w = posCamera - viewPoint;
     f = length(w);
     right1 = normalize(cross(vup, w)) * f * tanf(fov / 2);
     up = normalize(cross(w, right1)) * f * tanf(fov / 2);
 
 }
 
-void processInput(GLFWwindow *window) {
+void getInputFromKeyboard(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -306,13 +304,13 @@ void processInput(GLFWwindow *window) {
         setCameraY(-0.1);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+    /*if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
         setCameraZ(+0.1);
     }
 
     if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
         setCameraZ(-0.1);
-    }
+    }*/
 
 
 }
