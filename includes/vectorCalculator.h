@@ -2,10 +2,8 @@
 // Created by fox-1942 on 4/12/20.
 //
 
-#ifndef RAYTRACERBOROS_FRAMEWORK_H
-#define RAYTRACERBOROS_FRAMEWORK_H
-
-#endif //RAYTRACERBOROS_FRAMEWORK_H
+#ifndef RAYTRACERBOROS_VECTORCALCULATOR_H
+#define RAYTRACERBOROS_VECTORCALCULATOR_H
 
 #include "../Vendor/glm/glm.hpp"
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
@@ -21,9 +19,5 @@ inline glm::vec3 cross(const glm::vec3& v1, const glm::vec3& v2) {
     return glm::vec3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
 
-template<typename T>
-void pop_front(std::vector<T>& vec)
-{
-    assert(!vec.empty());
-    vec.erase(vec.begin());
-}
+#endif //RAYTRACERBOROS_VECTORCALCULATOR_H
+

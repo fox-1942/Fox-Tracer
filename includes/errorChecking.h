@@ -19,27 +19,27 @@ static bool GLCheckError() {
         std::cout << "[OpenGL Error] ";
         switch (error) {
             case GL_INVALID_ENUM :
-                std::cout << "GL_INVALID_ENUM : An unacceptable value is specified for an enumerated argument.";
+                std::cout << "GL_INVALID_ENUM";
                 break;
             case GL_INVALID_VALUE :
-                std::cout << "GL_INVALID_OPERATION : A numeric argument is out of range.";
+                std::cout << "GL_INVALID_OPERATION";
                 break;
             case GL_INVALID_OPERATION :
-                std::cout << "GL_INVALID_OPERATION : The specified operation is not allowed in the current state.";
+                std::cout << "GL_INVALID_OPERATION";
                 break;
             case GL_INVALID_FRAMEBUFFER_OPERATION :
-                std::cout << "GL_INVALID_FRAMEBUFFER_OPERATION : The framebuffer object is not complete.";
+                std::cout << "GL_INVALID_FRAMEBUFFER_OPERATION";
                 break;
             case GL_OUT_OF_MEMORY :
-                std::cout << "GL_OUT_OF_MEMORY : There is not enough memory left to execute the command.";
+                std::cout << "GL_OUT_OF_MEMORY";
                 break;
             case GL_STACK_UNDERFLOW :
                 std::cout
-                        << "GL_STACK_UNDERFLOW : An attempt has been made to perform an operation that would cause an internal stack to underflow.";
+                        << "GL_STACK_UNDERFLOW :";
                 break;
             case GL_STACK_OVERFLOW :
                 std::cout
-                        << "GL_STACK_OVERFLOW : An attempt has been made to perform an operation that would cause an internal stack to overflow.";
+                        << "GL_STACK_OVERFLOW";
                 break;
             default :
                 std::cout << "Unrecognized error" << error;
@@ -49,6 +49,5 @@ static bool GLCheckError() {
     }
     return true;
 }
-
 
 #endif //RAYTRACERBOROS_ERRORCHECKING_H

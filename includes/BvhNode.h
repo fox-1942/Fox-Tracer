@@ -2,10 +2,8 @@
 // Created by fox-1942 on 4/23/20.
 //
 
-#ifndef RAYTRACERBOROS_BVHTREE_H
-#define RAYTRACERBOROS_BVHTREE_H
-
-#define GLM_FORCE_SWIZZLE
+#ifndef RAYTRACERBOROS_BVHNODE_H
+#define RAYTRACERBOROS_BVHNODE_H
 
 #include "../Vendor/glm/glm.hpp"
 #include <iostream>
@@ -23,8 +21,6 @@ int numberOf = 1;
 int numberOfLeaves = 0;
 
 class BvhNode {
-
-
 
 public:
     static const int &numberOfPolyInLeaf;
@@ -232,4 +228,4 @@ public:
 
 };
 
-#endif //RAYTRACERBOROS_BVHTREE_H
+#endif //RAYTRACERBOROS_BVHNODE_H

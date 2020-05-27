@@ -3,10 +3,9 @@
 #include "../Vendor/glm/gtc/matrix_transform.hpp"
 #include "../Vendor/glm/gtc/type_ptr.hpp"
 #include "../includes/ShaderProgram.h"
-#include "../includes/camera.h"
 #include "../includes/model.h"
 #include "../includes/filesystem.h"
-#include "../includes/bvhtree.h"
+#include "../includes/BvhNode.h"
 #include "../includes/flatBvhNode.h"
 #include "../includes/stb_image.h"
 #include "../includes/light.h"
@@ -25,21 +24,11 @@ void sendVerticesIndices();
 
 void buildBvhTree();
 
-
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
-float lastX;
-float lastY;
-bool firstMouse = true;
+glm::vec3 camera(glm::vec3(0.0f, 0.0f, 0.0f));
 
-// timing
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
-// renderQuad() renders a 1x1 XY quad in NDC
-// -----------------------------------------
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
 
@@ -70,7 +59,6 @@ const int &BvhNode::numberOfPolyInLeaf(hiddenNumberOfPolyInLeaf);
 
 Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
 
-
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 
     shaderQuadVertex = Shader();
@@ -89,9 +77,8 @@ void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 void renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] =
-                // positions
                 {-1, -1, 1, -1, 1, 1, -1, 1};
-        // setup plane VAO
+
         glGenVertexArrays(1, &quadVAO);
         glGenBuffers(1, &quadVBO);
         glBindVertexArray(quadVAO);
@@ -155,7 +142,7 @@ void buildBvhTree() {
 
 
 int init() {
-    /* Initialize the library */
+
     if (!glfwInit())
         return -1;
 
@@ -163,18 +150,16 @@ int init() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    /* Create a windowed mode window and its OpenGL context */
+
     window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
     }
 
-    /* Make the window's context current */
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
@@ -186,7 +171,7 @@ int init() {
 
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
-    mymodel  = Model("../model/cubeplane.obj");
+    mymodel  = Model("../model/CornellBox-Original.obj");
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
 
@@ -221,9 +206,6 @@ int init() {
 void loop() {
     while (!glfwWindowShouldClose(window)) {
 
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
 
         processInput(window);
 
@@ -237,13 +219,13 @@ void loop() {
 
         glUniform1i(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "texture1"), 0);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wLookAt"), 1, &lookat.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "viewPoint"), 1, &lookat.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wRight"), 1, &right1.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "x"), 1, &right1.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wUp"), 1, &vup.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "y"), 1, &vup.x);
 
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "wEye"), 1, &eye.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "camera"), 1, &eye.x);
 
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].Le"), 1, &light.Le.x);
 
@@ -257,10 +239,8 @@ void loop() {
 
         renderQuad();
 
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
 
-        /* Poll for and process events */
+        glfwSwapBuffers(window);
         glfwPollEvents();
     }
 }
@@ -306,8 +286,6 @@ void setCameraZ(float param) {
 
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -339,34 +317,7 @@ void processInput(GLFWwindow *window) {
 
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    camera.ProcessMouseScroll(yoffset);
-}

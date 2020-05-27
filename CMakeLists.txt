@@ -21,8 +21,8 @@ add_executable(RayTracerBoros
         includes/filesystem.h
         includes/root_directory.h
         includes/ShaderProgram.h
-        includes/framework.h
-        includes/bvhtree.h
+        includes/vectorCalculator.h
+        includes/BvhNode.h
         includes/errorChecking.h
         includes/flatBvhNode.h
         includes/BBox.h

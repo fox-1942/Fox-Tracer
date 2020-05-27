@@ -1,7 +1,18 @@
+/* Copyright:
+ *
+ * LearnOpenGl.com Joey de Vries
+ * https://learnopengl.com/Model-Loading/Mesh
+ * https://twitter.com/JoeyDeVriez.
+ *
+ * Changes were made by Tamás Boros.
+ *
+ * Attribution-NonCommercial 4.0 International (CC BY-NC 4.0), Creative Commons
+*/
+
 #ifndef MESH_H
 #define MESH_H
 
-#include <GL/glew.h> // holds all OpenGL type declarations
+#include <GL/glew.h>
 
 #include "../Vendor/glm/glm.hpp"
 #include "../Vendor/glm/gtc/matrix_transform.hpp"

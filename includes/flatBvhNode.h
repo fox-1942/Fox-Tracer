@@ -8,7 +8,7 @@
 #include <array>
 #include <vector>
 #include "../Vendor/glm/glm.hpp"
-#include "bvhtree.h"
+#include "BvhNode.h"
 
 using namespace std;
 
@@ -18,8 +18,8 @@ struct FlatBvhNode {
     int order;
     int isLeaf;
     int createdEmpty;
-    int leftOrRight; // alignment
-    array<glm::vec4,300> indices;
+    int leftOrRight;
+    array<glm::vec4,20> indices;
 
     FlatBvhNode() {}
 
@@ -100,8 +100,6 @@ vector<FlatBvhNode>* flatten(const BvhNode& root) {
 
     return nodesArray;
 }*/
-
-
 
 
 #endif //RAYTRACERBOROS_FLATBVHNODE_H

@@ -1,3 +1,15 @@
+/* Copyright:
+ *
+ * LearnOpenGl.com Joey de Vries
+ * https://learnopengl.com/Model-Loading/Model
+ * https://twitter.com/JoeyDeVriez.
+ *
+ * Changes were made by Tamás Boros.
+ *
+ * Attribution-NonCommercial 4.0 International (CC BY-NC 4.0), Creative Commons
+*/
+
+
 #ifndef MODEL_H
 #define MODEL_H
 

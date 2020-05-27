@@ -13,7 +13,7 @@ struct FlatBvhNode
     int  isLeaf;// 4 byte          36
     int  createdEmpty;// 4 byte    40
     int  leftOrRight;// 4 byte     44
-    vec4 indices[300];// 32 byte     48
+    vec4 indices[20];// 32 byte     48
 };
 
 layout(std430, binding=1) buffer TNodes
@@ -53,10 +53,10 @@ struct Hit{
 };
 
 uniform Light lights[];
-uniform vec3 wEye;
+uniform vec3 camera;
 uniform sampler2D texture1;
 
-in vec3 p;
+in vec3 pixel;
 out vec4 FragColor;
 
 Hit rayTriangleIntersect(Ray ray, vec3 v0, vec3 v1, vec3 v2, int matIndex){
@@ -271,8 +271,8 @@ vec3 trace(Ray ray){
 void main()
 {
     Ray ray;
-    ray.orig = wEye;
-    ray.dir = normalize(p - wEye);
+    ray.orig = camera;
+    ray.dir = normalize(pixel - camera);
     FragColor = vec4(trace(ray), 1);
 
     // FragColor = vec4(nodes[4].isLeaf, 1, 1, 1);
