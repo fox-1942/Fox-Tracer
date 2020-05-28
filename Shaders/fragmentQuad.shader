@@ -117,10 +117,10 @@ bool rayIntersectWithBox(vec4 boxMin, vec4 boxMax, Ray r) {
 }
 
 Hit traverseBvhNode(Ray ray, FlatBvhNode node){
-    Hit besthit;
-    besthit.t=-1;
+    Hit closestHit;
+    closestHit.t=-1;
     bool hit;
-    Hit hitreal;
+    Hit actualHit;
     int i=0;
 
     while (i<=nodes.length()) {
@@ -132,12 +132,12 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                     vec3 TrianglePointB=getCoordinatefromIndices(nodes[i].indices[j].y).xyz;
                     vec3 TrianglePointC=getCoordinatefromIndices(nodes[i].indices[j].z).xyz;
 
-                    hitreal=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC, int(nodes[i].indices[j].w));
+                    actualHit=rayTriangleIntersect(ray, TrianglePointA, TrianglePointB, TrianglePointC, int(nodes[i].indices[j].w));
 
-                    if (hitreal.t==-1){ continue; }
+                    if (actualHit.t==-1){ continue; }
 
-                    if (hitreal.t>0 && (besthit.t>hitreal.t || besthit.t<0)){
-                        besthit=hitreal;
+                    if (actualHit.t>0 && (closestHit.t>actualHit.t || closestHit.t<0)){
+                        closestHit=actualHit;
                     }
                 }
             }
@@ -156,7 +156,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                 while (parent.leftOrRight==1){
                     parent=nodes[int(ceil(parent.order-2)/2)];
                     if (parent.order==0){
-                        return besthit;
+                        return closestHit;
                     }
                 }
                 i = parent.order+1;
@@ -194,7 +194,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                     parent=nodes[int(ceil(parent.order-2)/2)];
                     if (parent.order==0){
                         if (parent.order==0){
-                            return besthit;
+                            return closestHit;
                         }
                     }
                 }
@@ -203,7 +203,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
             }
         }
     }
-    return besthit;
+    return closestHit;
 }
 
 
