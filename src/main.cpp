@@ -1,6 +1,7 @@
 #include "../includes/main.h"
 #include <string>
 
+
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 
     shaderQuadVertex = Shader();
@@ -130,11 +131,8 @@ int init() {
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-
-    const char* path=File::getPath("wood.jpg").c_str();
-
-    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
-
+    unsigned char *data = stbi_load(File::getPath("model/gold.jpg").c_str(), &width, &height, &nrChannels,
+                                    0);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     } else {
@@ -187,7 +185,8 @@ int main() {
 }
 
 void setCamera(float param) {
-    posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y,-posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
+    posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y,
+                          -posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
     connect = posCamera - viewPoint;
     canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
     canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
@@ -213,11 +212,11 @@ void getInputFromKeyboard(GLFWwindow *window) {
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        if(posCamera.y<0.4){ setCameraY(+0.1);}
+        if (posCamera.y < 0.4) { setCameraY(+0.1); }
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        if(posCamera.y>-0.5){ setCameraY(-0.1);}
+        if (posCamera.y > -0.5) { setCameraY(-0.1); }
 
     }
 }
