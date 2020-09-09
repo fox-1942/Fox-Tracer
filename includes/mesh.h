@@ -8,24 +8,20 @@
  *
  * Attribution-NonCommercial 4.0 International (CC BY-NC 4.0), Creative Commons
 */
-
 #ifndef MESH_H
 #define MESH_H
 
 #include <GL/glew.h>
-
-#include "../Vendor/glm/glm.hpp"
-#include "../Vendor/glm/gtc/matrix_transform.hpp"
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <vector>
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
-struct Vertex
-{
+struct Vertex {
     // Position
     glm::vec3 Position;
     // Normal

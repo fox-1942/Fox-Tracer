@@ -1,7 +1,6 @@
 #include "../includes/main.h"
 #include <string>
 
-
 void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
 
     shaderQuadVertex = Shader();

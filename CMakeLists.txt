@@ -3,9 +3,9 @@ project(RayTracerBoros)
 
 add_compile_options(-DGLEW_NO_GLU)
 
-add_executable(RayTracerBoros
+add_executable(${PROJECT_NAME}
         src/main.cpp
         includes/stb_image.cpp
         )
 
-target_link_libraries(RayTracerBoros GL glfw GLEW assimp soil)
+target_link_libraries(${PROJECT_NAME} GL glfw GLEW assimp)

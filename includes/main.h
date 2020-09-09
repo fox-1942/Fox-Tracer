@@ -5,17 +5,17 @@
 #ifndef RAYTRACERBOROS_MAIN_H
 #define RAYTRACERBOROS_MAIN_H
 
-#include "../includes/errorChecking.h"
-#include "../Vendor/glm/glm.hpp"
-#include "../Vendor/glm/gtc/matrix_transform.hpp"
-#include "../Vendor/glm/gtc/type_ptr.hpp"
-#include "../includes/ShaderProgram.h"
-#include "../includes/model.h"
-#include "../includes/filesystem.h"
-#include "../includes/BvhNode.h"
-#include "../includes/flatBvhNode.h"
-#include "../includes/stb_image.h"
-#include "../includes/light.h"
+#include "errorChecking.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "ShaderProgram.h"
+#include "model.h"
+#include "filesystem.h"
+#include "BvhNode.h"
+#include "flatBvhNode.h"
+#include "stb_image.h"
+#include "light.h"
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;

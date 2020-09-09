@@ -42,7 +42,7 @@ source_group("SIMD Files" FILES ${SIMD_SOURCE})
 source_group("SIMD Files" FILES ${SIMD_INLINE})
 source_group("SIMD Files" FILES ${SIMD_HEADER})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+include_directories(../../Vendor)
 
 if (BUILD_STATIC_LIBS)
     add_library(glm_static STATIC ${ROOT_TEXT} ${ROOT_MD} ${ROOT_NAT}

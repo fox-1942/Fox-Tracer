@@ -3,7 +3,7 @@
 
 #include <array>
 #include <vector>
-#include "../Vendor/glm/glm.hpp"
+#include "glm/glm.hpp"
 #include "BvhNode.h"
 
 using namespace std;
@@ -15,7 +15,7 @@ struct FlatBvhNode {
     int isLeaf;
     int createdEmpty;
     int leftOrRight;
-    array<glm::vec4,12> indices;
+    array<glm::vec4, 17> indices;
 
     FlatBvhNode() {}
 

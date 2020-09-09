@@ -5,13 +5,15 @@
 #ifndef RAYTRACERBOROS_BVHNODE_H
 #define RAYTRACERBOROS_BVHNODE_H
 
-#include "../Vendor/glm/glm.hpp"
 #include <iostream>
 #include <map>
 #include <vector>
-#include "../Vendor/glm/vec3.hpp"
-#include "BBox.h"
 #include <deque>
+
+
+#include "BBox.h"
+#include "glm/glm.hpp"
+#include "glm/vec3.hpp"
 
 using namespace std;
 

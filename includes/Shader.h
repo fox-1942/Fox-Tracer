@@ -2,10 +2,11 @@
 #include <string>
 #include <GL/glew.h>
 #include <sstream>
-#include "../Vendor/glm/detail/type_mat4x4.hpp"
 #include <fstream>
 #include <iostream>
 #include <cstring>
+
+#include "glm/detail/type_mat4x4.hpp"
 
 using namespace std;
 

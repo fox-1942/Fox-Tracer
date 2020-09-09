@@ -13,25 +13,20 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include <GL/glew.h>
-
-#include "../Vendor/glm/glm.hpp"
-#include "../Vendor/glm/gtc/matrix_transform.hpp"
-
 #include <assimp/Importer.hpp>
-
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#include "../Vendor/SOIL2.h"
-#include "mesh.h"
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <map>
 #include <vector>
+
+#include "stb_image.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "mesh.h"
 
 using namespace std;
 
@@ -296,8 +291,8 @@ GLint TextureFromFile(const char *path, string directory) {
     GLuint textureID;
     glGenTextures(1, &textureID);
 
-  /*  int width, height;
-    unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+    int width, height;
+    unsigned char *image = stbi_load(filename.c_str(), &width, &height, 0, 3);
 
     // Assign texture to ID
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -310,8 +305,9 @@ GLint TextureFromFile(const char *path, string directory) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
-    SOIL_free_image_data(image);
-*/
+
+    stbi_image_free(image);
+
     return textureID;
 }
 

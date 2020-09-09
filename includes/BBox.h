@@ -5,7 +5,7 @@
 #ifndef RAYTRACERBOROS_BBOX_H
 #define RAYTRACERBOROS_BBOX_H
 
-#include "../Vendor/glm/vec3.hpp"
+#include "glm/vec3.hpp"
 #include <vector>
 
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
