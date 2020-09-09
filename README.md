@@ -4,7 +4,6 @@ Used technologies :
 - C++
 - GLEW, GLFW libraries
 - Assimp library for loading OBJ files
-- SOIL header
 - Shader storage buffers
 - BVH-tree
 - Möller-Trumbore ray-triangle intersection algorithm
@@ -19,3 +18,9 @@ The application is capable of visualizing:
 - Phong-Blinn shading
 - Ambient Light
 - Textures
+
+Required libraries:
+- Assimp 5.0.1
+- GLFW 3.3.2
+- GLEW 2.1.0
+- Cmake 3.17
