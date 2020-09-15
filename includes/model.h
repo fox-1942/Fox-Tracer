@@ -64,18 +64,14 @@ public:
         }
     }
 
-    void fillAllPositionVertices() {
-        glm::vec4 vectorTemp;
+    void getInfoAboutModel() {
+        int size = 0;
         for (int i = 0; i < meshes.size(); i++) {
-
-            for (int j = 0; j < meshes.at(i).vertices.size(); j++) {
-                vectorTemp.x = meshes.at(i).vertices.at(j).Position.x;
-                vectorTemp.y = meshes.at(i).vertices.at(j).Position.y;
-                vectorTemp.z = meshes.at(i).vertices.at(j).Position.z;
-                vectorTemp.w = 1;
-                allPositionVertices.push_back(vectorTemp);
-            }
+            size += meshes.at(i).vertices.size();
         }
+        cout << "Number of meshes in the model: " << meshes.size() << endl;
+        cout << "Number of vertices in the model: " << size << endl;
+        cout << "Number of faces in the model: " << indicesPerFaces.size() << "\n" << endl;
     }
 
 private:
@@ -98,22 +94,9 @@ private:
 
         // Process ASSIMP's root node recursively
         this->processNode(scene->mRootNode, scene);
-
-
-
-        fillAllPositionVertices();
         getInfoAboutModel();
     }
 
-    void getInfoAboutModel() {
-        int size = 0;
-        for (int i = 0; i < meshes.size(); i++) {
-            size += meshes.at(i).vertices.size();
-        }
-        cout << "Number of meshes in the model: " << meshes.size() << endl;
-        cout << "Number of vertices in the model: " << size << endl;
-        cout << "Number of faces in the model: " << indicesPerFaces.size() << "\n" << endl;
-    }
 
     // Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode *node, const aiScene *scene) {
@@ -141,13 +124,15 @@ private:
         // Walk through each of the mesh's vertices
         for (GLuint i = 0; i < mesh->mNumVertices; i++) {
             Vertex vertex;
-            glm::vec3 vector; // We declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+            glm::vec4 vector; // We declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
 
             // Positions
             vector.x = mesh->mVertices[i].x;
             vector.y = mesh->mVertices[i].y;
             vector.z = mesh->mVertices[i].z;
+            vector.w = 1;
             vertex.Position = vector;
+            allPositionVertices.push_back(vector);
 
             // Normals
             /* vector.x = mesh->mNormals[i].x;

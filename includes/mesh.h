@@ -23,7 +23,7 @@
 
 struct Vertex {
     // Position
-    glm::vec3 Position;
+    glm::vec4 Position;
     // Normal
     glm::vec3 Normal;
     // TexCoords
