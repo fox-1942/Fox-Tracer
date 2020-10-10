@@ -35,7 +35,6 @@ void renderQuad() {
 }
 
 void sendVerticesIndices() {
-    mymodel.fillAllPositionVertices();
 
     unsigned int primitives;
     glGenBuffers(1, &primitives);
@@ -110,10 +109,9 @@ int init() {
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
     mymodel = Model("../model/CornellBox-Original.obj");
 
-    /* If throwing an instance of 'std::out_of_range', increase the number of 'indices' array size in struct FlatBvhNode
-    *  and the 'indices' array size in fragmentQuad.shader to the maximum number of triangles in a leaf (info in console).
+    /* If throwing an instance of 'std::out_of_range', increase the number of 'indices' array size in struct 'FlatBvhNode'
+    *  and the 'indices' array size in fragmentQuad.shader to the largest number of triangles in a leaf (info in console during runtime).
     */
-
     createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
 
     sendVerticesIndices();
@@ -183,7 +181,9 @@ int main() {
 
 }
 
-void setCamera(float param) {
+
+// The rotation around Y-axis works fine without any ratio distortion
+void rotateCamAroundY(float param) {
     posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y,
                           -posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
     connect = posCamera - viewPoint;
@@ -191,32 +191,36 @@ void setCamera(float param) {
     canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
 }
 
-void setCameraY(float param) {
-    posCamera = glm::vec3(posCamera.x, posCamera.y + param, posCamera.z);
+
+// Unfortunately, rotation around X-axis causes ratio distortion. So the model is stretched and the camera tends to do weird movements.
+void rotateCamAroundX(float param) {
     connect = posCamera - viewPoint;
+    posCamera = glm::vec3(posCamera.x,
+                          connect.y * cos(param) + connect.z * sin(param),
+                          -connect.y * sin(param) + connect.z * cos(param))+viewPoint;
     canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
     canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
 }
+
 
 void getInputFromKeyboard(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        setCamera(0.1);
+        rotateCamAroundY(0.1);
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        setCamera(-0.1);
+        rotateCamAroundY(-0.1);
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        if (posCamera.y < 0.4) { setCameraY(+0.1); }
+        rotateCamAroundX(+0.1);
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        if (posCamera.y > -0.5) { setCameraY(-0.1); }
-
+        rotateCamAroundX(-0.1);
     }
 }
 

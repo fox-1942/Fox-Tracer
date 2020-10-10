@@ -124,7 +124,7 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
     int i=0;
 
     while (i<=nodes.length()) {
-        // Ha találat van és leaf a node, akkor bejárjuk, hogy van-e intersection.
+        // If there is a hit and the node is a leaf, then we traverse the traingles of the node to search for intersection.
         if (nodes[i].isLeaf==1){
             for (int j=0;j<nodes[i].indices.length();j++){
                 if (mod(nodes[i].indices[j].x, 1)==0 && mod(nodes[i].indices[j].y, 1)==0 && mod(nodes[i].indices[j].z, 1)==0){
@@ -141,13 +141,13 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
                     }
                 }
             }
-            // Ha bal oldali a leaf, akkor átmegyünk a jobb oldaliba.
+            // If the leaf node is on the left, then we go to its sibling on the right.
             if (nodes[i].leftOrRight==0){
                 i=i+1;
                 continue;
             }
 
-            // Ha jobb oldali a leaf, akkor feljebb megyünk addig, amíg a szülőnek nem lesz jobb oldali testvére
+            // If the leaf is on the right, the we go up in the tree hierachy to search a parent node, which has a right sibling.
             else if (nodes[i].leftOrRight==1){
 
                 int id=int(ceil(i-2)/2);
@@ -166,27 +166,27 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 
         hit = rayIntersectWithBox(nodes[i].min, nodes[i].max, ray);
 
+        // Section for internal nodes.
         if (hit) {
-            // Ha találat van és nem leaf a node, akkor megyünk lejjebb.
-            if (nodes[i].isLeaf==0){
+            // If there is a hit, then we go deeper in the tree.
                 i=2*i+1;
                 continue;
-            }
+
         }
 
         else {
-            // Ha nincs találat és a root node-nál vagyunk, akkor kilépés.
+            // If there is no hit and we are at the root node, then exit the traversal.
             if (nodes[i].order==0){
                 break;
             }
 
-            // Ha nincs találat és nem a root node-nál vagyunk és bal oldali node-nál vagyunk.
+            // If there is no hit and the current node is on the left, we go to the sibling on the right.
             if (nodes[i].leftOrRight==0) {
                 i=i+1;
                 continue;
             }
 
-            // Ha nincs találat és nem a root node-nál vagyunk és jobb oldali node-nál vagyunk.
+            // If there is no hit and the current node is on the right, we go up in the tree to search a node, which has got a right sibling.
             else if (nodes[i].leftOrRight==1){
                 FlatBvhNode parent=nodes[int(ceil(i-2)/2)];
 
@@ -210,9 +210,6 @@ Hit traverseBvhNode(Ray ray, FlatBvhNode node){
 Hit traverseBvhTree(Ray ray){
     return traverseBvhNode(ray, nodes[0]);
 }
-
-
-
 
 vec3 Fresnel(vec3 F0, float cosTheta) {
     return F0 + (vec3(1, 1, 1) - F0) * pow(1-cosTheta, 5);
@@ -266,7 +263,6 @@ vec3 trace(Ray ray){
     }
     return color;
 }
-
 
 void main()
 {
