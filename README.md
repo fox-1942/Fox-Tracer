@@ -10,7 +10,7 @@ Used technologies :
 
 The performance was optimized with bounding volume hierachies (BVH-tree), meaning that the bounding boxes are divided along the longest axis. The longest axis
 is always placed on the average centroid of the polygons. The whole tree is stored in a plain array and sent to a shader storage buffer in the fragment shader.
-This way the traversal is taken place in the fragment shader and the contstruction is on the CPU side.
+The traversal is taken place in the fragment shader and the contstruction of BVH-tree is on the CPU side.
 
 The application is capable of visualizing:
 - Total reflection
