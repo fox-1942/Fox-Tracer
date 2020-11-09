@@ -42,8 +42,11 @@ glm::vec3 canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfv
 static vector<glm::vec4> hiddenPrimitives;
 const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);
 
-static int hiddenNumberOfPolyInLeaf;
-const int &BvhNode::numberOfPolyInLeaf(hiddenNumberOfPolyInLeaf);
+static int hiddenNumberOfPolygons;
+const int &BvhNode::numberOfPolygonsInModel(hiddenNumberOfPolygons);
+
+static int hiddenMaxNumberOfPolyInALeaf=0;
+int &BvhNode::numberOfPolyInTheLeafWithLargestNumberOfPoly(hiddenMaxNumberOfPolyInALeaf);
 
 Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
 

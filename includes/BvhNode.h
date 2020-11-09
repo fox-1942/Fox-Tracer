@@ -10,21 +10,22 @@
 #include <vector>
 #include <deque>
 
-
 #include "BBox.h"
 #include "glm/glm.hpp"
 #include "glm/vec3.hpp"
 
 using namespace std;
 
-int indDef = 0;
+int maxNumberOfPolyInALeaf=0;
 int numberOf = 1;
 int numberOfLeaves = 0;
+int indOrder = 0;
 
 class BvhNode {
 
 public:
-    static const int &numberOfPolyInLeaf;
+    static const int &numberOfPolygonsInModel;
+    static int &numberOfPolyInTheLeafWithLargestNumberOfPoly;
 
     int countNodes() const {
         for (int i = 0; i < this->children.size(); i++) {
@@ -44,63 +45,75 @@ public:
     int leftOrRight;
     vector<glm::vec4> indices;
 
+
 public:
     BvhNode() {}
 
     ~BvhNode() {}
 
-    void buildTree(vector<glm::vec4> &indicesPerFaces, int depth) {
+    void buildTree(vector<glm::vec4> &indices, int depth) {
 
-        if (indicesPerFaces.size() <= numberOfPolyInLeaf / 3) {
+        if (indices.size() <= numberOfPolygonsInModel / 3) {
+            if(indices.size() > numberOfPolyInTheLeafWithLargestNumberOfPoly){
+                numberOfPolyInTheLeafWithLargestNumberOfPoly=indices.size();
+            }
+            cout << "numberOfPolyInTheLeafWithLargestNumberOfPoly: " << numberOfPolyInTheLeafWithLargestNumberOfPoly << endl;
+
             this->bBox = BBox();
-            this->indices = indicesPerFaces;
+            this->indices = indices;
             this->depthOfNode = depth;
             this->isLeaf = true;
-            this->order = indDef;
+            this->order = indOrder;
             this->createdEmpty = false;
-            indDef++;
+            indOrder++;
             return;
         }
 
         this->depthOfNode = depth;
-        this->bBox = getBBox(indicesPerFaces);
+        this->bBox = bBox.getBBox(indices);
         this->isLeaf = false;
-        this->order = indDef;
-        indDef++;
+        this->order = indOrder;
+        indOrder++;
 
-        int axis = this->bBox.longestAxis;
+        int axis = this->bBox.getLongestAxis();
 
         vector<glm::vec4> leftTree;
         vector<glm::vec4> rightTree;
 
-        for (int i = 0; i < indicesPerFaces.size(); ++i) {
+        for (int i = 0; i < indices.size(); ++i) {
             switch (axis) {
                 case 0:
-                    if (bBox.center.x >= this->bBox.faceCenters.at(i).x) {
-                        leftTree.push_back(indicesPerFaces.at(i));
-                    } else if (bBox.center.x < this->bBox.faceCenters.at(i).x) {
-                        rightTree.push_back(indicesPerFaces.at(i));
+                    if (bBox.getCenter().x >= this->bBox.getFaceCenters().at(i).x) {
+                        leftTree.push_back(indices.at(i));
+                    } else if (bBox.getCenter().x < this->bBox.getFaceCenters().at(i).x) {
+                        rightTree.push_back(indices.at(i));
                     }
                     break;
                 case 1:
-                    if (bBox.center.y >= this->bBox.faceCenters.at(i).y) {
-                        leftTree.push_back(indicesPerFaces.at(i));
-                    } else if (bBox.center.y < this->bBox.faceCenters.at(i).y) {
-                        rightTree.push_back(indicesPerFaces.at(i));
+                    if (bBox.getCenter().y >= this->bBox.getFaceCenters().at(i).y) {
+                        leftTree.push_back(indices.at(i));
+                    } else if (bBox.getCenter().y < this->bBox.getFaceCenters().at(i).y) {
+                        rightTree.push_back(indices.at(i));
                     }
                     break;
                 case 2:
-                    if (bBox.center.z >= this->bBox.faceCenters.at(i).z) {
-                        leftTree.push_back(indicesPerFaces.at(i));
-                    } else if (bBox.center.z < this->bBox.faceCenters.at(i).z) {
-                        rightTree.push_back(indicesPerFaces.at(i));
+                    if (bBox.getCenter().z >= this->bBox.getFaceCenters().at(i).z) {
+                        leftTree.push_back(indices.at(i));
+                    } else if (bBox.getCenter().z < this->bBox.getFaceCenters().at(i).z) {
+                        rightTree.push_back(indices.at(i));
                     }
             };
         }
 
-        if (leftTree.size() == indicesPerFaces.size() || rightTree.size() == indicesPerFaces.size()) {
-            this->indices = indicesPerFaces;
+        if (leftTree.size() == indices.size() || rightTree.size() == indices.size()) {
+            this->indices = indices;
             this->isLeaf = true;
+            if(indices.size() > numberOfPolyInTheLeafWithLargestNumberOfPoly){
+                numberOfPolyInTheLeafWithLargestNumberOfPoly=indices.size();
+            }
+
+            cout << "numberOfPolyInTheLeafWithLargestNumberOfPoly: " << numberOfPolyInTheLeafWithLargestNumberOfPoly << endl;
+
             return;
         }
 

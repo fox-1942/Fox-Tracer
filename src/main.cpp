@@ -16,6 +16,7 @@ void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadProgram.linkShaderProgram();
 }
 
+
 void renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] =
@@ -57,13 +58,14 @@ void sendVerticesIndices() {
 
 void buildBvhTree() {
     hiddenPrimitives = mymodel.allPositionVertices;
-    hiddenNumberOfPolyInLeaf = mymodel.indicesPerFaces.size();
+    hiddenNumberOfPolygons = mymodel.indicesInModel.size();
 
     bvhNode = new BvhNode();
-    bvhNode->buildTree(mymodel.indicesPerFaces, 0);
+    bvhNode->buildTree(mymodel.indicesInModel, 0);
     bvhNode->makeBvHTreeComplete();
 
     bvhNode->InfoAboutNode();
+
 
     vector<FlatBvhNode> *nodeArrays = putNodeIntoArray(bvhNode);
 
@@ -128,7 +130,7 @@ int init() {
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load(File::getPath("model/gold.jpg").c_str(), &width, &height, &nrChannels,
+    unsigned char *data = stbi_load(File::getPath("model/wood.png").c_str(), &width, &height, &nrChannels,
                                     0);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);

@@ -45,7 +45,7 @@ public:
 
 public:
     vector<glm::vec4> allPositionVertices;
-    vector<glm::vec4> indicesPerFaces;
+    vector<glm::vec4> indicesInModel;
     vector<Material> materials;
 
     /*  Functions   */
@@ -71,7 +71,7 @@ public:
         }
         cout << "Number of meshes in the model: " << meshes.size() << endl;
         cout << "Number of vertices in the model: " << size << endl;
-        cout << "Number of faces in the model: " << indicesPerFaces.size() << "\n" << endl;
+        cout << "Number of faces in the model: " << indicesInModel.size() << "\n" << endl;
     }
 
 private:
@@ -218,7 +218,7 @@ private:
             vec3FacePlusMatIndex.y = face.mIndices[1] + offset;
             vec3FacePlusMatIndex.z = face.mIndices[2] + offset;
             vec3FacePlusMatIndex.w = materials.size() - 1;
-            indicesPerFaces.push_back(vec3FacePlusMatIndex);
+            indicesInModel.push_back(vec3FacePlusMatIndex);
 
             for (GLuint j = 0; j < face.mNumIndices; j++) {
                 indices.push_back(face.mIndices[j]);
@@ -329,10 +329,10 @@ GLint TextureFromFile(const char *path, string directory) {
 /*
         ofstream myfile2;
         myfile2.open ("../model/indicesperFaces.txt");
-        for(int i=0;i<indicesPerFaces.size();i++){
-            myfile2<<indicesPerFaces.at(i).x <<" ";
-            myfile2<<indicesPerFaces.at(i).y <<" ";
-            myfile2<<indicesPerFaces.at(i).z << endl;
+        for(int i=0;i<indicesInModel.size();i++){
+            myfile2<<indicesInModel.at(i).x <<" ";
+            myfile2<<indicesInModel.at(i).y <<" ";
+            myfile2<<indicesInModel.at(i).z << endl;
         }*/
 
 
@@ -354,4 +354,4 @@ GLint TextureFromFile(const char *path, string directory) {
            myfile2.close();*/
 
 /*cout <<"all position vertices: "<< allPositionVertices.size() << endl;
-cout <<"indices: "<< indicesPerFaces.size() << "\n" << endl;*/
+cout <<"indices: "<< indicesInModel.size() << "\n" << endl;*/

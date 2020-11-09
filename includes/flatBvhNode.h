@@ -15,7 +15,7 @@ struct FlatBvhNode {
     int isLeaf;
     int createdEmpty;
     int leftOrRight;
-    array<glm::vec4, 17> indices;
+    array<glm::vec4, 10> indices;
 
     FlatBvhNode() {}
 
@@ -35,7 +35,7 @@ struct FlatBvhNode {
 };
 
 FlatBvhNode nodeConverter(const BvhNode node, int ind) {
-    FlatBvhNode result = FlatBvhNode(node.bBox.min, node.bBox.max, ind, node.isLeaf, node.createdEmpty,
+    FlatBvhNode result = FlatBvhNode(node.bBox.getMin(), node.bBox.getMax(), ind, node.isLeaf, node.createdEmpty,
                                      node.indices, node.leftOrRight);
     return result;
 }
