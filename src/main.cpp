@@ -16,7 +16,6 @@ void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadProgram.linkShaderProgram();
 }
 
-
 void renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] =
@@ -66,8 +65,7 @@ void buildBvhTree() {
 
     bvhNode->InfoAboutNode();
 
-
-    vector<FlatBvhNode> *nodeArrays = putNodeIntoArray(bvhNode);
+    vector<FlatBvhNode> *nodeArrays = FlatBvhNode::putNodeIntoArray(bvhNode);
 
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);

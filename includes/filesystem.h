@@ -36,7 +36,6 @@ private:
         return root;
     }
 
-
     static Builder getPathBuilder()
     {
         if (getRoot() != "")

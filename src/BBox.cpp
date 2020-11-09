@@ -2,7 +2,7 @@
 // Created by fox1942 on 11/9/20.
 //
 
-#include "BBox.h"
+#include "../includes/BBox.h"
 
 BBox::BBox() {}
 

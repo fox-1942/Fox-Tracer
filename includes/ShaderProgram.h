@@ -12,95 +12,36 @@
 
 class ShaderProgram {
 
-    static void GLClearError() {
-        while (glGetError() != GL_NO_ERROR);
-    }
-
-    static void GLCheckError() {
-        while (GLenum error = glGetError()) {
-            std::cout << "[OpenGL Error]: " << error << std::endl;
-        }
-    }
 
 public:
     GLuint shaderProgram_id;
     bool isLinked = false;
 
-    void CreateShaderProgram() {
-        shaderProgram_id = glCreateProgram();
+    void CreateShaderProgram();
 
-    }
+    bool addShaderToProgram(const Shader &shader);
 
-    bool addShaderToProgram(const Shader &shader) {
+    bool linkShaderProgram();
 
-        if (!shader.getIsLoaded())
-            return false;
+    void useProgram();
 
-        GLClearError();
-        glAttachShader(shaderProgram_id, shader.getShader_id());
-        GLCheckError();
-        cout << "Shader attached, Shader_ID: "<< shader.getShader_id() << " to ShaderProgram:"<<shaderProgram_id << endl;
+    void deleteProgram();
 
-        glDeleteShader(shader.getShader_id());
-        return true;
-    }
+    int getShaderProgram_id() const;
 
-    bool linkShaderProgram() {
-        glLinkProgram(shaderProgram_id);
-        int linkStatus;
-        glGetProgramiv(shaderProgram_id, GL_LINK_STATUS, &linkStatus);
-        isLinked = linkStatus == GL_TRUE;
+    void setUniform1i(const std::string &name, int v0);
 
-        if (!isLinked) {
-            GLchar *info;
-            int logLength;
-            glGetProgramInfoLog(shaderProgram_id, 2048, &logLength, info);
-            std::cout << "Error! Shader program wasn't linked! The linker returned: " << info << std::endl;
-            return false;
-        }
+    void setUniform4f(const std::string &name, float v0, float v1, float v2, float v3);
 
-        std::cout << "shaderProgram id: " << shaderProgram_id << " | Linking was successfull." << std::endl;
-        std::cout << "-------------------------------------------------------------------------\n" << std::endl;
-        return isLinked;
-    }
+    int getUniformLocation(const std::string &name);
 
-    void useProgram() {
-        if (isLinked) {
-            glUseProgram(shaderProgram_id);
-        }
-    }
+    void setUniformMat4f(const std::string &name, glm::mat4 &matrix);
 
-    void deleteProgram() {
-        if (!isLinked) {
-            return;
-        }
+    void setUniformVec3f(const std::string &name, glm::vec3 &vec3);
 
-        glDeleteProgram(shaderProgram_id);
-        isLinked = false;
-    }
+    static void GLClearError();
 
-    int getShaderProgram_id() const {
-        return shaderProgram_id;
-    }
+    static void GLCheckError();
 
-    void setUniform1i(const std::string &name, int v0) {
-        glUniform1i(getUniformLocation(name), v0);
-    }
 
-    void setUniform4f(const std::string &name, float v0, float v1, float v2, float v3) {
-        glUniform4f(getUniformLocation(name), v0, v1, v2, v3);
-    }
-
-    int getUniformLocation(const std::string &name) {
-        int location = glGetUniformLocation(shaderProgram_id, name.c_str());
-        return location;
-    }
-
-    void setUniformMat4f(const std::string &name, glm::mat4 &matrix) {
-        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
-    }
-
-    void setUniformVec3f(const std::string &name, glm::vec3 &vec3) {
-        glUniform3fv(getUniformLocation(name), 1, (const GLfloat *) &vec3);
-    }
 };
