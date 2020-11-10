@@ -10,13 +10,13 @@
 #include <vector>
 #include <deque>
 
-#include "BBox.h"
+#include "bbox.h"
 #include "glm/glm.hpp"
 #include "glm/vec3.hpp"
 
 using namespace std;
 
-class BvhNode {
+class bvhnode {
 
 private:
 
@@ -25,7 +25,7 @@ private:
 
     BBox bBox;
     int depthOfNode;
-    vector<BvhNode *> children;
+    vector<bvhnode *> children;
     int order;
     bool isLeaf;
     bool createdEmpty = false;
@@ -34,9 +34,9 @@ private:
 
 public:
 
-    BvhNode();
+    bvhnode();
 
-    ~BvhNode();
+    ~bvhnode();
 
     void buildTree(vector<glm::vec4> &indices, int depth);
 
@@ -68,9 +68,9 @@ public:
 
     void setDepthOfNode(int depthOfNode);
 
-    const vector<BvhNode *> &getChildren() const;
+    const vector<bvhnode *> &getChildren() const;
 
-    void setChildren(const vector<BvhNode *> &children);
+    void setChildren(const vector<bvhnode *> &children);
 
     int getOrder() const;
 

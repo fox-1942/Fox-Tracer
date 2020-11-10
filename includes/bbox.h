@@ -15,14 +15,13 @@
 using namespace std;
 
 class BBox {
-
+private:
     static const vector<glm::vec4> &primitiveCoordinates;
     glm::vec3 min;
     glm::vec3 max;
     glm::vec3 center;
     int longestAxis;
     vector<glm::vec3> faceCenters;
-
 
 public:
     static const vector<glm::vec4> &getPrimitiveCoordinates();

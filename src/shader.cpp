@@ -2,7 +2,7 @@
 // Created by fox1942 on 11/9/20.
 //
 
-#include "../includes/Shader.h"
+#include "../includes/shader.h"
 
 Shader::Shader() {}
 

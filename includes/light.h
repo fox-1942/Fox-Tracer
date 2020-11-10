@@ -6,7 +6,7 @@
 #define RAYTRACERBOROS_LIGHT_H
 
 #include "glm/vec3.hpp"
-#include "vectorCalculator.h"
+#include "vectorcalculator.h"
 
 struct Light {
     glm::vec3 Le;

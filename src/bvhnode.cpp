@@ -7,9 +7,9 @@
 #include <vector>
 #include <deque>
 
-#include "../includes/BBox.h"
+#include "../includes/bbox.h"
 #include "../includes/glm/glm.hpp"
-#include "../includes/BvhNode.h"
+#include "../includes/bvhnode.h"
 
 using namespace std;
 
@@ -19,7 +19,7 @@ int numberOfLeaves = 0;
 int indOrder = 0;
 
 
-int BvhNode::countNodes() const {
+int bvhnode::countNodes() const {
     for (int i = 0; i < this->children.size(); i++) {
         numberOf++;
         children.at(i)->countNodes();
@@ -27,11 +27,11 @@ int BvhNode::countNodes() const {
     return numberOf;
 }
 
-BvhNode::BvhNode() {}
+bvhnode::bvhnode() {}
 
-BvhNode::~BvhNode() {}
+bvhnode::~bvhnode() {}
 
-void BvhNode::buildTree(vector<glm::vec4> &indices, int depth) {
+void bvhnode::buildTree(vector<glm::vec4> &indices, int depth) {
 
     if (indices.size() <= numberOfPolygonsInModel / 3) {
         if (indices.size() > numberOfPolyInTheLeafWithLargestNumberOfPoly) {
@@ -102,8 +102,8 @@ void BvhNode::buildTree(vector<glm::vec4> &indices, int depth) {
     cout << "Left: " << leftTree.size() << endl;
     cout << "Right: " << rightTree.size() << endl;
 
-    BvhNode *left = new BvhNode();
-    BvhNode *right = new BvhNode();
+    bvhnode *left = new bvhnode();
+    bvhnode *right = new bvhnode();
 
     left->buildTree(leftTree, this->depthOfNode + 1);
     right->buildTree(rightTree, this->depthOfNode + 1);
@@ -116,7 +116,7 @@ void BvhNode::buildTree(vector<glm::vec4> &indices, int depth) {
     return;
 }
 
-int BvhNode::getNumberOfLeaves() {
+int bvhnode::getNumberOfLeaves() {
     for (int i = 0; i < this->children.size(); i++) {
         if (children.at(i)->isLeaf) {
             numberOfLeaves++;
@@ -126,7 +126,7 @@ int BvhNode::getNumberOfLeaves() {
     return numberOfLeaves;
 }
 
-int BvhNode::findDeep(int &deepest) {
+int bvhnode::findDeep(int &deepest) {
     for (int i = 0; i < this->children.size(); i++) {
         if (this->children.at(i)->depthOfNode > deepest) {
             deepest = this->children.at(i)->depthOfNode;
@@ -136,16 +136,16 @@ int BvhNode::findDeep(int &deepest) {
     return deepest;
 }
 
-int BvhNode::getDeepestLevel() {
+int bvhnode::getDeepestLevel() {
     int deepest = -1;
     return findDeep(deepest);
 }
 
-void BvhNode::treeComplete(int deepestLev) {
+void bvhnode::treeComplete(int deepestLev) {
     if (this->children.empty() && this->depthOfNode != deepestLev) {
         this->isLeaf = true; // Commented, because semantically 'this' would remain a leaf;
 
-        BvhNode *emptyNode = new BvhNode();
+        bvhnode *emptyNode = new bvhnode();
         emptyNode->bBox = BBox();
         emptyNode->createdEmpty = true;
         emptyNode->isLeaf = true;
@@ -155,7 +155,7 @@ void BvhNode::treeComplete(int deepestLev) {
         emptyNode->leftOrRight = 0;
         this->children.push_back(emptyNode);
 
-        BvhNode *emptyNode2 = new BvhNode();
+        bvhnode *emptyNode2 = new bvhnode();
         *emptyNode2 = *emptyNode;
         emptyNode2->leftOrRight = 1;
         this->children.push_back(emptyNode2);
@@ -173,17 +173,17 @@ void BvhNode::treeComplete(int deepestLev) {
     }
 }
 
-void BvhNode::makeBvHTreeComplete() {
+void bvhnode::makeBvHTreeComplete() {
     int deep = this->getDeepestLevel();
     this->treeComplete(deep);
 }
 
-int BvhNode::getNumberOfNodes() {
+int bvhnode::getNumberOfNodes() {
     numberOf = 1;
     return countNodes();
 }
 
-void BvhNode::InfoAboutNode() {
+void bvhnode::InfoAboutNode() {
     numberOfLeaves = 0;
 
     cout << "Info about the tree:" << endl;
@@ -197,78 +197,78 @@ void BvhNode::InfoAboutNode() {
     cout << "Deepest level of the tree: " << getDeepestLevel() << "\n" << endl;
 }
 
-const BBox &BvhNode::getBBox() const {
+const BBox &bvhnode::getBBox() const {
     return bBox;
 }
 
-void BvhNode::setBBox(const BBox &bBox) {
-    BvhNode::bBox = bBox;
+void bvhnode::setBBox(const BBox &bBox) {
+    bvhnode::bBox = bBox;
 }
 
-int BvhNode::getDepthOfNode() const {
+int bvhnode::getDepthOfNode() const {
     return depthOfNode;
 }
 
-void BvhNode::setDepthOfNode(int depthOfNode) {
-    BvhNode::depthOfNode = depthOfNode;
+void bvhnode::setDepthOfNode(int depthOfNode) {
+    bvhnode::depthOfNode = depthOfNode;
 }
 
-const vector<BvhNode *> &BvhNode::getChildren() const {
+const vector<bvhnode *> &bvhnode::getChildren() const {
     return children;
 }
 
-void BvhNode::setChildren(const vector<BvhNode *> &children) {
-    BvhNode::children = children;
+void bvhnode::setChildren(const vector<bvhnode *> &children) {
+    bvhnode::children = children;
 }
 
-int BvhNode::getOrder() const {
+int bvhnode::getOrder() const {
     return order;
 }
 
-void BvhNode::setOrder(int order) {
-    BvhNode::order = order;
+void bvhnode::setOrder(int order) {
+    bvhnode::order = order;
 }
 
-bool BvhNode::getIsLeaf() const {
+bool bvhnode::getIsLeaf() const {
     return isLeaf;
 }
 
-void BvhNode::setIsLeaf(bool isLeaf) {
-    BvhNode::isLeaf = isLeaf;
+void bvhnode::setIsLeaf(bool isLeaf) {
+    bvhnode::isLeaf = isLeaf;
 }
 
-bool BvhNode::isCreatedEmpty() const {
+bool bvhnode::isCreatedEmpty() const {
     return createdEmpty;
 }
 
-void BvhNode::setCreatedEmpty(bool createdEmpty) {
-    BvhNode::createdEmpty = createdEmpty;
+void bvhnode::setCreatedEmpty(bool createdEmpty) {
+    bvhnode::createdEmpty = createdEmpty;
 }
 
-int BvhNode::getLeftOrRight() const {
+int bvhnode::getLeftOrRight() const {
     return leftOrRight;
 }
 
-void BvhNode::setLeftOrRight(int leftOrRight) {
-    BvhNode::leftOrRight = leftOrRight;
+void bvhnode::setLeftOrRight(int leftOrRight) {
+    bvhnode::leftOrRight = leftOrRight;
 }
 
-const vector<glm::vec4> &BvhNode::getIndices() const {
+const vector<glm::vec4> &bvhnode::getIndices() const {
     return indices;
 }
 
-void BvhNode::setIndices(const vector<glm::vec4> &indices) {
-    BvhNode::indices = indices;
+void bvhnode::setIndices(const vector<glm::vec4> &indices) {
+    bvhnode::indices = indices;
 }
 
-const int &BvhNode::getNumberOfPolygonsInModel() {
+const int &bvhnode::getNumberOfPolygonsInModel() {
     return numberOfPolygonsInModel;
 }
 
-int &BvhNode::getNumberOfPolyInTheLeafWithLargestNumberOfPoly() {
+int &bvhnode::getNumberOfPolyInTheLeafWithLargestNumberOfPoly() {
     return numberOfPolyInTheLeafWithLargestNumberOfPoly;
 }
 
-void BvhNode::setNumberOfPolyInTheLeafWithLargestNumberOfPoly(int &numberOfPolyInTheLeafWithLargestNumberOfPoly) {
-    BvhNode::numberOfPolyInTheLeafWithLargestNumberOfPoly = numberOfPolyInTheLeafWithLargestNumberOfPoly;
+void bvhnode::setNumberOfPolyInTheLeafWithLargestNumberOfPoly(int &numberOfPolyInTheLeafWithLargestNumberOfPoly) {
+    bvhnode::numberOfPolyInTheLeafWithLargestNumberOfPoly = numberOfPolyInTheLeafWithLargestNumberOfPoly;
 }

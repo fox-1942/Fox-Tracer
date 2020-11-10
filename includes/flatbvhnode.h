@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 #include "glm/glm.hpp"
-#include "BvhNode.h"
+#include "bvhnode.h"
 
 using namespace std;
 
@@ -24,9 +24,9 @@ public:
                 vector<glm::vec4> indices, int leftOrRight);
 
 
-    static FlatBvhNode nodeConverter(const BvhNode node, int ind);
+    static FlatBvhNode nodeConverter(const bvhnode node, int ind);
 
-    static vector<FlatBvhNode> *putNodeIntoArray(const BvhNode * node);
+    static vector<FlatBvhNode> *putNodeIntoArray(const bvhnode * node);
 };
 
 #endif //RAYTRACERBOROS_FLATBVHNODE_H

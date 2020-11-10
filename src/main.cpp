@@ -1,8 +1,7 @@
 #include "../includes/main.h"
 #include <string>
 
-void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
-
+void Main::createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadVertex = Shader();
     shaderQuadFragment = Shader();
     shaderQuadVertex.loadShaderFromFile(VS_Path, GL_VERTEX_SHADER);
@@ -16,7 +15,7 @@ void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadProgram.linkShaderProgram();
 }
 
-void renderQuad() {
+void Main::renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] =
                 {-1, -1, 1, -1, 1, 1, -1, 1};
@@ -34,7 +33,7 @@ void renderQuad() {
     glBindVertexArray(0);
 }
 
-void sendVerticesIndices() {
+void Main::sendVerticesIndices() {
 
     unsigned int primitives;
     glGenBuffers(1, &primitives);
@@ -55,14 +54,14 @@ void sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-void buildBvhTree() {
+void Main::buildBvhTree() {
+
     hiddenPrimitives = mymodel.allPositionVertices;
     hiddenNumberOfPolygons = mymodel.indicesInModel.size();
 
-    bvhNode = new BvhNode();
+    bvhNode = new bvhnode();
     bvhNode->buildTree(mymodel.indicesInModel, 0);
     bvhNode->makeBvHTreeComplete();
-
     bvhNode->InfoAboutNode();
 
     vector<FlatBvhNode> *nodeArrays = FlatBvhNode::putNodeIntoArray(bvhNode);
@@ -78,7 +77,13 @@ void buildBvhTree() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-int init() {
+
+void Main::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+
+int Main::init() {
 
     if (!glfwInit())
         return -1;
@@ -140,7 +145,8 @@ int init() {
     return 0;
 }
 
-void loop() {
+void Main::loop() {
+
     while (!glfwWindowShouldClose(window)) {
 
         getInputFromKeyboard(window);
@@ -169,21 +175,9 @@ void loop() {
     }
 }
 
-int main() {
-    if (init() == -1) {
-        return -1;
-    }
-
-    loop();
-    glfwTerminate();
-
-    return 0;
-
-}
-
 
 // The rotation around Y-axis works fine without any ratio distortion
-void rotateCamAroundY(float param) {
+void Main::rotateCamAroundY(float param) {
     posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y,
                           -posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
     connect = posCamera - viewPoint;
@@ -193,17 +187,17 @@ void rotateCamAroundY(float param) {
 
 
 // Unfortunately, rotation around X-axis causes ratio distortion. So the model is stretched and the camera tends to do weird movements.
-void rotateCamAroundX(float param) {
+void Main::rotateCamAroundX(float param) {
     connect = posCamera - viewPoint;
     posCamera = glm::vec3(posCamera.x,
                           connect.y * cos(param) + connect.z * sin(param),
-                          -connect.y * sin(param) + connect.z * cos(param))+viewPoint;
+                          -connect.y * sin(param) + connect.z * cos(param)) + viewPoint;
     canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
     canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
 }
 
 
-void getInputFromKeyboard(GLFWwindow *window) {
+void Main::getInputFromKeyboard(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -224,7 +218,14 @@ void getInputFromKeyboard(GLFWwindow *window) {
     }
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
+int main() {
+    Main main;
+    if (main.init() == -1) {
+        return -1;
+    }
 
+    main.loop();
+    glfwTerminate();
+
+    return 0;
+}

@@ -1,7 +1,8 @@
 //
 // Created by fox1942 on 11/9/20.
 //
-#include "../includes/ShaderProgram.h"
+
+#include "../includes/shaderprogram.h"
 
 
 void ShaderProgram::GLClearError() {

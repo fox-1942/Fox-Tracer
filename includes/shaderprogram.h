@@ -2,13 +2,12 @@
 // Created by fox-1942 on 3/26/20.
 //
 
-#include <GL/glew.h>
-#include "Shader.h"
-
 #ifndef OPENGL_SHADERPROGRAM_H
 #define OPENGL_SHADERPROGRAM_H
 
-#endif //OPENGL_SHADERPROGRAM_H
+#include <GL/glew.h>
+#include "shader.h"
+
 
 class ShaderProgram {
 
@@ -42,6 +41,6 @@ public:
     static void GLClearError();
 
     static void GLCheckError();
-
-
 };
+
+#endif //OPENGL_SHADERPROGRAM_H
