@@ -4,7 +4,7 @@
 
 #include "../includes/shader.h"
 
-Shader::Shader() {}
+Shader::Shader()=default;
 
 Shader::~Shader() {}
 

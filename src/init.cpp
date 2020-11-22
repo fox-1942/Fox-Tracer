@@ -1,7 +1,7 @@
-#include "../includes/main.h"
+#include "../includes/init.h"
 #include <string>
 
-void Main::createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
+void Init::createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadVertex = Shader();
     shaderQuadFragment = Shader();
     shaderQuadVertex.loadShaderFromFile(VS_Path, GL_VERTEX_SHADER);
@@ -15,7 +15,7 @@ void Main::createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadProgram.linkShaderProgram();
 }
 
-void Main::renderQuad() {
+void Init::renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] =
                 {-1, -1, 1, -1, 1, 1, -1, 1};
@@ -33,7 +33,7 @@ void Main::renderQuad() {
     glBindVertexArray(0);
 }
 
-void Main::sendVerticesIndices() {
+void Init::sendVerticesIndices() {
 
     unsigned int primitives;
     glGenBuffers(1, &primitives);
@@ -54,12 +54,12 @@ void Main::sendVerticesIndices() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-void Main::buildBvhTree() {
+void Init::buildBvhTree() {
 
     hiddenPrimitives = mymodel.allPositionVertices;
     hiddenNumberOfPolygons = mymodel.indicesInModel.size();
 
-    bvhNode = new bvhnode();
+    bvhNode = new BvhNode();
     bvhNode->buildTree(mymodel.indicesInModel, 0);
     bvhNode->makeBvHTreeComplete();
     bvhNode->InfoAboutNode();
@@ -75,15 +75,15 @@ void Main::buildBvhTree() {
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, nodesArraytoSendtoShader, 0,
                       nodeArrays->size() * sizeof(FlatBvhNode));
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 }
 
-
-void Main::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void Init::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
 
-int Main::init() {
+int Init::setup() {
 
     if (!glfwInit())
         return -1;
@@ -92,8 +92,8 @@ int Main::init() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    window = glfwCreateWindow(SCR_W_H.first, SCR_W_H.second, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
 
-    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -145,7 +145,7 @@ int Main::init() {
     return 0;
 }
 
-void Main::loop() {
+void Init::loop() {
 
     while (!glfwWindowShouldClose(window)) {
 
@@ -157,10 +157,13 @@ void Main::loop() {
         shaderQuadProgram.useProgram();
 
         glUniform1i(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "texture1"), 0);
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "viewPoint"), 1, &viewPoint.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "viewPoint"), 1,
+                     &camera.getViewPoint().x);
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasX"), 1, &canvasX.x);
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasY"), 1, &upVector.x);
-        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "camera"), 1, &posCamera.x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "canvasY"), 1,
+                     &camera.getUpVector().x);
+        glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "camera"), 1,
+                     &camera.getPosCamera().x);
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].Le"), 1, &light.Le.x);
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].La"), 1, &light.La.x);
         glUniform3fv(glGetUniformLocation(shaderQuadProgram.getShaderProgram_id(), "lights[0].direction"), 1,
@@ -175,29 +178,32 @@ void Main::loop() {
     }
 }
 
+void Init::updateCanvasSizes() {
+    connect = camera.getPosCamera() - camera.getViewPoint();
+    canvasX = cross(camera.getUpVector(), connect) * getLength(connect) * tanf(camera.getFieldOfview() / 2);
+    canvasY = cross(connect, canvasX) * getLength(connect) * tanf(camera.getFieldOfview() / 2);
+}
 
 // The rotation around Y-axis works fine without any ratio distortion
-void Main::rotateCamAroundY(float param) {
-    posCamera = glm::vec3(posCamera.x * cos(param) + posCamera.z * sin(param), posCamera.y,
-                          -posCamera.x * sin(param) + posCamera.z * cos(param)) + viewPoint;
-    connect = posCamera - viewPoint;
-    canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
-    canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
+void Init::rotateCamAroundY(float param) {
+    camera.setPosCamera(glm::vec3(camera.getPosCamera().x * cos(param) + camera.getPosCamera().z * sin(param),
+                                  camera.getPosCamera().y,
+                                  -camera.getPosCamera().x * sin(param) + camera.getPosCamera().z * cos(param)) +
+                        camera.getViewPoint());
+    updateCanvasSizes();
 }
 
 
 // Unfortunately, rotation around X-axis causes ratio distortion. So the model is stretched and the camera tends to do weird movements.
-void Main::rotateCamAroundX(float param) {
-    connect = posCamera - viewPoint;
-    posCamera = glm::vec3(posCamera.x,
-                          connect.y * cos(param) + connect.z * sin(param),
-                          -connect.y * sin(param) + connect.z * cos(param)) + viewPoint;
-    canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
-    canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
+void Init::rotateCamAroundX(float param) {
+    camera.setPosCamera(glm::vec3(camera.getPosCamera().x,
+                                  connect.y * cos(param) + connect.z * sin(param),
+                                  -connect.y * sin(param) + connect.z * cos(param)) + camera.getViewPoint());
+    updateCanvasSizes();
 }
 
 
-void Main::getInputFromKeyboard(GLFWwindow *window) {
+void Init::getInputFromKeyboard(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -218,13 +224,25 @@ void Main::getInputFromKeyboard(GLFWwindow *window) {
     }
 }
 
+Init::Init()
+        : SCR_W_H(1280, 720),
+          camera(45, glm::vec3(0, 0, 2), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0)),
+          light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6),
+                glm::vec3(0.7f, 0.7f, 0.7f)),
+          quadVAO(0),
+          {
+    updateCanvasSizes();
+}
+
+
+
 int main() {
-    Main main;
-    if (main.init() == -1) {
+    Init init;
+    if (init.setup() == -1) {
         return -1;
     }
 
-    main.loop();
+    init.loop();
     glfwTerminate();
 
     return 0;

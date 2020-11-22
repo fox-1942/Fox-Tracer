@@ -15,8 +15,7 @@ void ShaderProgram::GLCheckError() {
     }
 }
 
-GLuint shaderProgram_id;
-bool isLinked = false;
+ShaderProgram::ShaderProgram()=default;
 
 void ShaderProgram::CreateShaderProgram() {
     shaderProgram_id = glCreateProgram();

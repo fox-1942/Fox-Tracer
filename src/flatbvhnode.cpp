@@ -9,7 +9,7 @@
 
 using namespace std;
 
-FlatBvhNode::FlatBvhNode() {}
+FlatBvhNode::FlatBvhNode()=default;
 
 FlatBvhNode::FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty,
                          vector<glm::vec4> indices, int leftOrRight) {
@@ -25,23 +25,23 @@ FlatBvhNode::FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, b
     }
 }
 
-FlatBvhNode FlatBvhNode::nodeConverter(const bvhnode node, int ind) {
+FlatBvhNode FlatBvhNode::nodeConverter(const BvhNode node, int ind) {
     FlatBvhNode result = FlatBvhNode(node.getBBox().getMin(), node.getBBox().getMax(), ind, node.getIsLeaf(),
                                      node.isCreatedEmpty(),
                                      node.getIndices(), node.getLeftOrRight());
     return result;
 }
 
-vector<FlatBvhNode> *FlatBvhNode::putNodeIntoArray(const bvhnode *node) {
+vector<FlatBvhNode> *FlatBvhNode::putNodeIntoArray(const BvhNode *node) {
 
-    deque<const bvhnode *> queue;
+    deque<const BvhNode *> queue;
     queue.push_back(node);
 
     vector<FlatBvhNode> *nodesArray = new vector<FlatBvhNode>;
 
     int ind = 0;
     while (!queue.empty()) {
-        const bvhnode *curr = queue.front();
+        const BvhNode *curr = queue.front();
         queue.pop_front();
 
         nodesArray->push_back(FlatBvhNode::nodeConverter(*curr, ind));

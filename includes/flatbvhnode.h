@@ -23,10 +23,9 @@ public:
     FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty,
                 vector<glm::vec4> indices, int leftOrRight);
 
+    static FlatBvhNode nodeConverter(const BvhNode node, int ind);
 
-    static FlatBvhNode nodeConverter(const bvhnode node, int ind);
-
-    static vector<FlatBvhNode> *putNodeIntoArray(const bvhnode * node);
+    static vector<FlatBvhNode> *putNodeIntoArray(const BvhNode * node);
 };
 
 #endif //RAYTRACERBOROS_FLATBVHNODE_H

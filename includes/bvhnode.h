@@ -16,7 +16,8 @@
 
 using namespace std;
 
-class bvhnode {
+
+class BvhNode {
 
 private:
 
@@ -25,18 +26,19 @@ private:
 
     BBox bBox;
     int depthOfNode;
-    vector<bvhnode *> children;
     int order;
     bool isLeaf;
-    bool createdEmpty = false;
+    bool createdEmpty;
     int leftOrRight;
+
+    vector<BvhNode *> children;
     vector<glm::vec4> indices;
 
 public:
 
-    bvhnode();
+    BvhNode();
 
-    ~bvhnode();
+    ~BvhNode();
 
     void buildTree(vector<glm::vec4> &indices, int depth);
 
@@ -46,7 +48,7 @@ public:
 
 private:
 
-    int countNodes() const;
+    int countNodes();
 
     int getNumberOfNodes();
 
@@ -68,9 +70,9 @@ public:
 
     void setDepthOfNode(int depthOfNode);
 
-    const vector<bvhnode *> &getChildren() const;
+    const vector<BvhNode *> &getChildren() const;
 
-    void setChildren(const vector<bvhnode *> &children);
+    void setChildren(const vector<BvhNode *> &children);
 
     int getOrder() const;
 

@@ -10,11 +10,10 @@
 */
 
 #include "../includes/model.h"
-#include "../includes/mesh.h"
 
 using namespace std;
 
-Model::Model() {}
+Model::Model()=default;
 
 Model::Model(string path) {
     this->loadModel(path);
@@ -78,6 +77,7 @@ void Model::processNode(aiNode *node, const aiScene *scene) {
 }
 
 Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
+
     // Data to fill
     vector<Vertex> vertices;
     vector<GLuint> indices;
@@ -123,7 +123,6 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     // Process materials
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-
 
         aiColor3D color;
         float d;

@@ -69,6 +69,9 @@ public:
 
     /*  Functions  */
     // Constructor
+
+    Mesh();
+
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material mat);
 
     // Render the mesh

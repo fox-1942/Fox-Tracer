@@ -1,8 +1,8 @@
 //
 // Created by fox1942 on 11/10/20.
 //
-#ifndef RAYTRACERBOROS_MAIN_H
-#define RAYTRACERBOROS_MAIN_H
+#ifndef RAYTRACERBOROS_INIT_H
+#define RAYTRACERBOROS_INIT_H
 
 #include "shaderprogram.h"
 #include <GLFW/glfw3.h>
@@ -15,41 +15,37 @@
 #include "flatbvhnode.h"
 #include "stb_image.h"
 #include "light.h"
+#include "camera.h"
 
 vector<glm::vec4> hiddenPrimitives;
 const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);
 
 int hiddenNumberOfPolygons;
-const int &bvhnode::numberOfPolygonsInModel(hiddenNumberOfPolygons);
+const int &BvhNode::numberOfPolygonsInModel(hiddenNumberOfPolygons);
 
-int hiddenMaxNumberOfPolyInALeaf=0;
-int &bvhnode::numberOfPolyInTheLeafWithLargestNumberOfPoly(hiddenMaxNumberOfPolyInALeaf);
+int hiddenMaxNumberOfPolyInALeaf;
+int &BvhNode::numberOfPolyInTheLeafWithLargestNumberOfPoly(hiddenMaxNumberOfPolyInALeaf);
 
-class Main {
+class Init {
 
-    const unsigned int SCR_WIDTH = 1280;
-    const unsigned int SCR_HEIGHT = 720;
-
-    unsigned int quadVAO = 0;
-    unsigned int quadVBO;
+private:
+    const pair<const unsigned int, const unsigned int> SCR_W_H;
+    Camera camera;
+    Light light;
+    GLuint quadVAO;
+    GLuint quadVBO;
 
     ShaderProgram shaderQuadProgram;
     Shader shaderQuadVertex;
     Shader shaderQuadFragment;
 
     Model mymodel;
-    bvhnode *bvhNode;
+    BvhNode *bvhNode;
     GLFWwindow *window;
 
-    float fieldOfview = 45;
-    glm::vec3 posCamera = glm::vec3(0, 0, 2);
-    glm::vec3 upVector = glm::vec3(0, 1, 0);
-    glm::vec3 viewPoint = glm::vec3(0, 0, 0);
-    glm::vec3 connect = posCamera - viewPoint;
-    glm::vec3 canvasX = cross(upVector, connect) * getLength(connect) * tanf(fieldOfview / 2);
-    glm::vec3 canvasY = cross(connect, canvasX) * getLength(connect) * tanf(fieldOfview / 2);
-
-    Light light = Light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6), glm::vec3(0.7f, 0.7f, 0.7f));
+    glm::vec3 connect;
+    glm::vec3 canvasX;
+    glm::vec3 canvasY;
 
     void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path);
 
@@ -67,9 +63,13 @@ class Main {
 
     void getInputFromKeyboard(GLFWwindow *window);
 
+    void updateCanvasSizes();
 
 public:
-    int init();
+
+    Init();
+
+    int setup();
 
     void loop();
 
@@ -77,4 +77,4 @@ public:
 };
 
 
-#endif //RAYTRACERBOROS_MAIN_H
+#endif //RAYTRACERBOROS_INIT_H

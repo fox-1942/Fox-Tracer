@@ -16,6 +16,8 @@ public:
     GLuint shaderProgram_id;
     bool isLinked = false;
 
+    ShaderProgram();
+
     void CreateShaderProgram();
 
     bool addShaderToProgram(const Shader &shader);

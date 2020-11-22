@@ -27,24 +27,27 @@
 #include "mesh.h"
 #include "shaderprogram.h"
 
-using namespace std;
+
 
 GLint TextureFromFile(const char *path, string directory);
 
 class Model {
 
 public:
-    const aiScene *scene;
-    unsigned int offset = 0;
+    const aiScene * scene ;
+    unsigned int offset;
     /*  Model Data  */
-    vector<Mesh> meshes;
-    string directory;
-    vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+
+    std::string directory;
+
     Material mat;
 
+    vector<Mesh> meshes;
     vector<glm::vec4> allPositionVertices;
     vector<glm::vec4> indicesInModel;
     vector<Material> materials;
+    vector<Texture> textures_loaded;    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+
 
     /*  Functions   */
     // Constructor, expects a filepath to a 3D model.
