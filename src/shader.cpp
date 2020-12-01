@@ -4,8 +4,6 @@
 
 #include "../includes/shader.h"
 
-Shader::Shader()=default;
-
 Shader::~Shader() {}
 
 std::string Shader::loader(const GLchar *path) {

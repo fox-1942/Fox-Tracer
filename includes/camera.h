@@ -25,7 +25,7 @@ public:
 
     glm::vec3 &getViewPoint();
 
-    Camera();
+    Camera()=default;
 
     Camera(float fieldOfview, glm::vec3 posCamera, glm::vec3 upVector, glm::vec3 viewPoint);
 };

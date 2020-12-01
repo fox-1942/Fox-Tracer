@@ -14,9 +14,9 @@ class ShaderProgram {
 
 public:
     GLuint shaderProgram_id;
-    bool isLinked = false;
+    bool isLinked;
 
-    ShaderProgram();
+    ShaderProgram()=default;
 
     void CreateShaderProgram();
 

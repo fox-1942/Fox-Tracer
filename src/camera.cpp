@@ -4,8 +4,6 @@
 
 #include "camera.h"
 
-Camera::Camera()=default;
-
 Camera::Camera(float fieldOfview, glm::vec3 posCamera, glm::vec3 upVector, glm::vec3 viewPoint) : fieldOfview(
         fieldOfview), posCamera(posCamera), upVector(upVector), viewPoint(viewPoint) {
 }

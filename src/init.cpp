@@ -66,6 +66,10 @@ void Init::buildBvhTree() {
 
     vector<FlatBvhNode> *nodeArrays = FlatBvhNode::putNodeIntoArray(bvhNode);
 
+    delete bvhNode;
+
+
+
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesArraytoSendtoShader);
@@ -85,14 +89,9 @@ void Init::framebuffer_size_callback(GLFWwindow *window, int width, int height) 
 
 int Init::setup() {
 
-    if (!glfwInit())
-        return -1;
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    window = glfwCreateWindow(SCR_W_H.first, SCR_W_H.second, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
 
     if (!window) {
         glfwTerminate();
@@ -230,10 +229,17 @@ Init::Init()
           light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6),
                 glm::vec3(0.7f, 0.7f, 0.7f)),
           quadVAO(0),
-          {
+          quadVBO(0),
+          shaderQuadProgram(),
+          shaderQuadVertex(),
+          shaderQuadFragment(),
+          mymodel(),
+          bvhNode(){
+    glfwInit();
+
+    window = glfwCreateWindow(SCR_W_H.first, SCR_W_H.second, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
     updateCanvasSizes();
 }
-
 
 
 int main() {

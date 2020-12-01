@@ -70,7 +70,7 @@ public:
     /*  Functions  */
     // Constructor
 
-    Mesh();
+    Mesh()=default;
 
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material mat);
 

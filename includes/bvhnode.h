@@ -21,6 +21,7 @@ class BvhNode {
 
 private:
 
+
     static const int &numberOfPolygonsInModel;
     static int &numberOfPolyInTheLeafWithLargestNumberOfPoly;
 
@@ -33,20 +34,6 @@ private:
 
     vector<BvhNode *> children;
     vector<glm::vec4> indices;
-
-public:
-
-    BvhNode();
-
-    ~BvhNode();
-
-    void buildTree(vector<glm::vec4> &indices, int depth);
-
-    void makeBvHTreeComplete();
-
-    void InfoAboutNode();
-
-private:
 
     int countNodes();
 
@@ -61,6 +48,31 @@ private:
     void treeComplete(int deepestLev);
 
 public:
+
+    BvhNode() = default;
+
+    ~BvhNode();
+    
+    //Copy constructor
+    BvhNode(const BvhNode &other);
+
+    //Move constructor
+    //BvhNode(BvhNode &&other);
+
+    //Copy assigment operator
+    BvhNode &operator=(BvhNode& );
+
+    //Move assigment operator
+    //BvhNode &operator=(BvhNode &&other);
+
+
+    friend void swap(BvhNode &first, BvhNode &second);
+
+    void buildTree(vector<glm::vec4> &indices, int depth);
+
+    void makeBvHTreeComplete();
+
+    void InfoAboutNode();
 
     const BBox &getBBox() const;
 
@@ -99,6 +111,8 @@ public:
     static int &getNumberOfPolyInTheLeafWithLargestNumberOfPoly();
 
     static void setNumberOfPolyInTheLeafWithLargestNumberOfPoly(int &numberOfPolyInTheLeafWithLargestNumberOfPoly);
+
+
 };
 
 #endif //RAYTRACERBOROS_BVHNODE_H

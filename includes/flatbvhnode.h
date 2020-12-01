@@ -18,14 +18,14 @@ class FlatBvhNode {
     array<glm::vec4, 10> indices;
 
 public:
-    FlatBvhNode();
+    FlatBvhNode()=default;
 
     FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty,
                 vector<glm::vec4> indices, int leftOrRight);
 
-    static FlatBvhNode nodeConverter(const BvhNode node, int ind);
+    static FlatBvhNode nodeConverter( BvhNode* node, int ind);
 
-    static vector<FlatBvhNode> *putNodeIntoArray(const BvhNode * node);
+    static vector<FlatBvhNode> *putNodeIntoArray( BvhNode * node);
 };
 
 #endif //RAYTRACERBOROS_FLATBVHNODE_H

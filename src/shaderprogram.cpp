@@ -15,7 +15,7 @@ void ShaderProgram::GLCheckError() {
     }
 }
 
-ShaderProgram::ShaderProgram()=default;
+
 
 void ShaderProgram::CreateShaderProgram() {
     shaderProgram_id = glCreateProgram();
@@ -94,3 +94,4 @@ void ShaderProgram::setUniformMat4f(const std::string &name, glm::mat4 &matrix) 
 void ShaderProgram::setUniformVec3f(const std::string &name, glm::vec3 &vec3) {
     glUniform3fv(getUniformLocation(name), 1, (const GLfloat *) &vec3);
 }
+

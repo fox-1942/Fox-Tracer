@@ -14,7 +14,7 @@ struct Light {
     glm::vec3 direction;
     glm::vec3 position;
 
-    Light(){};
+    Light()=default;
 
     Light(glm::vec3 direction_, glm::vec3 Le_, glm::vec3 La_) {
         direction = normalize(direction_);

@@ -48,7 +48,7 @@ public:
 
 
 public:
-    BBox();
+    BBox()=default;
 
     BBox(glm::vec3 min, glm::vec3 max, glm::vec3 center, vector<glm::vec3> faceCenters);
 

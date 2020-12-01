@@ -13,8 +13,6 @@
 
 using namespace std;
 
-Model::Model()=default;
-
 Model::Model(string path) {
     this->loadModel(path);
 }

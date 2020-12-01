@@ -47,6 +47,7 @@ private:
     glm::vec3 canvasX;
     glm::vec3 canvasY;
 
+
     void createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path);
 
     void renderQuad();

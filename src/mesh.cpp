@@ -11,7 +11,6 @@
 
 #include "../includes/mesh.h"
 
-Mesh::Mesh()=default;
 
 Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material mat) {
     this->vertices = vertices;

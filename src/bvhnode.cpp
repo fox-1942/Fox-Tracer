@@ -16,9 +16,59 @@ int numberOf = 1;
 int numberOfLeaves = 0;
 int indOrder = 0;
 
-BvhNode::BvhNode()=default;
 
-BvhNode::~BvhNode(){}
+BvhNode::~BvhNode() {
+    if (this->children.size() != 0) {
+        delete this->children.at(0);
+        delete this->children.at(1);
+    }
+    this->children.clear();
+}
+
+BvhNode::BvhNode(const BvhNode &node) :
+        bBox(node.bBox),
+        depthOfNode(node.depthOfNode),
+        order(node.order),
+        isLeaf(node.isLeaf),
+        createdEmpty(node.createdEmpty),
+        leftOrRight(node.leftOrRight) {
+
+    if (!node.children.empty()) {
+        BvhNode *left = new BvhNode(*node.children.at(0));
+        BvhNode *right = new BvhNode(*node.children.at(1));
+
+        this->children.push_back(left);
+        this->children.push_back(right);
+    }
+    printf("Copy constructorban vagyok!\n");
+}
+
+void swap(BvhNode &first, BvhNode &second) {
+    printf("Swap-ban vagyok!\n");
+
+    std::swap(first.bBox, second.bBox);
+    std::swap(first.depthOfNode, second.depthOfNode);
+    std::swap(first.order, second.order);
+    std::swap(first.isLeaf, second.isLeaf);
+    std::swap(first.createdEmpty, second.createdEmpty);
+    std::swap(first.leftOrRight, second.leftOrRight);
+
+    if (!second.getChildren().empty()) {
+        std::swap(first.children.at(0), second.children.at(0));
+        std::swap(first.children.at(1), second.children.at(1));
+    }
+
+    std::swap(first.indices, second.indices);
+}
+
+BvhNode &BvhNode::operator=(BvhNode &other) {
+    printf("Assigment operatorban vagyok!\n");
+    BvhNode temp(other);
+    swap(*this, temp);
+
+    return *this;
+}
+
 
 void BvhNode::buildTree(vector<glm::vec4> &indices, int depth) {
 
@@ -144,19 +194,21 @@ void BvhNode::treeComplete(int deepestLev) {
     if (this->children.empty() && this->depthOfNode != deepestLev) {
         this->isLeaf = true; // Commented, because semantically 'this' would remain a leaf;
 
-        BvhNode* emptyNode=new BvhNode();
+        BvhNode *emptyNode = new BvhNode();
         emptyNode->bBox = BBox();
         emptyNode->createdEmpty = true;
-        emptyNode->isLeaf = true;
+        emptyNode->isLeaf = false;
         emptyNode->order = -1;
         emptyNode->depthOfNode = this->depthOfNode + 1;
         emptyNode->children.clear();
         emptyNode->leftOrRight = 0;
         this->children.push_back(emptyNode);
 
+        BvhNode *emptyNode2 = new BvhNode();
 
-        BvhNode* emptyNode2=new BvhNode();
         *emptyNode2 = *emptyNode;
+
+        BvhNode &bvhNode = *emptyNode;
         emptyNode2->leftOrRight = 1;
         this->children.push_back(emptyNode2);
     }
@@ -265,3 +317,5 @@ int &BvhNode::getNumberOfPolyInTheLeafWithLargestNumberOfPoly() {
 void BvhNode::setNumberOfPolyInTheLeafWithLargestNumberOfPoly(int &numberOfPolyInTheLeafWithLargestNumberOfPoly) {
     BvhNode::numberOfPolyInTheLeafWithLargestNumberOfPoly = numberOfPolyInTheLeafWithLargestNumberOfPoly;
 }
+
+

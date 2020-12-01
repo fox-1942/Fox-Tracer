@@ -20,7 +20,7 @@ private:
     std::string loader(const GLchar *path);
 
 public:
-    Shader();
+    Shader()=default;
 
     ~Shader();
 
