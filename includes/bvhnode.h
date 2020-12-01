@@ -20,8 +20,6 @@ using namespace std;
 class BvhNode {
 
 private:
-
-
     static const int &numberOfPolygonsInModel;
     static int &numberOfPolyInTheLeafWithLargestNumberOfPoly;
 
@@ -56,17 +54,10 @@ public:
     //Copy constructor
     BvhNode(const BvhNode &other);
 
-    //Move constructor
-    //BvhNode(BvhNode &&other);
+    friend void swap(BvhNode &first, BvhNode &second);
 
     //Copy assigment operator
     BvhNode &operator=(BvhNode );
-
-    //Move assigment operator
-    //BvhNode &operator=(BvhNode &&other);
-
-
-    friend void swap(BvhNode &first, BvhNode &second);
 
     void buildTree(vector<glm::vec4> &indices, int depth);
 

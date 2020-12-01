@@ -67,7 +67,6 @@ BvhNode &BvhNode::operator=(BvhNode other) {
     return *this;
 }
 
-
 void BvhNode::buildTree(vector<glm::vec4> &indices, int depth) {
 
     if (indices.size() <= numberOfPolygonsInModel / 3) {
@@ -193,7 +192,6 @@ void BvhNode::treeComplete(int deepestLev) {
         this->isLeaf = true; // Commented, because semantically 'this' would remain a leaf;
 
         BvhNode *emptyNode = new BvhNode();
-        emptyNode->bBox = BBox();
         emptyNode->createdEmpty = true;
         emptyNode->isLeaf = false;
         emptyNode->order = -1;
@@ -202,11 +200,7 @@ void BvhNode::treeComplete(int deepestLev) {
         emptyNode->leftOrRight = 0;
         this->children.push_back(emptyNode);
 
-        BvhNode *emptyNode2 = new BvhNode();
-
-        *emptyNode2 = *emptyNode;
-
-        BvhNode &bvhNode = *emptyNode;
+        BvhNode *emptyNode2 = new BvhNode(*emptyNode);
         emptyNode2->leftOrRight = 1;
         this->children.push_back(emptyNode2);
     }
