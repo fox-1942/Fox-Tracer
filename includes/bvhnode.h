@@ -60,7 +60,7 @@ public:
     //BvhNode(BvhNode &&other);
 
     //Copy assigment operator
-    BvhNode &operator=(BvhNode& );
+    BvhNode &operator=(BvhNode );
 
     //Move assigment operator
     //BvhNode &operator=(BvhNode &&other);

@@ -61,11 +61,9 @@ void swap(BvhNode &first, BvhNode &second) {
     std::swap(first.indices, second.indices);
 }
 
-BvhNode &BvhNode::operator=(BvhNode &other) {
+BvhNode &BvhNode::operator=(BvhNode other) {
     printf("Assigment operatorban vagyok!\n");
-    BvhNode temp(other);
-    swap(*this, temp);
-
+    swap(*this, other);
     return *this;
 }
 
