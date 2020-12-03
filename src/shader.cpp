@@ -24,7 +24,7 @@ std::string Shader::loader(const GLchar *path) {
     return content;
 }
 
-bool Shader::loadShaderFromFile(const GLchar *PathToFile, GLenum shaderType) {
+bool Shader::loadShaderFromFile(const GLchar *PathToFile, GLenum&& shaderType) {
     int success;
     GLchar *info = new GLchar;
     shaderCode = loader(PathToFile);

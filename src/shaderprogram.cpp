@@ -15,11 +15,8 @@ void ShaderProgram::GLCheckError() {
     }
 }
 
-
-
 void ShaderProgram::CreateShaderProgram() {
     shaderProgram_id = glCreateProgram();
-
 }
 
 bool ShaderProgram::addShaderToProgram(const Shader &shader) {

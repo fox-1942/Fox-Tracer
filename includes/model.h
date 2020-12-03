@@ -55,7 +55,7 @@ public:
     Model(string path);
 
     // Draws the model, and thus all its meshes
-    void Draw(ShaderProgram shader);
+    void Draw();
 
     void getInfoAboutModel();
 

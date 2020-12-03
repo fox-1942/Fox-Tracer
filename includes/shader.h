@@ -24,7 +24,7 @@ public:
 
     ~Shader();
 
-    bool loadShaderFromFile(const GLchar *PathToFile, GLenum shaderType);
+    bool loadShaderFromFile(const GLchar *PathToFile, GLenum&& shaderType);
 
     bool getIsLoaded() const;
 

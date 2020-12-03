@@ -65,10 +65,7 @@ void Init::buildBvhTree() {
     bvhNode->InfoAboutNode();
 
     vector<FlatBvhNode> *nodeArrays = FlatBvhNode::putNodeIntoArray(bvhNode);
-
     delete bvhNode;
-
-
 
     unsigned int nodesArraytoSendtoShader;
     glGenBuffers(1, &nodesArraytoSendtoShader);
@@ -179,25 +176,29 @@ void Init::loop() {
 
 void Init::updateCanvasSizes() {
     connect = camera.getPosCamera() - camera.getViewPoint();
-    canvasX = cross(camera.getUpVector(), connect) * getLength(connect) * tanf(camera.getFieldOfview() / 2);
-    canvasY = cross(connect, canvasX) * getLength(connect) * tanf(camera.getFieldOfview() / 2);
+    canvasX = glm::normalize(glm::cross(camera.getUpVector(), connect)) / glm::tan(camera.getFieldOfview() / 2) /
+              ((float) this->SCR_W_H.first / (float) this->SCR_W_H.second);
+    canvasY = glm::normalize(glm::cross(connect, canvasX)) / glm::tan(camera.getFieldOfview() / 2)  ;
 }
 
 // The rotation around Y-axis works fine without any ratio distortion
 void Init::rotateCamAroundY(float param) {
-    camera.setPosCamera(glm::vec3(camera.getPosCamera().x * cos(param) + camera.getPosCamera().z * sin(param),
-                                  camera.getPosCamera().y,
-                                  -camera.getPosCamera().x * sin(param) + camera.getPosCamera().z * cos(param)) +
-                        camera.getViewPoint());
+    camera.setPosCamera(glm::vec3(
+            camera.getPosCamera().x * cos(param) + camera.getPosCamera().z * sin(param) + camera.getViewPoint().x,
+            camera.getPosCamera().y,
+            -camera.getPosCamera().x * sin(param) + camera.getPosCamera().z * cos(param) + camera.getViewPoint().z));
     updateCanvasSizes();
 }
-
 
 // Unfortunately, rotation around X-axis causes ratio distortion. So the model is stretched and the camera tends to do weird movements.
 void Init::rotateCamAroundX(float param) {
     camera.setPosCamera(glm::vec3(camera.getPosCamera().x,
-                                  connect.y * cos(param) + connect.z * sin(param),
-                                  -connect.y * sin(param) + connect.z * cos(param)) + camera.getViewPoint());
+                                  (camera.getPosCamera().y - camera.getViewPoint().y) * cos(param) +
+                                  (camera.getPosCamera().z - camera.getViewPoint().z) * sin(param) +
+                                  camera.getViewPoint().y,
+                                  (-camera.getPosCamera().y - camera.getViewPoint().y) * sin(param) +
+                                  (camera.getPosCamera().z - camera.getViewPoint().z) * cos(param) +
+                                  camera.getViewPoint().z));
     updateCanvasSizes();
 }
 
@@ -225,7 +226,7 @@ void Init::getInputFromKeyboard(GLFWwindow *window) {
 
 Init::Init()
         : SCR_W_H(1280, 720),
-          camera(45, glm::vec3(0, 0, 2), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0)),
+          camera(45 * (float)M_PI / 180, glm::vec3(0, 0, 2), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0)),
           light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6),
                 glm::vec3(0.7f, 0.7f, 0.7f)),
           quadVAO(0),
@@ -234,13 +235,11 @@ Init::Init()
           shaderQuadVertex(),
           shaderQuadFragment(),
           mymodel(),
-          bvhNode(){
+          bvhNode() {
     glfwInit();
-
     window = glfwCreateWindow(SCR_W_H.first, SCR_W_H.second, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
     updateCanvasSizes();
 }
-
 
 int main() {
     Init init;

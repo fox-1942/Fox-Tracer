@@ -23,7 +23,7 @@ public:
     FlatBvhNode(glm::vec3 min, glm::vec3 max, float ind, bool isLeaf, bool createdEmpty,
                 vector<glm::vec4> indices, int leftOrRight);
 
-    static FlatBvhNode nodeConverter( BvhNode* node, int ind);
+    static FlatBvhNode nodeConverter( BvhNode node, int ind);
 
     static vector<FlatBvhNode> *putNodeIntoArray( BvhNode * node);
 };

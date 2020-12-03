@@ -18,14 +18,15 @@ Model::Model(string path) {
 }
 
 // Draws the model, and thus all its meshes
-void Model::Draw(ShaderProgram shader) {
+void Model::Draw() {
     for (GLuint i = 0; i < this->meshes.size(); i++) {
-        this->meshes[i].Draw(shader);
+        this->meshes[i].Draw();
     }
 }
 
 void Model::getInfoAboutModel() {
     int size = 0;
+
     for (int i = 0; i < this->meshes.size(); i++) {
         size += this->meshes.at(i).vertices.size();
     }

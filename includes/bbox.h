@@ -24,6 +24,16 @@ private:
     vector<glm::vec3> faceCenters;
 
 public:
+    BBox()=default;
+
+    BBox(glm::vec3 min, glm::vec3 max, glm::vec3 center, vector<glm::vec3> faceCenters);
+
+    glm::vec3 calculateCenterofTriangle(glm::vec3 vec, glm::vec3 vec1, glm::vec3 vec2);
+
+    glm::vec3 getCoordinatesfromIndex(float index);
+
+    BBox getBBox(vector<glm::vec4> &indices);
+
     static const vector<glm::vec4> &getPrimitiveCoordinates();
 
     const glm::vec3 &getMin() const;
@@ -46,17 +56,6 @@ public:
 
     void setFaceCenters(const vector<glm::vec3> &faceCenters);
 
-
-public:
-    BBox()=default;
-
-    BBox(glm::vec3 min, glm::vec3 max, glm::vec3 center, vector<glm::vec3> faceCenters);
-
-    glm::vec3 calculateCenterofTriangle(glm::vec3 vec, glm::vec3 vec1, glm::vec3 vec2);
-
-    glm::vec3 getCoordinatesfromIndex(float index);
-
-    BBox getBBox(vector<glm::vec4> &indices);
 };
 
 #endif //RAYTRACERBOROS_BBOX_CPP

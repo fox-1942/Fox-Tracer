@@ -12,18 +12,17 @@
 #include "../includes/mesh.h"
 
 
-Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material mat) {
-    this->vertices = vertices;
-    this->indices = indices;
-    this->textures = textures;
-    this->mats = mat;
-
+Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material mat) :
+        vertices(vertices),
+        indices(indices),
+        textures(textures),
+        mats(mat) {
     // Now that we have all the required data, set the vertex buffers and its attribute pointers.
     this->setupMesh();
 }
 
 // Render the mesh
-void Mesh::Draw(ShaderProgram shader) {
+void Mesh::Draw() {
     // Bind appropriate textures
     GLuint diffuseNr = 1;
     GLuint specularNr = 1;

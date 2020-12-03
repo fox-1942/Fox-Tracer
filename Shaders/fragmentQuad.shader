@@ -237,7 +237,6 @@ vec3 trace(Ray ray){
         shadowRay.orig = hit.orig + hit.normal * epsilon;
         shadowRay.dir  = normalize(lights[0].direction);
 
-
         // Ambient Light
         color+= materials[hit.mat].Ka.xyz * lights[0].La*textColor.xyz * weight;
 

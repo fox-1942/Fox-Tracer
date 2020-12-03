@@ -7,6 +7,6 @@ out vec3 pixel;
 
 void main()
 {
-    pixel = canvasX * normQuadCoord.x + canvasY * normQuadCoord.y + viewPoint;
+    pixel = viewPoint + canvasX * normQuadCoord.x + canvasY * normQuadCoord.y;
     gl_Position = vec4(normQuadCoord, 0, 1);
 }

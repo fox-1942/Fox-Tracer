@@ -75,7 +75,7 @@ public:
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material mat);
 
     // Render the mesh
-    void Draw(ShaderProgram shader);
+    void Draw();
 
     // Initializes all the buffer objects/arrays
     void setupMesh();

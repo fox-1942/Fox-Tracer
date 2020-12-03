@@ -31,7 +31,8 @@ BvhNode::BvhNode(const BvhNode &node) :
         order(node.order),
         isLeaf(node.isLeaf),
         createdEmpty(node.createdEmpty),
-        leftOrRight(node.leftOrRight) {
+        leftOrRight(node.leftOrRight),
+        indices(node.indices){
 
     if (!node.children.empty()) {
         BvhNode *left = new BvhNode(*node.children.at(0));
@@ -73,8 +74,7 @@ void BvhNode::buildTree(vector<glm::vec4> &indices, int depth) {
         if (indices.size() > numberOfPolyInTheLeafWithLargestNumberOfPoly) {
             numberOfPolyInTheLeafWithLargestNumberOfPoly = indices.size();
         }
-        cout << "numberOfPolyInTheLeafWithLargestNumberOfPoly: " << numberOfPolyInTheLeafWithLargestNumberOfPoly
-             << endl;
+        //cout << "numberOfPolyInTheLeafWithLargestNumberOfPoly: " << numberOfPolyInTheLeafWithLargestNumberOfPoly   << endl;
 
         this->bBox = BBox();
         this->indices = indices;
@@ -129,8 +129,7 @@ void BvhNode::buildTree(vector<glm::vec4> &indices, int depth) {
             numberOfPolyInTheLeafWithLargestNumberOfPoly = indices.size();
         }
 
-        cout << "numberOfPolyInTheLeafWithLargestNumberOfPoly: " << numberOfPolyInTheLeafWithLargestNumberOfPoly
-             << endl;
+     //   cout << "numberOfPolyInTheLeafWithLargestNumberOfPoly: " << numberOfPolyInTheLeafWithLargestNumberOfPoly << endl;
 
         return;
     }
@@ -200,7 +199,8 @@ void BvhNode::treeComplete(int deepestLev) {
         emptyNode->leftOrRight = 0;
         this->children.push_back(emptyNode);
 
-        BvhNode *emptyNode2 = new BvhNode(*emptyNode);
+        BvhNode *emptyNode2 = new BvhNode();
+        *emptyNode2=*emptyNode;
         emptyNode2->leftOrRight = 1;
         this->children.push_back(emptyNode2);
     }
