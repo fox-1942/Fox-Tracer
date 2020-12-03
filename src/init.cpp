@@ -175,10 +175,14 @@ void Init::loop() {
 }
 
 void Init::updateCanvasSizes() {
+
     connect = camera.getPosCamera() - camera.getViewPoint();
-    canvasX = glm::normalize(glm::cross(camera.getUpVector(), connect)) / glm::tan(camera.getFieldOfview() / 2) /
-              ((float) this->SCR_W_H.first / (float) this->SCR_W_H.second);
-    canvasY = glm::normalize(glm::cross(connect, canvasX)) / glm::tan(camera.getFieldOfview() / 2)  ;
+    float f=getLength(connect);
+    camera.fieldOfview=45 * (float)M_PI / 180;
+    float w=tanf(camera.getFieldOfview() / 2);
+
+    canvasX = normalize(cross(camera.upVector, connect)) * f * w;
+    canvasY = normalize(cross(connect, canvasX)) * f * w  ;
 }
 
 // The rotation around Y-axis works fine without any ratio distortion

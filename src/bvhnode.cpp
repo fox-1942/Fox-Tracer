@@ -41,7 +41,7 @@ BvhNode::BvhNode(const BvhNode &node) :
         this->children.push_back(left);
         this->children.push_back(right);
     }
-    printf("Copy constructorban vagyok!\n");
+   // printf("Copy constructorban vagyok!\n");
 }
 
 void swap(BvhNode &first, BvhNode &second) {

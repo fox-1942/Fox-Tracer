@@ -13,7 +13,16 @@
 
 using namespace std;
 
-Model::Model(string path) {
+Model::Model(string path) :
+        offset(),
+        scene(),
+        directory(),
+        mat(),
+        meshes(),
+        allPositionVertices(),
+        indicesInModel(),
+        materials(),
+        textures_loaded() {
     this->loadModel(path);
 }
 
@@ -175,15 +184,17 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 
         glm::vec4 vec3FacePlusMatIndex;
 
+
         vec3FacePlusMatIndex.x = face.mIndices[0] + offset;
         vec3FacePlusMatIndex.y = face.mIndices[1] + offset;
         vec3FacePlusMatIndex.z = face.mIndices[2] + offset;
+
         vec3FacePlusMatIndex.w = materials.size() - 1;
         indicesInModel.push_back(vec3FacePlusMatIndex);
 
-        for (GLuint j = 0; j < face.mNumIndices; j++) {
-            indices.push_back(face.mIndices[j]);
-        }
+        /*  for (GLuint j = 0; j < face.mNumIndices; j++) {
+              indices.push_back(face.mIndices[j]);
+          }*/
     }
 
     offset += mesh->mNumVertices; //Need to renumber the indices when all vertices are stored in one vertex buffer. Increasing the current index by the offset of the number of vertices.
