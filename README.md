@@ -1,4 +1,4 @@
-#### Fox-Tracer v.0.7.
+## Fox-Tracer v.0.7.
 
 This is an OpenGL based, real-time ray tracer for visualizing 3D polygon meshes loaded from OBJ files.
 
