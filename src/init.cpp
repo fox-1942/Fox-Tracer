@@ -175,14 +175,14 @@ void Init::loop() {
 }
 
 void Init::updateCanvasSizes() {
-
     connect = camera.getPosCamera() - camera.getViewPoint();
-    float f=getLength(connect);
-    camera.fieldOfview=45 * (float)M_PI / 180;
-    float w=tanf(camera.getFieldOfview() / 2);
 
-    canvasX = normalize(cross(camera.upVector, connect)) * f * w;
-    canvasY = normalize(cross(connect, canvasX)) * f * w  ;
+    float aspect = (float)SCR_W_H.first/(float)SCR_W_H.second;
+    float length = tanf(camera.getFieldOfview() / 2);
+
+    canvasX = glm::normalize(glm::cross(camera.upVector, connect)) / length / aspect;
+    canvasY = glm::normalize(glm::cross(connect, canvasX)) / length;
+
 }
 
 // The rotation around Y-axis works fine without any ratio distortion
@@ -196,13 +196,10 @@ void Init::rotateCamAroundY(float param) {
 
 // Unfortunately, rotation around X-axis causes ratio distortion. So the model is stretched and the camera tends to do weird movements.
 void Init::rotateCamAroundX(float param) {
-    camera.setPosCamera(glm::vec3(camera.getPosCamera().x,
-                                  (camera.getPosCamera().y - camera.getViewPoint().y) * cos(param) +
-                                  (camera.getPosCamera().z - camera.getViewPoint().z) * sin(param) +
-                                  camera.getViewPoint().y,
-                                  (-camera.getPosCamera().y - camera.getViewPoint().y) * sin(param) +
-                                  (camera.getPosCamera().z - camera.getViewPoint().z) * cos(param) +
-                                  camera.getViewPoint().z));
+    camera.posCamera = glm::vec3(camera.posCamera.x,
+               (camera.posCamera.y - camera.viewPoint.y) * cos(param) + (camera.posCamera.z - camera.viewPoint.z) * sin(param) + camera.viewPoint.y,
+               -(camera.posCamera.y - camera.viewPoint.y) * sin(param) + (camera.posCamera.z - camera.viewPoint.z) * cos(param) + camera.viewPoint.z);
+
     updateCanvasSizes();
 }
 
@@ -229,8 +226,8 @@ void Init::getInputFromKeyboard(GLFWwindow *window) {
 }
 
 Init::Init()
-        : SCR_W_H(1280, 720),
-          camera(45 * (float)M_PI / 180, glm::vec3(0, 0, 2), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0)),
+        : SCR_W_H(1280.0f, 720.0f),
+          camera(45 * (float)M_PI / 180, glm::vec3(0, 2, 24), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0)),
           light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6),
                 glm::vec3(0.7f, 0.7f, 0.7f)),
           quadVAO(0),
@@ -241,7 +238,7 @@ Init::Init()
           mymodel(),
           bvhNode() {
     glfwInit();
-    window = glfwCreateWindow(SCR_W_H.first, SCR_W_H.second, "FOX1942/OpenGL-Mesh-Tracer", nullptr, nullptr);
+    window = glfwCreateWindow(SCR_W_H.first, SCR_W_H.second, "FoxTracer", nullptr, nullptr);
     updateCanvasSizes();
 }
 

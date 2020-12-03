@@ -39,7 +39,6 @@ public:
     /*  Model Data  */
 
     std::string directory;
-
     Material mat;
 
     vector<Mesh> meshes;

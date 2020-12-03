@@ -29,7 +29,7 @@ int &BvhNode::numberOfPolyInTheLeafWithLargestNumberOfPoly(hiddenMaxNumberOfPoly
 class Init {
 
 private:
-    const pair<const unsigned int, const unsigned int> SCR_W_H;
+    const pair<const float, const float> SCR_W_H;
     Camera camera;
     Light light;
     GLuint quadVAO;
