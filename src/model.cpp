@@ -50,7 +50,7 @@ void Model::getInfoAboutModel() {
 void Model::loadModel(string path) {
     // Read file via ASSIMP
     Assimp::Importer importer;
-    scene = importer.ReadFile(path, aiProcess_Triangulate);
+    scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate);
 
     // Check for errors
     if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -59,7 +59,7 @@ void Model::loadModel(string path) {
         return;
     }
     // Retrieve the directory path of the filepath
-    this->directory = path.substr(0, path.find_last_of('/'));
+    this->directory = path.substr(0, path.find_last_of('\\'));
 
     // Process ASSIMP's root node recursively
     this->processNode(scene->mRootNode, scene);
@@ -192,9 +192,9 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         vec3FacePlusMatIndex.w = materials.size() - 1;
         indicesInModel.push_back(vec3FacePlusMatIndex);
 
-        /*  for (GLuint j = 0; j < face.mNumIndices; j++) {
+        for (GLuint j = 0; j < face.mNumIndices; j++) {
               indices.push_back(face.mIndices[j]);
-          }*/
+        }
     }
 
     offset += mesh->mNumVertices; //Need to renumber the indices when all vertices are stored in one vertex buffer. Increasing the current index by the offset of the number of vertices.

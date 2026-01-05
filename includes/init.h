@@ -4,8 +4,9 @@
 #ifndef RAYTRACERBOROS_INIT_H
 #define RAYTRACERBOROS_INIT_H
 
+#define _USE_MATH_DEFINES // for C++
 #include "shaderprogram.h"
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -16,6 +17,7 @@
 #include "stb_image.h"
 #include "light.h"
 #include "camera.h"
+#include <cmath>
 
 vector<glm::vec4> hiddenPrimitives;
 const vector<glm::vec4> &BBox::primitiveCoordinates(hiddenPrimitives);

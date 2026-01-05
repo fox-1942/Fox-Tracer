@@ -1,6 +1,7 @@
 #include "../includes/init.h"
 #include <string>
 
+#include <filesystem>
 void Init::createQuadShaderProg(const GLchar *VS_Path, const GLchar *FS_Path) {
     shaderQuadVertex = Shader();
     shaderQuadFragment = Shader();
@@ -106,14 +107,17 @@ int Init::setup() {
         exit(1);
     }
 
+    std::filesystem::path path = std::filesystem::current_path();
+
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
-    mymodel = Model("../model/CornellBox-Original.obj");
+    mymodel = Model(path.string().append("\\model\\CornellBox-Original.obj"));
 
     /* If throwing an instance of 'std::out_of_range', increase the number of 'indices' array size in struct 'FlatBvhNode'
     *  and the 'indices' array size in fragmentQuad.shader to the largest number of triangles in a leaf (info in console during runtime).
     */
-    createQuadShaderProg("../Shaders/vertexQuad.shader", "../Shaders/fragmentQuad.shader");
+    createQuadShaderProg(path.string().append("\\Shaders\\vertexQuad.shader").c_str(),
+                         path.string().append("\\Shaders\\fragmentQuad.shader").c_str());
 
     sendVerticesIndices();
     buildBvhTree();
@@ -129,8 +133,7 @@ int Init::setup() {
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load(File::getPath("model/wood.png").c_str(), &width, &height, &nrChannels,
-                                    0);
+    unsigned char *data = stbi_load(path.string().append("\\model\\gold.jpg").c_str(), &width, &height, &nrChannels,0);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     } else {
@@ -227,7 +230,7 @@ void Init::getInputFromKeyboard(GLFWwindow *window) {
 
 Init::Init()
         : SCR_W_H(1280.0f, 720.0f),
-          camera(45 * (float)M_PI / 180, glm::vec3(0, 2, 24), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0)),
+          camera(45 * (float) M_PI / 180, glm::vec3(0, 2, 24), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0)),
           light(glm::vec3(0.7, 0.5, 0.5), glm::vec3(0.7, 0.6, 0.6),
                 glm::vec3(0.7f, 0.7f, 0.7f)),
           quadVAO(0),

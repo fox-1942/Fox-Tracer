@@ -11,8 +11,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
 #include <assimp/postprocess.h>
 #include <string>
 #include <fstream>
@@ -29,7 +29,7 @@
 
 
 
-GLint TextureFromFile(const char *path, string directory);
+//GLint TextureFromFile(const char *path, string directory);
 
 class Model {
 

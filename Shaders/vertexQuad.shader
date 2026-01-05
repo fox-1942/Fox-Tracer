@@ -3,7 +3,7 @@ layout(location = 0) in vec2 normQuadCoord;
 
 uniform vec3 viewPoint;
 uniform vec3 canvasX, canvasY;
-out vec3 pixel;
+layout(location = 0) out vec3 pixel;
 
 void main()
 {

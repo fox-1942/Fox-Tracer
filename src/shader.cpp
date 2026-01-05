@@ -3,10 +3,11 @@
 //
 
 #include "../includes/shader.h"
+#include <filesystem>
 
 Shader::~Shader() {}
 
-std::string Shader::loader(const GLchar *path) {
+std::string Shader::loader(const GLchar* path) {
     std::string content;
     std::ifstream fileStream(path, std::ios::in);
 
@@ -24,17 +25,18 @@ std::string Shader::loader(const GLchar *path) {
     return content;
 }
 
-bool Shader::loadShaderFromFile(const GLchar *PathToFile, GLenum&& shaderType) {
-    int success;
-    GLchar *info = new GLchar;
+bool Shader::loadShaderFromFile(const GLchar *PathToFile, GLenum shaderType) {
+    int success = 0;
+    GLchar info[2048]{};
     shaderCode = loader(PathToFile);
     shader_id = glCreateShader(shaderType);
 
-    glShaderSource(shader_id, 1, reinterpret_cast<const GLchar *const *>(&shaderCode), NULL);
+    const GLchar* src = shaderCode.c_str();
+    glShaderSource(shader_id, 1, &src, NULL);
     glCompileShader(shader_id);
 
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
-    glGetShaderInfoLog(shader_id, 100, NULL, info);
+    glGetShaderInfoLog(shader_id, sizeof(info), NULL, info);
 
     if (!success) {
         cout << "Shader compilation problem: " << info << endl;
@@ -45,7 +47,6 @@ bool Shader::loadShaderFromFile(const GLchar *PathToFile, GLenum&& shaderType) {
 
     isLoaded = true;
     return true;
-
 }
 
 bool Shader::getIsLoaded() const {

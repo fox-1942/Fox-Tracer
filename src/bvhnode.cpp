@@ -41,12 +41,9 @@ BvhNode::BvhNode(const BvhNode &node) :
         this->children.push_back(left);
         this->children.push_back(right);
     }
-   // printf("Copy constructorban vagyok!\n");
 }
 
 void swap(BvhNode &first, BvhNode &second) {
-    printf("Swap-ban vagyok!\n");
-
     std::swap(first.bBox, second.bBox);
     std::swap(first.depthOfNode, second.depthOfNode);
     std::swap(first.order, second.order);
@@ -63,7 +60,6 @@ void swap(BvhNode &first, BvhNode &second) {
 }
 
 BvhNode &BvhNode::operator=(BvhNode other) {
-    printf("Assigment operatorban vagyok!\n");
     swap(*this, other);
     return *this;
 }
@@ -309,5 +305,3 @@ int &BvhNode::getNumberOfPolyInTheLeafWithLargestNumberOfPoly() {
 void BvhNode::setNumberOfPolyInTheLeafWithLargestNumberOfPoly(int &numberOfPolyInTheLeafWithLargestNumberOfPoly) {
     BvhNode::numberOfPolyInTheLeafWithLargestNumberOfPoly = numberOfPolyInTheLeafWithLargestNumberOfPoly;
 }
-
-

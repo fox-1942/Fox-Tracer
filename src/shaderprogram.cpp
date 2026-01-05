@@ -40,8 +40,8 @@ bool ShaderProgram::linkShaderProgram() {
     isLinked = linkStatus == GL_TRUE;
 
     if (!isLinked) {
-        GLchar *info;
-        int logLength;
+        GLchar info[2048]{};
+        int logLength = 0;
         glGetProgramInfoLog(shaderProgram_id, 2048, &logLength, info);
         std::cout << "Error! Shader program wasn't linked! The linker returned: " << info << std::endl;
         return false;

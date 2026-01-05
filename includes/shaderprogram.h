@@ -5,7 +5,7 @@
 #ifndef OPENGL_SHADERPROGRAM_H
 #define OPENGL_SHADERPROGRAM_H
 
-#include <GL/glew.h>
+#include "GL/glew.h"
 #include "shader.h"
 
 

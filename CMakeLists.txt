@@ -19,4 +19,5 @@ add_executable(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PUBLIC includes)
 
-target_link_libraries(${PROJECT_NAME} GL glfw GLEW assimp)
+target_link_directories(${PROJECT_NAME} PRIVATE libs)
+target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 glfw3 glew32 assimp)

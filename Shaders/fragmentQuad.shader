@@ -1,5 +1,4 @@
 #version 460 core
-
 layout(std140, binding=0) buffer primitives{
     vec4 primitiveCoordinates[];
 };
@@ -56,7 +55,7 @@ uniform Light lights[];
 uniform vec3 camera;
 uniform sampler2D texture1;
 
-in vec3 pixel;
+layout(location = 0) in vec3 pixel;
 out vec4 FragColor;
 
 Hit rayTriangleIntersect(Ray ray, vec3 pointA, vec3 pointB, vec3 pointC, int matIndex){
