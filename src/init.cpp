@@ -107,7 +107,7 @@ int Init::setup() {
         exit(1);
     }
 
-    std::filesystem::path path = std::filesystem::current_path();
+    std::filesystem::path path = std::filesystem::current_path().parent_path();
 
     std::cout << "glewInit: " << glewInit << std::endl;
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << "\n" << std::endl;
